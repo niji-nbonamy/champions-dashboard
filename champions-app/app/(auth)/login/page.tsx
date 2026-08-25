@@ -1,0 +1,45 @@
+import Link from "next/link";
+
+export default async function LoginPage({
+  searchParams,
+}: PageProps<"/login">) {
+  const params = await searchParams;
+  const showRegistrationSuccess = params?.registered === "1";
+
+  return (
+    <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
+      <div className="flex w-full max-w-sm flex-col gap-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+        <p className="text-sm text-muted-foreground">
+          Login will be available in the next release step.
+        </p>
+      </div>
+
+      {showRegistrationSuccess ? (
+        <p
+          className="w-full max-w-sm rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-foreground"
+          role="status"
+        >
+          Account created successfully. You can sign in once login is enabled.
+        </p>
+      ) : null}
+
+      <p className="text-sm text-muted-foreground">
+        Need an account?{" "}
+        <Link
+          href="/register"
+          className="text-primary underline-offset-4 hover:underline"
+        >
+          Create one
+        </Link>
+      </p>
+
+      <Link
+        href="/"
+        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+      >
+        Back to home
+      </Link>
+    </main>
+  );
+}
