@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHAMPIONS — Thèmes (sans orange)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f4f4f5; padding: 24px; color: #18181b; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+    .intro { font-size: 0.875rem; color: #52525b; margin-bottom: 24px; max-width: 720px; line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .theme { border-radius: 12px; overflow: hidden; border: 2px solid transparent; }
+    .theme-header { padding: 14px 16px; }
+    .theme-header h2 { font-size: 1rem; font-weight: 600; }
+    .theme-header p { font-size: 0.75rem; opacity: 0.85; margin-top: 4px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+    .chip { font-size: 0.65rem; padding: 3px 8px; border-radius: 999px; font-weight: 500; }
+    .preview { margin: 0 12px 12px; border-radius: 8px; overflow: hidden; font-size: 0.8rem; }
+    .app-bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-height: 64px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .app-bar img { height: 52px; width: auto; object-fit: contain; }
+    .app-bar .title { font-weight: 300; font-size: 0.7rem; letter-spacing: 0.02em; text-transform: lowercase; opacity: 0.7; }
+    .tabs { display: flex; gap: 0; font-size: 0.75rem; }
+    .tab { padding: 8px 14px; opacity: 0.6; }
+    .tab.active { opacity: 1; font-weight: 600; border-bottom: 2px solid currentColor; }
+    .content { padding: 14px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn { padding: 6px 14px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; border: none; }
+    .btn-outline { background: transparent; border: 1px solid; }
+    .badge-row { display: flex; gap: 6px; margin-top: 8px; }
+    .lvl { width: 18px; height: 18px; border-radius: 50%; font-size: 0; }
+    .note { margin-top: 20px; font-size: 0.75rem; color: #71717A; max-width: 720px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <h1>CHAMPIONS — Sans orange</h1>
+  <p class="intro">Contrainte retenue : <strong>aucun orange</strong> dans primary, accent ni CTA. Le logo Saint Hermeland reste affichable tel quel dans la barre d'app — sans chercher à harmoniser l'UI avec son orange.</p>
+
+  <div class="grid">
+
+    <!-- A: Violet Doux -->
+    <div class="theme" style="background:#fff">
+      <div class="theme-header" style="background:#F5F3FF; color:#5B21B6">
+        <h2>A — Violet Doux</h2>
+        <p>Tiré des pastilles violettes du logo. Studieux, chaleureux sans être criard.</p>
+      </div>
+      <div class="chips">
+        <span class="chip" style="background:#7C3AED;color:#fff">primary #7C3AED</span>
+        <span class="chip" style="background:#0891B2;color:#fff">accent #0891B2</span>
+      </div>
+      <div class="preview" style="background:#FAFAF9; border:1px solid #E7E5E4">
+        <div class="app-bar" style="background:#fff">
+          <img src="../imports/logo-ecole-saint-hermeland.png" alt="logo">
+          <span class="title" style="color:#78716C">champions</span>
+        </div>
+        <div class="tabs" style="color:#5B21B6">
+          <span class="tab active">Dictées</span><span class="tab">Élèves</span><span class="tab">Config</span><span class="tab">Alertes</span>
+        </div>
+        <div class="content">
+          <strong>Dictée 4 — homophones</strong>
+          <div class="badge-row">
+            <span class="lvl" style="background:#F5D547"></span>
+            <span class="lvl" style="background:#4CAF50"></span>
+            <span class="lvl" style="background:#7E57C2"></span>
+            <span class="lvl" style="background:#FFB300"></span>
+          </div>
+          <div class="btn-row">
+            <button class="btn" style="background:#7C3AED;color:#fff">Enregistrer</button>
+            <button class="btn btn-outline" style="color:#0891B2;border-color:#0891B2">RDV parents</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B: Ciel Frais -->
+    <div class="theme" style="background:#fff">
+      <div class="theme-header" style="background:#ECFEFF; color:#0E7490">
+        <h2>B — Ciel Frais</h2>
+        <p>Bleu ciel des pastilles. Aéré, idéal pour les grilles longues.</p>
+      </div>
+      <div class="chips">
+        <span class="chip" style="background:#0891B2;color:#fff">primary #0891B2</span>
+        <span class="chip" style="background:#7C3AED;color:#fff">accent #7C3AED</span>
+      </div>
+      <div class="preview" style="background:#FAFAF9; border:1px solid #E7E5E4">
+        <div class="app-bar" style="background:#fff">
+          <img src="../imports/logo-ecole-saint-hermeland.png" alt="logo">
+          <span class="title" style="color:#78716C">champions</span>
+        </div>
+        <div class="tabs" style="color:#0E7490">
+          <span class="tab active">Dictées</span><span class="tab">Élèves</span><span class="tab">Config</span><span class="tab">Alertes</span>
+        </div>
+        <div class="content">
+          <strong>Dictée 4 — homophones</strong>
+          <div class="badge-row">
+            <span class="lvl" style="background:#F5D547"></span>
+            <span class="lvl" style="background:#4CAF50"></span>
+            <span class="lvl" style="background:#7E57C2"></span>
+            <span class="lvl" style="background:#FFB300"></span>
+          </div>
+          <div class="btn-row">
+            <button class="btn" style="background:#0891B2;color:#fff">Enregistrer</button>
+            <button class="btn btn-outline" style="color:#7C3AED;border-color:#7C3AED">RDV parents</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C: Menthe Douce -->
+    <div class="theme" style="background:#fff">
+      <div class="theme-header" style="background:#F0FDF4; color:#166534">
+        <h2>C — Menthe Douce</h2>
+        <p>Vert menthe des pastilles. Doux, encourageant — sans lien sportif.</p>
+      </div>
+      <div class="chips">
+        <span class="chip" style="background:#059669;color:#fff">primary #059669</span>
+        <span class="chip" style="background:#7C3AED;color:#fff">accent #7C3AED</span>
+      </div>
+      <div class="preview" style="background:#FAFAF9; border:1px solid #E7E5E4">
+        <div class="app-bar" style="background:#fff">
+          <img src="../imports/logo-ecole-saint-hermeland.png" alt="logo">
+          <span class="title" style="color:#78716C">champions</span>
+        </div>
+        <div class="tabs" style="color:#166534">
+          <span class="tab active">Dictées</span><span class="tab">Élèves</span><span class="tab">Config</span><span class="tab">Alertes</span>
+        </div>
+        <div class="content">
+          <strong>Dictée 4 — homophones</strong>
+          <div class="badge-row">
+            <span class="lvl" style="background:#F5D547"></span>
+            <span class="lvl" style="background:#4CAF50"></span>
+            <span class="lvl" style="background:#7E57C2"></span>
+            <span class="lvl" style="background:#FFB300"></span>
+          </div>
+          <div class="btn-row">
+            <button class="btn" style="background:#059669;color:#fff">Enregistrer</button>
+            <button class="btn btn-outline" style="color:#7C3AED;border-color:#7C3AED">RDV parents</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- D: Ardoise sobre -->
+    <div class="theme" style="background:#fff">
+      <div class="theme-header" style="background:#F4F4F5; color:#3F3F46">
+        <h2>D — Ardoise Sobre</h2>
+        <p>Neutre et professionnel. Les niveaux CHAMPIONS portent la couleur.</p>
+      </div>
+      <div class="chips">
+        <span class="chip" style="background:#3F3F46;color:#fff">primary #3F3F46</span>
+        <span class="chip" style="background:#7C3AED;color:#fff">accent #7C3AED</span>
+      </div>
+      <div class="preview" style="background:#FAFAF9; border:1px solid #E7E5E4">
+        <div class="app-bar" style="background:#fff">
+          <img src="../imports/logo-ecole-saint-hermeland.png" alt="logo">
+          <span class="title" style="color:#78716C">champions</span>
+        </div>
+        <div class="tabs" style="color:#3F3F46">
+          <span class="tab active">Dictées</span><span class="tab">Élèves</span><span class="tab">Config</span><span class="tab">Alertes</span>
+        </div>
+        <div class="content">
+          <strong>Dictée 4 — homophones</strong>
+          <div class="badge-row">
+            <span class="lvl" style="background:#F5D547"></span>
+            <span class="lvl" style="background:#4CAF50"></span>
+            <span class="lvl" style="background:#7E57C2"></span>
+            <span class="lvl" style="background:#FFB300"></span>
+          </div>
+          <div class="btn-row">
+            <button class="btn" style="background:#3F3F46;color:#fff">Enregistrer</button>
+            <button class="btn btn-outline" style="color:#7C3AED;border-color:#7C3AED">RDV parents</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="note">
+    <strong>Rappel :</strong> le jaune/or des badges CHAMPIONS (niveaux pédagogiques) reste — ce n'est pas de l'« accent UI ». Aucune de ces variantes n'utilise l'orange du logo.
+  </p>
+</body>
+</html>

@@ -1,0 +1,82 @@
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; the status view surfaces open ones
+generated: 08-25-2026 10:35
+last_updated: 08-25-2026 10:35
+project: testBMAD
+project_key: NOKEY
+tracking_system: file-system
+story_location: 
+  /Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts
+development_status:
+  epic-1: backlog
+  1-1-project-scaffold-development-environment: backlog
+  1-2-teacher-registration: backlog
+  1-3-teacher-login-session-management: backlog
+  1-4-first-login-class-creation: backlog
+  1-5-design-system-tokens-brand-theme: backlog
+  1-6-app-shell-with-navigation-app-bar: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-csv-roster-import: backlog
+  2-2-manual-student-add-roster-list: backlog
+  2-3-level-assignment-color-dot-picker-e1: backlog
+  2-4-word-count-matrix-configuration-f1: backlog
+  2-5-year-start-wizard-e3: backlog
+  2-6-mid-year-roster-changes-student-archiving: backlog
+  2-7-empty-roster-pre-setup-states: backlog
+  2-8-annual-year-reset: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-create-dictation: backlog
+  3-2-class-grid-ui-with-keyboard-navigation-a2: backlog
+  3-3-grid-validation-save-blocking: backlog
+  3-4-scoring-engine-dictation-save: backlog
+  3-5-edit-past-dictation: backlog
+  3-6-inline-promotion-indicators-on-grid-d3-d3: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-auto-generated-student-dossier: backlog
+  4-2-hero-curve-collapsed-dictation-table-c1: backlog
+  4-3-promotion-banner-on-dossier-d1: backlog
+  4-4-manual-level-override-level-history: backlog
+  4-5-promotion-detection-rules: backlog
+  4-6-alertes-promotion-queue-d2: backlog
+  4-7-presentation-mode-rdv-parents-c3: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-mobile-dictation-hub-g2: backlog
+  5-2-mobile-per-student-entry-form-b4: backlog
+  5-3-unleveled-student-block-on-mobile: backlog
+  epic-5-retrospective: optional
