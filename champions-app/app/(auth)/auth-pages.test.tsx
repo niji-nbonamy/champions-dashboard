@@ -65,6 +65,7 @@ describe("auth pages", () => {
     );
 
     expect(html).toContain("Sign in");
+    expect(html).toContain("text-display");
     expect(html).toContain('name="email"');
     expect(html).toContain('name="password"');
     expect(html).toContain('type="password"');

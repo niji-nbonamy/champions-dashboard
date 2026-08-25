@@ -12,4 +12,14 @@ describe("Button", () => {
     expect(html).toContain("custom-class");
     expect(html).toContain("bg-primary");
   });
+
+  it("applies accent outline variant classes", () => {
+    const html = renderToStaticMarkup(
+      <Button variant="accent">Accent</Button>
+    );
+
+    expect(html).toContain("border-accent");
+    expect(html).toContain("text-accent");
+    expect(html).toContain("bg-transparent");
+  });
 });
