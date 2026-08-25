@@ -21,6 +21,8 @@ vi.mock("@/lib/db/index", () => ({
 }));
 
 describe("registerTeacher", () => {
+  const teacherId = "550e8400-e29b-41d4-a716-446655440000";
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -28,16 +30,19 @@ describe("registerTeacher", () => {
   it("creates a teacher with hashed password for valid input", async () => {
     mockLimit.mockResolvedValueOnce([]);
     mockReturning.mockResolvedValueOnce([
-      { id: "teacher-uuid", email: "teacher@example.com" },
+      { id: teacherId, email: "teacher@example.com" },
     ]);
 
     const { registerTeacher } = await import("./register-teacher");
     const result = await registerTeacher("Teacher@Example.com", "password12");
 
     expect(result).toEqual({
-      id: "teacher-uuid",
+      id: teacherId,
       email: "teacher@example.com",
     });
+    expect(result.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    );
     expect(mockValues).toHaveBeenCalledWith(
       expect.objectContaining({
         email: "teacher@example.com",
@@ -93,6 +98,19 @@ describe("registerTeacher", () => {
     mockValues.mockImplementationOnce(() => {
       throw new Error("db down");
     });
+
+    const { registerTeacher, RegistrationFailedError } = await import(
+      "./register-teacher"
+    );
+
+    await expect(
+      registerTeacher("teacher@example.com", "password12")
+    ).rejects.toThrow(RegistrationFailedError);
+  });
+
+  it("throws a generic error when insert hits a unique constraint", async () => {
+    mockLimit.mockResolvedValueOnce([]);
+    mockReturning.mockRejectedValueOnce({ code: "23505" });
 
     const { registerTeacher, RegistrationFailedError } = await import(
       "./register-teacher"

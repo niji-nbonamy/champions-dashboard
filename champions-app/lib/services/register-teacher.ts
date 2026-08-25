@@ -29,6 +29,7 @@ export async function registerTeacher(
     throw new RegistrationFailedError();
   }
 
+  const passwordHash = await hash(input.password, 12);
   const db = getDb();
 
   const existing = await db
@@ -40,8 +41,6 @@ export async function registerTeacher(
   if (existing.length > 0) {
     throw new RegistrationFailedError();
   }
-
-  const passwordHash = await hash(input.password, 12);
 
   try {
     const [teacher] = await db

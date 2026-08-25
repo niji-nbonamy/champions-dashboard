@@ -130,3 +130,19 @@ Single `teachers` table holds credentials; Auth.js Credentials provider in story
 - Domain rules and generic message wording.
   [`registration.test.ts:12`](../../champions-app/lib/domain/registration.test.ts#L12)
 
+### Review Findings
+
+- [x] [Review][Patch] Validation HTML5 affiche des messages navigateur au lieu de l'erreur générique NFR9 [`register-form.tsx:352-372`]
+- [x] [Review][Patch] Aucun test pour `registerAction` (redirect succès + retour erreur générique) [`actions.ts:13-29`]
+- [x] [Review][Patch] Test register page lit le source au lieu de rendre le composant [`auth-pages.test.tsx:11-18`]
+- [x] [Review][Patch] Fuite timing NFR9 : pas de hash bcrypt quand l'email existe déjà [`register-teacher.ts:652-660`]
+- [x] [Review][Patch] Pas de longueur max mot de passe (DoS bcrypt) [`registration.ts:480-481`]
+- [x] [Review][Patch] Tests domaine : champs vides (missing fields) non couverts explicitement [`registration.test.ts`]
+- [x] [Review][Patch] Test succès service n'asserte pas le format UUID [`register-teacher.test.ts:28-40`]
+- [x] [Review][Patch] `searchParams.registered` peut être un tableau Next.js [`login/page.tsx:15`]
+- [x] [Review][Patch] Limite 72 octets bcrypt non gardée [`registration.ts:480-481`]
+- [x] [Review][Patch] Chemin violation contrainte unique (race) non testé [`register-teacher.test.ts`]
+- [x] [Review][Defer] Formulaire ne conserve pas l'email après erreur [`register-form.tsx`] — deferred, pre-existing
+- [x] [Review][Defer] Pas de rate limiting sur l'inscription [`register-teacher.ts`] — deferred, pre-existing
+- [x] [Review][Defer] Erreurs DB silencieuses côté serveur (pas de log) [`register-teacher.ts:678-683`] — deferred, pre-existing
+

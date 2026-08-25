@@ -18,7 +18,11 @@ export function RegisterForm() {
   );
 
   return (
-    <form action={formAction} className="flex w-full max-w-sm flex-col gap-4">
+    <form
+      action={formAction}
+      noValidate
+      className="flex w-full max-w-sm flex-col gap-4"
+    >
       <div className="flex flex-col gap-1.5">
         <label htmlFor="email" className="text-sm font-medium">
           Email
@@ -26,9 +30,9 @@ export function RegisterForm() {
         <input
           id="email"
           name="email"
-          type="email"
+          type="text"
+          inputMode="email"
           autoComplete="email"
-          required
           className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
       </div>
@@ -42,8 +46,6 @@ export function RegisterForm() {
           name="password"
           type="password"
           autoComplete="new-password"
-          required
-          minLength={8}
           className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
       </div>

@@ -19,3 +19,9 @@
 - `npm run build` integration test in CI — deferred; static scaffold tests sufficient for now
 - `next.config.ts` turbopack.root — deferred unless monorepo warnings become errors
 - `db:migrate` / `db:generate` scripts — deferred (spec allows push-only)
+
+## Deferred from: code review of spec-1-2-teacher-registration.md (2026-08-25)
+
+- Formulaire ne conserve pas l'email après erreur — UX mineure, hors AC story 1.2 (`register-form.tsx`)
+- Pas de rate limiting sur l'inscription — endpoint public ; à traiter en story sécurité/infra ultérieure (`register-teacher.ts`)
+- Erreurs DB silencieuses côté serveur (pas de log) — NFR9 impose message générique UI ; observabilité à ajouter plus tard (`register-teacher.ts:678-683`)

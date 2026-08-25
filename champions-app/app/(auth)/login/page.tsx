@@ -4,7 +4,9 @@ export default async function LoginPage({
   searchParams,
 }: PageProps<"/login">) {
   const params = await searchParams;
-  const showRegistrationSuccess = params?.registered === "1";
+  const registered = params?.registered;
+  const registeredValue = Array.isArray(registered) ? registered[0] : registered;
+  const showRegistrationSuccess = registeredValue === "1";
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">

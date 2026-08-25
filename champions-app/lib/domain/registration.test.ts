@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   isValidEmail,
   isValidPassword,
+  MAX_PASSWORD_BYTES,
+  MAX_PASSWORD_LENGTH,
   MIN_PASSWORD_LENGTH,
   normalizeEmail,
   REGISTRATION_ERROR_MESSAGE,
@@ -29,11 +31,34 @@ describe("registration domain", () => {
     expect(validateRegistrationInput("bad@", "password12")).toBeNull();
   });
 
+  it("rejects missing fields from the I/O matrix", () => {
+    expect(validateRegistrationInput("", "password12")).toBeNull();
+    expect(validateRegistrationInput("teacher@example.com", "")).toBeNull();
+    expect(validateRegistrationInput("", "")).toBeNull();
+  });
+
   it("rejects passwords shorter than minimum length", () => {
     expect(isValidPassword("short")).toBe(false);
     expect(
       validateRegistrationInput("teacher@example.com", "a".repeat(MIN_PASSWORD_LENGTH - 1))
     ).toBeNull();
+  });
+
+  it("rejects passwords longer than the maximum length", () => {
+    expect(isValidPassword("a".repeat(MAX_PASSWORD_LENGTH + 1))).toBe(false);
+    expect(
+      validateRegistrationInput(
+        "teacher@example.com",
+        "a".repeat(MAX_PASSWORD_LENGTH + 1)
+      )
+    ).toBeNull();
+  });
+
+  it("rejects passwords exceeding bcrypt byte limit", () => {
+    const password = "😀".repeat(MAX_PASSWORD_BYTES);
+
+    expect(isValidPassword(password)).toBe(false);
+    expect(validateRegistrationInput("teacher@example.com", password)).toBeNull();
   });
 
   it("uses a single generic registration error message", () => {
