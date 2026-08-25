@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function AppBar() {
   return (
-    <header className="bg-background">
+    <header className="border-b border-border bg-background">
       <div className="flex min-h-[var(--spacing-app-bar-min-height)] flex-col justify-center gap-1 px-4 py-2 lg:flex-row lg:items-center lg:gap-3">
         <Image
           src="/logo-ecole-saint-hermeland.png"

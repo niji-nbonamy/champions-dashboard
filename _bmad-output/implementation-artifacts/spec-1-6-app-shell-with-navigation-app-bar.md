@@ -149,3 +149,15 @@ const tabs = [
 
 - Shell composition, nav tabs, app bar, and dictations page coverage
   [`dashboard-shell.test.tsx:28`](../../champions-app/components/dashboard/dashboard-shell.test.tsx#L28)
+
+### Review Findings
+
+- [x] [Review][Patch] App bar header missing `border-b` per Code Map [`app-bar.tsx:5`]
+- [x] [Review][Patch] Logo PNG runtime asset not verified on disk [`scaffold.test.ts:10`]
+- [x] [Review][Patch] Nested-path active tab test does not assert `aria-current` on the Dictées link [`nav-tabs.test.tsx:74`]
+- [x] [Review][Patch] No test asserting school logo is not clickable [`app-bar.test.tsx:28`]
+- [x] [Review][Defer] Tablet viewport (768–1023px) acceptance lacks browser/responsive tests [`nav-tabs.tsx:25`] — deferred, pre-existing
+- [x] [Review][Defer] Client-side tab navigation without full reload not covered by integration/E2E tests [`nav-tabs.tsx:31`] — deferred, pre-existing
+- [x] [Review][Defer] Duplicated `next/image` and `next/link` mocks across dashboard test files [`app-bar.test.tsx:6`] — deferred, pre-existing
+- [x] [Review][Defer] `next/image` missing `sizes` attribute for responsive logo optimization [`app-bar.tsx:7`] — deferred, pre-existing
+- [x] [Review][Defer] Spec Change Log empty for story iteration decisions [`spec-1-6-app-shell-with-navigation-app-bar.md:116`] — deferred, pre-existing

@@ -52,6 +52,13 @@ describe("AppBar", () => {
     const html = renderToStaticMarkup(<AppBar />);
 
     expect(html).toContain("min-h-[var(--spacing-app-bar-min-height)]");
+    expect(html).toContain("border-b");
     expect(SPACING.appBarMinHeight).toBe("64px");
+  });
+
+  it("does not render the logo as a clickable link", () => {
+    const html = renderToStaticMarkup(<AppBar />);
+
+    expect(html).not.toMatch(/<a\s/);
   });
 });

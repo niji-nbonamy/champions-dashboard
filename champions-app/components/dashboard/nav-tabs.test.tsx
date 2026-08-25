@@ -77,7 +77,9 @@ describe("NavTabs", () => {
 
     const html = renderToStaticMarkup(<NavTabs />);
 
-    expect(html).toContain('href="/dictations"');
-    expect(html).toContain('aria-current="page"');
+    expect(html).toMatch(/href="\/dictations"[^>]*aria-current="page"/);
+    expect(html).not.toMatch(/href="\/students"[^>]*aria-current="page"/);
+    expect(html).not.toMatch(/href="\/config"[^>]*aria-current="page"/);
+    expect(html).not.toMatch(/href="\/alerts"[^>]*aria-current="page"/);
   });
 });
