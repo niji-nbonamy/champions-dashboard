@@ -21,6 +21,7 @@ vi.mock("@/lib/services/get-teacher-class", () => ({
 }));
 
 import DashboardLayout from "./layout";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 describe("dashboard layout", () => {
   it("redirects unauthenticated users to login", async () => {
@@ -56,6 +57,10 @@ describe("dashboard layout", () => {
 
     const result = await DashboardLayout({ children: <div>child</div> });
 
-    expect(result).toEqual(<div>child</div>);
+    expect(result).toEqual(
+      <DashboardShell>
+        <div>child</div>
+      </DashboardShell>
+    );
   });
 });

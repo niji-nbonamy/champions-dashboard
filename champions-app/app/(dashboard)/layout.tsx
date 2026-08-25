@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 
 export default async function DashboardLayout({
@@ -20,5 +21,5 @@ export default async function DashboardLayout({
     redirect("/onboarding/class");
   }
 
-  return children;
+  return <DashboardShell>{children}</DashboardShell>;
 }
