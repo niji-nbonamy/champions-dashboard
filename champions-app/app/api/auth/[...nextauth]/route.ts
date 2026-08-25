@@ -1,9 +1,3 @@
-// Auth.js handlers wired in story 1.3.
+import { handlers } from "@/auth";
 
-export async function GET() {
-  return new Response("Auth not configured", { status: 501 });
-}
-
-export async function POST() {
-  return new Response("Auth not configured", { status: 501 });
-}
+export const { GET, POST } = handlers;

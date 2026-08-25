@@ -1,8 +1,18 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
+
+import { LoginForm } from "./login-form";
 
 export default async function LoginPage({
   searchParams,
 }: PageProps<"/login">) {
+  const session = await auth();
+  if (session) {
+    redirect("/dictations");
+  }
+
   const params = await searchParams;
   const registered = params?.registered;
   const registeredValue = Array.isArray(registered) ? registered[0] : registered;
@@ -13,7 +23,7 @@ export default async function LoginPage({
       <div className="flex w-full max-w-sm flex-col gap-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
         <p className="text-sm text-muted-foreground">
-          Login will be available in the next release step.
+          Sign in with your teacher account.
         </p>
       </div>
 
@@ -22,9 +32,11 @@ export default async function LoginPage({
           className="w-full max-w-sm rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-foreground"
           role="status"
         >
-          Account created successfully. You can sign in once login is enabled.
+          Account created successfully. You can sign in now.
         </p>
       ) : null}
+
+      <LoginForm />
 
       <p className="text-sm text-muted-foreground">
         Need an account?{" "}

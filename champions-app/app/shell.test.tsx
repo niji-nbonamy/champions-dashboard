@@ -4,7 +4,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import Home from "./page";
-import { GET, POST } from "./api/auth/[...nextauth]/route";
 
 const appRoot = path.resolve(__dirname);
 
@@ -25,13 +24,14 @@ describe("application shell", () => {
     );
   });
 
-  it("returns 501 for auth GET and POST stubs", async () => {
-    const getResponse = await GET();
-    expect(getResponse.status).toBe(501);
-    expect(await getResponse.text()).toBe("Auth not configured");
+  it("exports Auth.js route handlers instead of 501 stubs", async () => {
+    const routeSource = readFileSync(
+      path.join(appRoot, "api/auth/[...nextauth]/route.ts"),
+      "utf8"
+    );
 
-    const postResponse = await POST();
-    expect(postResponse.status).toBe(501);
-    expect(await postResponse.text()).toBe("Auth not configured");
+    expect(routeSource).toContain('import { handlers } from "@/auth"');
+    expect(routeSource).toContain("export const { GET, POST } = handlers");
+    expect(routeSource).not.toContain("501");
   });
 });

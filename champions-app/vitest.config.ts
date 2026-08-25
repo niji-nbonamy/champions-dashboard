@@ -5,6 +5,9 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["**/*.test.ts", "**/*.test.tsx"],
+    env: {
+      AUTH_SECRET: "test-auth-secret-for-unit-tests-only",
+    },
   },
   resolve: {
     alias: {
