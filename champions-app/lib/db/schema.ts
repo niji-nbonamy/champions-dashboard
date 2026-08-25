@@ -8,3 +8,15 @@ export const teachers = pgTable("teachers", {
     .defaultNow()
     .notNull(),
 });
+
+export const classes = pgTable("classes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teacherId: uuid("teacher_id")
+    .notNull()
+    .unique()
+    .references(() => teachers.id),
+  schoolYearLabel: text("school_year_label").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

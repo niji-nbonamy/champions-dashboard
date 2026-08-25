@@ -5,9 +5,12 @@ export const DASHBOARD_ROUTE_PREFIXES = [
   "/alerts",
 ] as const;
 
+export const ONBOARDING_ROUTE_PREFIX = "/onboarding";
+
 // Keep in sync with `middleware.ts` config.matcher (Next.js requires literals there).
 export const AUTH_MIDDLEWARE_MATCHER = [
   "/login",
+  "/onboarding/:path*",
   "/dictations/:path*",
   "/students/:path*",
   "/config/:path*",
@@ -24,6 +27,13 @@ export function isDashboardRoute(pathname: string): boolean {
   );
 }
 
+export function isOnboardingRoute(pathname: string): boolean {
+  return (
+    pathname === ONBOARDING_ROUTE_PREFIX ||
+    pathname.startsWith(`${ONBOARDING_ROUTE_PREFIX}/`)
+  );
+}
+
 export function getAuthRedirectPath(
   pathname: string,
   isLoggedIn: boolean
@@ -32,7 +42,7 @@ export function getAuthRedirectPath(
     return "/dictations";
   }
 
-  if (isDashboardRoute(pathname) && !isLoggedIn) {
+  if (!isLoggedIn && (isDashboardRoute(pathname) || isOnboardingRoute(pathname))) {
     return "/login";
   }
 

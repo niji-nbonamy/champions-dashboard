@@ -5,6 +5,7 @@ import {
   getAuthMiddlewareMatcher,
   getAuthRedirectPath,
   isDashboardRoute,
+  isOnboardingRoute,
 } from "./middleware-policy";
 
 describe("middleware policy", () => {
@@ -21,6 +22,11 @@ describe("middleware policy", () => {
     expect(getAuthRedirectPath("/config/settings", false)).toBe("/login");
   });
 
+  it("redirects unauthenticated onboarding access to login", () => {
+    expect(isOnboardingRoute("/onboarding/class")).toBe(true);
+    expect(getAuthRedirectPath("/onboarding/class", false)).toBe("/login");
+  });
+
   it("redirects authenticated users away from login", () => {
     expect(getAuthRedirectPath("/login", true)).toBe("/dictations");
   });
@@ -35,6 +41,7 @@ describe("middleware policy", () => {
     const matcher = getAuthMiddlewareMatcher();
 
     expect(matcher).toContain("/login");
+    expect(matcher).toContain("/onboarding/:path*");
     for (const prefix of DASHBOARD_ROUTE_PREFIXES) {
       expect(matcher).toContain(`${prefix}/:path*`);
     }
