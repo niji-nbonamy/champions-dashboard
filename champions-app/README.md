@@ -21,12 +21,17 @@ Teacher-facing dictation dashboards for primary classrooms. EU-hosted, class-sco
    cp .env.example .env.local
    ```
 
+   `npm run db:push` and `npm run db:studio` load variables from `.env.local` automatically (same as Next.js).
+
 3. Configure `.env.local`:
 
    | Variable | Required | Description |
    | --- | --- | --- |
-   | `DATABASE_URL` | Yes | Neon serverless connection string (Frankfurt region) |
+   | `DATABASE_URL` | Yes | Neon **pooled** connection string (hostname contains `-pooler`) for the app |
+   | `DATABASE_URL_UNPOOLED` | Yes for migrations | Neon **direct** connection string (no `-pooler`) for `npm run db:push` |
    | `AUTH_SECRET` | Yes | Auth.js session secret (`openssl rand -base64 32`) |
+
+   In the Neon dashboard → **Connect**, copy both connection strings (pooled + direct). Using only the pooled URL for `db:push` can hang at « Pulling schema from database... ».
 
 4. Push schema to Neon (when `DATABASE_URL` is set):
 
