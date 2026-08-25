@@ -5,11 +5,17 @@ export const DASHBOARD_ROUTE_PREFIXES = [
   "/alerts",
 ] as const;
 
+// Keep in sync with `middleware.ts` config.matcher (Next.js requires literals there).
+export const AUTH_MIDDLEWARE_MATCHER = [
+  "/login",
+  "/dictations/:path*",
+  "/students/:path*",
+  "/config/:path*",
+  "/alerts/:path*",
+];
+
 export function getAuthMiddlewareMatcher(): string[] {
-  return [
-    "/login",
-    ...DASHBOARD_ROUTE_PREFIXES.map((prefix) => `${prefix}/:path*`),
-  ];
+  return [...AUTH_MIDDLEWARE_MATCHER];
 }
 
 export function isDashboardRoute(pathname: string): boolean {

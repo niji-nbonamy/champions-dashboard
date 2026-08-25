@@ -1,6 +1,3 @@
-import {
-  getAuthMiddlewareMatcher,
-} from "@/lib/auth/middleware-policy";
 import { runAuthMiddleware } from "@/lib/auth/middleware-handler";
 
 import { auth } from "./auth";
@@ -10,5 +7,11 @@ export default auth((req) =>
 );
 
 export const config = {
-  matcher: getAuthMiddlewareMatcher(),
+  matcher: [
+    "/login",
+    "/dictations/:path*",
+    "/students/:path*",
+    "/config/:path*",
+    "/alerts/:path*",
+  ],
 };

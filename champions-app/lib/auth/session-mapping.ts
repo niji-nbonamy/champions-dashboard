@@ -1,14 +1,14 @@
 import type { Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
-type AuthUser = {
-  id: string;
-  email: string;
+type JwtUserInput = {
+  id?: string;
+  email?: string | null;
 };
 
 export function mapUserToJwtToken(
   token: JWT,
-  user?: AuthUser | null
+  user?: JwtUserInput | null
 ): JWT {
   if (user?.id && user.email) {
     token.sub = user.id;
