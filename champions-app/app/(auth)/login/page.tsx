@@ -21,7 +21,7 @@ export default async function LoginPage({
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
       <div className="flex w-full max-w-sm flex-col gap-2 text-center">
-        <h1 className="text-display tracking-tight">Sign in</h1>
+        <h1 className="text-display">Sign in</h1>
         <p className="text-sm text-muted-foreground">
           Sign in with your teacher account.
         </p>

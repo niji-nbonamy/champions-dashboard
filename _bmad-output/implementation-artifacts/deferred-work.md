@@ -37,3 +37,8 @@
 - Page `/dictations` sans garde `auth()` serveur — protection middleware uniquement (`dictations/page.tsx`)
 - Migration Next.js 16 `middleware` → `proxy` — avertissement build (`middleware.ts`)
 - Pas de tests E2E register → login → session → dashboard (`spec` manual checks only)
+
+## Deferred from: code review of spec-1-5-design-system-tokens-brand-theme.md (2026-08-25)
+
+- Register/onboarding/dashboard titles still use `text-2xl` — out of story scope; login smoke test only (`register/page.tsx`, dashboard pages)
+- `LevelBadge` and `Button` accent variant not integrated on any page — component-delivery story; dossier/grid usage in later epics

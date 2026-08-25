@@ -152,3 +152,17 @@ Map DESIGN.md hex to CSS custom properties using literal hex or oklch — shadcn
 
 - Token, button, level-badge, and auth page coverage
   [`tokens.test.ts:33`](../../champions-app/lib/design/tokens.test.ts#L33)
+
+### Review Findings
+
+- [x] [Review][Decision] Dark mode palette — resolved: **B** align `.dark` with Theme C mint/violet + brand tokens (`globals.css`)
+
+- [x] [Review][Patch] Login `tracking-tight` overrides `text-display` letter-spacing [`login/page.tsx:24`]
+
+- [x] [Review][Patch] Extend `tokens.test.ts` — COLORS/globals.css parity, typography CSS rules, spacing [`tokens.test.ts`]
+
+- [x] [Review][Patch] Layout test for `DM_Sans` `--font-display` on `<html>` [`shell.test.tsx`]
+
+- [x] [Review][Defer] Register/onboarding/dashboard titles still use `text-2xl` — deferred, pre-existing / out of story scope (login smoke test only)
+
+- [x] [Review][Defer] `LevelBadge` and `Button` accent variant not used on any page — deferred, pre-existing / component-delivery story; integration in later epics

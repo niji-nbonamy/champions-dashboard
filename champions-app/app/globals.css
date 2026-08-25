@@ -131,31 +131,52 @@
   --card-foreground: #f9fafb;
   --popover: #1f2937;
   --popover-foreground: #f9fafb;
-  --primary: #34d399;
-  --primary-foreground: #052e16;
+  --primary: #059669;
+  --primary-foreground: #ffffff;
   --secondary: #374151;
   --secondary-foreground: #f9fafb;
   --muted: #374151;
   --muted-foreground: #9ca3af;
-  --accent: #a78bfa;
-  --accent-foreground: #1e1b4b;
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
   --destructive: #f87171;
   --border: #374151;
   --input: #374151;
-  --ring: #34d399;
-  --chart-1: #34d399;
-  --chart-2: #a78bfa;
-  --chart-3: #60a5fa;
-  --chart-4: #4ade80;
-  --chart-5: #9ca3af;
+  --ring: #059669;
+  --chart-1: #059669;
+  --chart-2: #7c3aed;
+  --chart-3: #2563eb;
+  --chart-4: #16a34a;
+  --chart-5: #6b7280;
   --sidebar: #1f2937;
   --sidebar-foreground: #f9fafb;
-  --sidebar-primary: #34d399;
-  --sidebar-primary-foreground: #052e16;
+  --sidebar-primary: #059669;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #374151;
   --sidebar-accent-foreground: #f9fafb;
   --sidebar-border: #374151;
-  --sidebar-ring: #34d399;
+  --sidebar-ring: #059669;
+
+  --level-yellow: #f5d547;
+  --level-yellow-foreground: #3d3200;
+  --level-green: #4caf50;
+  --level-green-foreground: #0a2e0c;
+  --level-violet: #7e57c2;
+  --level-violet-foreground: #ffffff;
+  --level-gold: #ffb300;
+  --level-gold-foreground: #3d2800;
+  --promotion-ready: #2563eb;
+  --promotion-ready-foreground: #ffffff;
+  --trend-up: #16a34a;
+  --trend-down: #dc2626;
+  --trend-flat: #6b7280;
+
+  --spacing-grid-cell-min: 44px;
+  --spacing-grid-row-height: 40px;
+  --spacing-app-bar-min-height: 64px;
+  --spacing-logo-app-bar-height: 52px;
+  --spacing-logo-app-bar-height-mobile: 40px;
+  --spacing-logo-presentation-height: 44px;
 }
 
 @layer base {

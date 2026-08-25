@@ -32,6 +32,14 @@ describe("application shell", () => {
     );
   });
 
+  it("loads DM Sans as the display font variable on root layout", () => {
+    const layoutSource = readFileSync(path.join(appRoot, "layout.tsx"), "utf8");
+
+    expect(layoutSource).toContain("DM_Sans");
+    expect(layoutSource).toContain("variable: \"--font-display\"");
+    expect(layoutSource).toContain("${dmSans.variable}");
+  });
+
   it("exports Auth.js route handlers instead of 501 stubs", async () => {
     const routeSource = readFileSync(
       path.join(appRoot, "api/auth/[...nextauth]/route.ts"),

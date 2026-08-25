@@ -30,6 +30,15 @@ function collectHexValues(value: unknown): string[] {
   return [];
 }
 
+function cssContainsHex(css: string, hex: string): boolean {
+  return css.toLowerCase().includes(hex.toLowerCase());
+}
+
+function extractDarkBlock(css: string): string {
+  const match = css.match(/\.dark\s*\{([\s\S]*?)\n\}/);
+  return match?.[1] ?? "";
+}
+
 describe("design tokens", () => {
   it("matches canonical Theme C primary, accent, and promotion-ready colors", () => {
     expect(COLORS.primary).toBe("#059669");
@@ -49,6 +58,8 @@ describe("design tokens", () => {
   it("defines display and data-lg typography scales", () => {
     expect(TYPOGRAPHY.display.fontSize).toBe("28px");
     expect(TYPOGRAPHY.display.fontWeight).toBe("300");
+    expect(TYPOGRAPHY.displaySm.fontSize).toBe("20px");
+    expect(TYPOGRAPHY.displaySm.fontWeight).toBe("300");
     expect(TYPOGRAPHY.dataLg.fontSize).toBe("32px");
     expect(TYPOGRAPHY.dataLg.fontWeight).toBe("600");
   });
@@ -76,5 +87,37 @@ describe("design tokens", () => {
     expect(css).toContain(".text-data-lg");
     expect(css).toContain("var(--font-display)");
     expect(css).toContain("--spacing-grid-cell-min: 44px");
+    expect(css).toContain("--spacing-grid-row-height: 40px");
+  });
+
+  it("mirrors all COLORS hex values in globals.css", () => {
+    const css = readFileSync(globalsCssPath, "utf8");
+    for (const hex of collectHexValues(COLORS)) {
+      expect(cssContainsHex(css, hex)).toBe(true);
+    }
+  });
+
+  it("dark mode uses Theme C primary, accent, and brand tokens", () => {
+    const css = readFileSync(globalsCssPath, "utf8");
+    const darkBlock = extractDarkBlock(css);
+
+    expect(darkBlock).toContain("--primary: #059669");
+    expect(darkBlock).toContain("--accent: #7c3aed");
+    expect(darkBlock).toContain("--level-green: #4caf50");
+    expect(darkBlock).toContain("--promotion-ready: #2563eb");
+    expect(darkBlock).toContain("--trend-up: #16a34a");
+    expect(darkBlock).toContain("--spacing-grid-row-height: 40px");
+  });
+
+  it("typography utilities match TYPOGRAPHY constants in globals.css", () => {
+    const css = readFileSync(globalsCssPath, "utf8");
+
+    expect(css).toContain(".text-display-sm");
+    expect(css).toContain(`font-size: ${TYPOGRAPHY.display.fontSize}`);
+    expect(css).toContain(`font-weight: ${TYPOGRAPHY.display.fontWeight}`);
+    expect(css).toContain(`font-size: ${TYPOGRAPHY.displaySm.fontSize}`);
+    expect(css).toContain(`font-weight: ${TYPOGRAPHY.displaySm.fontWeight}`);
+    expect(css).toContain(`font-size: ${TYPOGRAPHY.dataLg.fontSize}`);
+    expect(css).toContain(`font-weight: ${TYPOGRAPHY.dataLg.fontWeight}`);
   });
 });
