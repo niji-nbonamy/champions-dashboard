@@ -28,6 +28,7 @@ describe("scaffold configuration", () => {
     const envExample = readFileSync(path.join(root, ".env.example"), "utf8");
 
     expect(envExample).toContain("DATABASE_URL=");
+    expect(envExample).toContain("DATABASE_URL_UNPOOLED=");
     expect(envExample).toContain("AUTH_SECRET=");
   });
 
@@ -42,9 +43,19 @@ describe("scaffold configuration", () => {
   it("exposes dev and build scripts for local development", () => {
     const pkg = JSON.parse(
       readFileSync(path.join(root, "package.json"), "utf8")
-    ) as { scripts: Record<string, string> };
+    ) as {
+      scripts: Record<string, string>;
+      engines: { node: string };
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
 
     expect(pkg.scripts.dev).toBe("next dev");
     expect(pkg.scripts.build).toBe("next build");
+    expect(pkg.engines.node).toBe(">=22");
+    expect(pkg.dependencies.next).toBe("16.3.2");
+    expect(pkg.dependencies.react).toMatch(/^19\./);
+    expect(pkg.dependencies["react-dom"]).toMatch(/^19\./);
+    expect(pkg.devDependencies.typescript).toMatch(/^\^5/);
   });
 });

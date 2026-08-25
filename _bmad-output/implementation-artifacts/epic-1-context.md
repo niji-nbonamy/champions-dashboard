@@ -33,7 +33,7 @@ Establish the deployable application foundation and teacher access layer so ever
 - **IDs:** UUID v4 primary keys; DB tables `snake_case` plural; FK `*_id`.
 - **Auth:** `Teacher.id` equals Auth.js `users.id` (1:1).
 - **Tenancy:** Class-scoped; every entity belongs to one `Class`; authorization in application services.
-- **Config:** `DATABASE_URL` and `AUTH_SECRET` required via environment variables.
+- **Config:** `DATABASE_URL` (pooled, app runtime), `DATABASE_URL_UNPOOLED` (direct, migrations), and `AUTH_SECRET` required via environment variables.
 - **CI/CD:** GitHub → Vercel auto-deploy; migrations via drizzle-kit push or migrate in deploy step.
 - **Structural seed:** `app/(auth)/`, `app/(dashboard)/`, `app/api/auth/`, `components/`, `lib/domain/`, `lib/services/`, `lib/db/`, `drizzle/`.
 

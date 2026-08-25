@@ -6,7 +6,7 @@ describe("database client", () => {
     vi.unstubAllEnvs();
   });
 
-  it("throws a clear error when DATABASE_URL is missing", async () => {
+  it("throws a clear error when DATABASE_URL is an empty string", async () => {
     vi.stubEnv("DATABASE_URL", "");
 
     const { getDb } = await import("./index");
@@ -15,20 +15,38 @@ describe("database client", () => {
     expect(() => getDb()).toThrow(/\.env\.example/);
   });
 
-  it("connects when DATABASE_URL is set", async () => {
-    vi.stubEnv("DATABASE_URL", "postgresql://user:pass@localhost/test");
+  it("throws a clear error when DATABASE_URL is undefined", async () => {
+    vi.unstubAllEnvs();
+    delete process.env.DATABASE_URL;
+
+    const { getDb } = await import("./index");
+
+    expect(() => getDb()).toThrow(/DATABASE_URL is not set/);
+    expect(() => getDb()).toThrow(/\.env\.example/);
+  });
+
+  it("passes DATABASE_URL to neon when checking the connection", async () => {
+    const databaseUrl = "postgresql://user:pass@localhost/test";
+    vi.stubEnv("DATABASE_URL", databaseUrl);
 
     const execute = vi.fn().mockResolvedValue({ rows: [{ "?column?": 1 }] });
+    const neon = vi.fn(() => vi.fn());
+    const drizzle = vi.fn(() => ({ execute }));
+
     vi.doMock("@neondatabase/serverless", () => ({
-      neon: vi.fn(() => vi.fn()),
+      neon,
     }));
     vi.doMock("drizzle-orm/neon-http", () => ({
-      drizzle: vi.fn(() => ({ execute })),
+      drizzle,
     }));
 
     const { checkDatabaseConnection } = await import("./index");
     await checkDatabaseConnection();
 
+    expect(neon).toHaveBeenCalledWith(databaseUrl);
+    expect(drizzle).toHaveBeenCalledWith(expect.any(Function), {
+      schema: expect.any(Object),
+    });
     expect(execute).toHaveBeenCalled();
   });
 });

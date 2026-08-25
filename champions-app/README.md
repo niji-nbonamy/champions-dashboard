@@ -9,6 +9,12 @@ Teacher-facing dictation dashboards for primary classrooms. EU-hosted, class-sco
 
 ## Setup
 
+All commands below run from the `champions-app/` directory (the app lives in a subdirectory of the BMAD monorepo):
+
+```bash
+cd champions-app
+```
+
 1. Install dependencies:
 
    ```bash
@@ -33,13 +39,13 @@ Teacher-facing dictation dashboards for primary classrooms. EU-hosted, class-sco
 
    In the Neon dashboard → **Connect**, copy both connection strings (pooled + direct). Using only the pooled URL for `db:push` can hang at « Pulling schema from database... ».
 
-4. Push schema to Neon (when `DATABASE_URL` is set):
+4. Push schema to Neon (when `DATABASE_URL_UNPOOLED` is set):
 
    ```bash
    npm run db:push
    ```
 
-   Without a valid `DATABASE_URL`, the app builds and runs but database calls will fail with a clear error referencing `.env.example`.
+   Without valid `DATABASE_URL` and `DATABASE_URL_UNPOOLED`, the app builds and runs but database calls and migrations will fail with clear errors referencing `.env.example`.
 
 ## Development
 
@@ -71,6 +77,7 @@ npm test
 ## Deployment
 
 - **Platform:** Vercel (EU region `fra1` via `vercel.json`)
+- **Monorepo:** set **Root Directory** to `champions-app` in the Vercel project settings (the Next.js app is not at the repository root)
 - **Database:** Neon Frankfurt — no replica outside EU on free tier
 
 ## Architecture

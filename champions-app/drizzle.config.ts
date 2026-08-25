@@ -5,8 +5,9 @@ config({ path: ".env.local" });
 config({ path: ".env" });
 
 const migrationUrl =
-  process.env.DATABASE_URL_UNPOOLED?.trim() ??
-  process.env.DATABASE_URL?.trim();
+  process.env.DATABASE_URL_UNPOOLED?.trim() ||
+  process.env.DATABASE_URL?.trim() ||
+  "";
 
 if (!migrationUrl) {
   throw new Error(

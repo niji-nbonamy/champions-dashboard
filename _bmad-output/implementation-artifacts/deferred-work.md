@@ -1,0 +1,21 @@
+# Deferred Work
+
+## Deferred from: code review of spec-1-1-project-scaffold-development-environment.md (2026-08-25)
+
+- Singleton race on concurrent `getDb()` cold start — acceptable for scaffold; revisit if connection leaks observed in production (`index.ts:21-27`)
+- No timeout on `checkDatabaseConnection` — health check can hang indefinitely on network issues (`index.ts:29-31`)
+- No runtime `AUTH_SECRET` validation — owned by story 1.3 auth flows (`index.ts`)
+- No `db:migrate` / `db:generate` scripts — spec allows push-only workflow for now (`package.json`)
+- `checkDatabaseConnection` not wired to HTTP health route — manual verification sufficient for scaffold story (`index.ts:29`)
+
+- French microcopy / `lang="fr"` on shell — deferred to stories 1.5–1.6 branding (`layout.tsx`, `page.tsx`)
+- App Router error/loading/not-found boundaries — deferred, not required for scaffold (`app/`)
+- Route group `layout.tsx` placeholders — deferred, `.gitkeep` satisfies spec stubs (`app/(auth)/`, `app/(dashboard)/`)
+- Menthe Douce design tokens — deferred to story 1.5 (`globals.css`)
+- DB health indicator on landing page — deferred; spec « dev-ready indicator » satisfied by static copy (`page.tsx`)
+- Auth.js handler export pattern — deferred to story 1.3 (`route.ts`)
+
+- GitHub Actions CI workflow — deferred to post-scaffold infra (not in story 1.1 AC)
+- `npm run build` integration test in CI — deferred; static scaffold tests sufficient for now
+- `next.config.ts` turbopack.root — deferred unless monorepo warnings become errors
+- `db:migrate` / `db:generate` scripts — deferred (spec allows push-only)
