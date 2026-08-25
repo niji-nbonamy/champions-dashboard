@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { getAuthRedirectPath, isDashboardRoute } from "./middleware-policy";
+import {
+  DASHBOARD_ROUTE_PREFIXES,
+  getAuthMiddlewareMatcher,
+  getAuthRedirectPath,
+  isDashboardRoute,
+} from "./middleware-policy";
 
 describe("middleware policy", () => {
   it("identifies dashboard routes and nested paths", () => {
@@ -24,5 +29,14 @@ describe("middleware policy", () => {
     expect(getAuthRedirectPath("/", false)).toBeNull();
     expect(getAuthRedirectPath("/register", false)).toBeNull();
     expect(getAuthRedirectPath("/dictations", true)).toBeNull();
+  });
+
+  it("builds middleware matcher paths from dashboard prefixes", () => {
+    const matcher = getAuthMiddlewareMatcher();
+
+    expect(matcher).toContain("/login");
+    for (const prefix of DASHBOARD_ROUTE_PREFIXES) {
+      expect(matcher).toContain(`${prefix}/:path*`);
+    }
   });
 });

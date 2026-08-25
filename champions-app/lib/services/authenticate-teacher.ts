@@ -10,6 +10,10 @@ export type AuthenticatedTeacher = {
   email: string;
 };
 
+/** Precomputed hash so unknown-email logins still run bcrypt.compare (NFR9 timing). */
+const TIMING_SAFE_DUMMY_HASH =
+  "$2b$12$7h4ZiGN2a6hCmiI3tS6il.JhdLbF3aYwTBu4iaeQGEGWyDDS3Jp32";
+
 export async function authenticateTeacher(
   email: string,
   password: string
@@ -33,6 +37,7 @@ export async function authenticateTeacher(
       .limit(1);
 
     if (!teacher) {
+      await compare(input.password, TIMING_SAFE_DUMMY_HASH);
       return null;
     }
 

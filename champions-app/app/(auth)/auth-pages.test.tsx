@@ -10,20 +10,15 @@ const { auth, redirect } = vi.hoisted(() => ({
 
 vi.mock("@/auth", () => ({
   auth,
+  signIn: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   redirect,
 }));
 
-vi.mock("./login/login-form", () => ({
-  LoginForm: () => (
-    <form className="flex w-full max-w-sm flex-col gap-4">
-      <input name="email" />
-      <input name="password" />
-      <button type="submit">Sign in</button>
-    </form>
-  ),
+vi.mock("./login/actions", () => ({
+  loginAction: vi.fn(),
 }));
 
 import LoginPage from "./login/page";
@@ -72,6 +67,8 @@ describe("auth pages", () => {
     expect(html).toContain("Sign in");
     expect(html).toContain('name="email"');
     expect(html).toContain('name="password"');
+    expect(html).toContain('type="password"');
+    expect(html).toContain("Create one");
   });
 
   it("redirects authenticated users away from login", async () => {

@@ -30,7 +30,7 @@
 
 - Pas de `callbackUrl` après redirect login — l'utilisateur atterrit toujours sur `/dictations` (`middleware.ts`, `login/actions.ts`)
 - Pas de `trustHost` / `AUTH_URL` documentés pour déploiement Vercel Auth.js v5 (`auth.ts`, `.env.example`)
-- Fuite timing NFR9 : pas de hash bcrypt quand l'email login est inconnu (`authenticate-teacher.ts`)
+- Fuite timing NFR9 : pas de hash bcrypt quand l'email login est inconnu (`authenticate-teacher.ts`) — **fixed in code review 2026-08-25**
 - Pas de rate limiting sur le login (`login/actions.ts`)
 - Pas de flux `signOut` UI — hors AC explicites mais titre « Session Management » (`auth.ts`)
 - Utilisateur authentifié peut encore accéder à `/register` (`middleware.ts`)

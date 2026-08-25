@@ -1,6 +1,10 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
+import {
+  mapJwtTokenToSession,
+  mapUserToJwtToken,
+} from "@/lib/auth/session-mapping";
 import { getAuthSecret } from "@/lib/config/auth-secret";
 import { authenticateTeacher } from "@/lib/services/authenticate-teacher";
 
@@ -36,20 +40,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user?.id && user.email) {
-        token.sub = user.id;
-        token.email = user.email;
-      }
-
-      return token;
+      return mapUserToJwtToken(token, user);
     },
     async session({ session, token }) {
-      if (session.user && token.sub && token.email) {
-        session.user.id = token.sub;
-        session.user.email = token.email as string;
-      }
-
-      return session;
+      return mapJwtTokenToSession(session, token);
     },
   },
 });

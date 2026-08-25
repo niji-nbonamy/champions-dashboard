@@ -1,32 +1,14 @@
-import { NextResponse } from "next/server";
-
-import { getAuthRedirectPath } from "@/lib/auth/middleware-policy";
+import {
+  getAuthMiddlewareMatcher,
+} from "@/lib/auth/middleware-policy";
+import { runAuthMiddleware } from "@/lib/auth/middleware-handler";
 
 import { auth } from "./auth";
 
-export default auth((req) => {
-  const { pathname } = req.nextUrl;
-  const isLoggedIn = !!req.auth;
+export default auth((req) =>
+  runAuthMiddleware(req.nextUrl.pathname, !!req.auth, req.nextUrl)
+);
 
-  if (pathname.startsWith("/api/auth")) {
-    return NextResponse.next();
-  }
-
-  const redirectPath = getAuthRedirectPath(pathname, isLoggedIn);
-  if (redirectPath) {
-    return NextResponse.redirect(new URL(redirectPath, req.nextUrl));
-  }
-
-  return NextResponse.next();
-});
-
-// Keep in sync with DASHBOARD_ROUTE_PREFIXES in lib/auth/middleware-policy.ts
 export const config = {
-  matcher: [
-    "/login",
-    "/dictations/:path*",
-    "/students/:path*",
-    "/config/:path*",
-    "/alerts/:path*",
-  ],
+  matcher: getAuthMiddlewareMatcher(),
 };

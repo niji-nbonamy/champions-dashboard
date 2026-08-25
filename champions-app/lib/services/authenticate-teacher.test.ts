@@ -73,6 +73,9 @@ describe("authenticateTeacher", () => {
   it("returns null when the email is unknown", async () => {
     mockLimit.mockResolvedValueOnce([]);
 
+    const { compare } = await import("bcryptjs");
+    vi.mocked(compare).mockResolvedValueOnce(false as never);
+
     const { authenticateTeacher } = await import("./authenticate-teacher");
     const result = await authenticateTeacher(
       "unknown@example.com",
@@ -80,6 +83,10 @@ describe("authenticateTeacher", () => {
     );
 
     expect(result).toBeNull();
+    expect(compare).toHaveBeenCalledWith(
+      "password12",
+      "$2b$12$7h4ZiGN2a6hCmiI3tS6il.JhdLbF3aYwTBu4iaeQGEGWyDDS3Jp32"
+    );
   });
 
   it("returns null for invalid input without querying the database", async () => {

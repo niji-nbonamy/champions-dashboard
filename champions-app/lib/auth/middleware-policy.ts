@@ -5,6 +5,13 @@ export const DASHBOARD_ROUTE_PREFIXES = [
   "/alerts",
 ] as const;
 
+export function getAuthMiddlewareMatcher(): string[] {
+  return [
+    "/login",
+    ...DASHBOARD_ROUTE_PREFIXES.map((prefix) => `${prefix}/:path*`),
+  ];
+}
+
 export function isDashboardRoute(pathname: string): boolean {
   return DASHBOARD_ROUTE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)

@@ -165,3 +165,35 @@ await signIn("credentials", { email, password, redirectTo: "/dictations" });
 
 - Session `user.id` typing for downstream consumers.
   [`next-auth.d.ts:3`](../../champions-app/types/next-auth.d.ts#L3)
+
+### Review Findings
+
+- [x] [Review][Patch] Fuite temporelle NFR9 sur email inconnu — Quand l'email n'existe pas, `authenticateTeacher` retourne `null` sans appeler `bcrypt.compare`, alors que le chemin « mauvais mot de passe » exécute `compare` ; un attaquant peut mesurer le délai pour deviner si un email est enregistré. [`authenticate-teacher.ts:35-37`]
+
+- [x] [Review][Patch] Handlers Auth.js vérifiés par lecture de source uniquement — `shell.test.tsx` lit le fichier `route.ts` et asserte des chaînes, sans invoquer `GET`/`POST` ; des handlers cassés ou des stubs 501 pourraient passer en CI. [`shell.test.tsx:27-36`]
+
+- [x] [Review][Patch] Middleware jamais exécuté en test — Seule la politique pure `getAuthRedirectPath` est testée ; une régression dans `middleware.ts` (matcher, inversion de logique) ne serait pas détectée. [`middleware.ts:7-31`]
+
+- [x] [Review][Patch] Matcher middleware dupliqué manuellement — `config.matcher` doit rester synchronisé avec `DASHBOARD_ROUTE_PREFIXES` via commentaire ; risque de divergence à l'ajout de routes dashboard. [`middleware.ts:23-31`]
+
+- [x] [Review][Patch] LoginForm : test mock `useActionState` — `login-form.test.tsx` injecte toujours une erreur via mock ; ne vérifie pas le câblage réel formulaire ↔ `loginAction`. [`login-form.test.tsx:10-16`]
+
+- [x] [Review][Patch] Page login : test mock `LoginForm` — `auth-pages.test.tsx` remplace le composant client par un formulaire factice ; pas de couverture d'intégration page ↔ formulaire réel. [`auth-pages.test.tsx:18-26`]
+
+- [x] [Review][Patch] Aucun test sur les callbacks JWT/session (AD-2) — `auth.ts` mappe `Teacher.id` → `token.sub` → `session.user.id` mais aucun test ne valide ce mapping. [`auth.ts:38-53`]
+
+- [x] [Review][Defer] Pas de `callbackUrl` après redirect login — l'utilisateur atterrit toujours sur `/dictations` — deferred, pre-existing [`middleware.ts`, `login/actions.ts`]
+
+- [x] [Review][Defer] Pas de `trustHost` / `AUTH_URL` documentés pour déploiement Vercel — deferred, pre-existing [`auth.ts`, `.env.example`]
+
+- [x] [Review][Defer] Pas de rate limiting sur le login — deferred, pre-existing (Ask First spec) [`login/actions.ts`]
+
+- [x] [Review][Defer] Pas de flux `signOut` UI — deferred, pre-existing (hors AC explicites) [`auth.ts`]
+
+- [x] [Review][Defer] Utilisateur authentifié peut accéder à `/register` — deferred, pre-existing [`middleware.ts`]
+
+- [x] [Review][Defer] Page `/dictations` sans garde serveur `auth()` — deferred, pre-existing (middleware suffit pour AC) [`dictations/page.tsx`]
+
+- [x] [Review][Defer] Migration Next.js 16 `middleware` → `proxy` — deferred, pre-existing [`middleware.ts`]
+
+- [x] [Review][Defer] Pas de tests E2E register → login → session → dashboard — deferred, pre-existing (vérifs manuelles spec) [`spec`]
