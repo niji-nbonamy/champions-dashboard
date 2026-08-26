@@ -81,3 +81,13 @@
 - Config page has no try/catch around `listWordCountMatrixRows` — same pattern as `countActiveStudents` on same page (`page.tsx:24`)
 - `word_count_matrix_rows` lacks `created_at`/`updated_at` — not required by story AC (`schema.ts:49`)
 - Schema change relies on `db:push` only — project push-only convention (`schema.ts:49`)
+
+## Deferred from: code review of spec-2-5-year-start-wizard-e3.md (2026-08-26)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-5-year-start-wizard-e3.md`
+  summary: Redirect to year-start wizard when first student is added manually and wizard never completed
+  evidence: Ask First default « yes » in spec; not listed in execution tasks; addStudentAction only revalidates wizard cache today
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-5-year-start-wizard-e3.md`
+  summary: Surface imported student count after CSV redirect to wizard step 1
+  evidence: Post-import redirect no longer passes `importedCount`; Config `?imported=N` banner orphaned for primary flow

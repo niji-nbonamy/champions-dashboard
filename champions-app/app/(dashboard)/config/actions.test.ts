@@ -173,7 +173,7 @@ describe("importRosterCsvAction", () => {
     expect(mockImportRosterFromCsv).not.toHaveBeenCalled();
   });
 
-  it("redirects with the imported count after a successful import", async () => {
+  it("redirects to the year-start wizard after a successful import", async () => {
     mockAuthenticatedSession();
     mockImportRosterFromCsv.mockResolvedValueOnce({
       importedCount: 2,
@@ -191,9 +191,10 @@ describe("importRosterCsvAction", () => {
 
     await expect(
       importRosterCsvAction({ error: null, success: null }, formData)
-    ).rejects.toThrow("NEXT_REDIRECT:/config?imported=2");
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/year-start?step=1");
 
     expect(revalidatePath).toHaveBeenCalledWith("/config");
+    expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
   });
 
   it("returns roster import validation errors to the client", async () => {
@@ -287,6 +288,7 @@ describe("saveWordCountMatrixAction", () => {
       },
     ]);
     expect(revalidatePath).toHaveBeenCalledWith("/config");
+    expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
     expect(result).toEqual({
       error: null,
       success: WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,

@@ -28,6 +28,7 @@ type MatrixRowState = {
 
 type WordCountMatrixFormProps = {
   initialRows: WordCountMatrixRowInput[];
+  showDefaultSaveButton?: boolean;
 };
 
 const LEVEL_COLUMNS: Array<{
@@ -109,7 +110,10 @@ function isFieldInvalid(
   return state.errorField === field;
 }
 
-export function WordCountMatrixForm({ initialRows }: WordCountMatrixFormProps) {
+export function WordCountMatrixForm({
+  initialRows,
+  showDefaultSaveButton = true,
+}: WordCountMatrixFormProps) {
   const [rows, setRows] = useState<MatrixRowState[]>(() =>
     mapInitialRows(initialRows)
   );
@@ -285,9 +289,11 @@ export function WordCountMatrixForm({ initialRows }: WordCountMatrixFormProps) {
           >
             Ajouter une dictée
           </Button>
-          <Button type="submit" disabled={pending}>
-            {pending ? "Enregistrement…" : "Enregistrer la matrice"}
-          </Button>
+          {showDefaultSaveButton ? (
+            <Button type="submit" disabled={pending}>
+              {pending ? "Enregistrement…" : "Enregistrer la matrice"}
+            </Button>
+          ) : null}
         </div>
       </fieldset>
     </form>

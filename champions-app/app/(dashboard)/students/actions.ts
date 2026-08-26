@@ -50,6 +50,7 @@ export async function addStudentAction(
     await addStudent(teacherClass.id, rawDisplayName);
     revalidatePath("/students");
     revalidatePath("/config");
+    revalidatePath("/onboarding/year-start");
     return { error: null, success: STUDENT_ADD_SUCCESS_MESSAGE };
   } catch (error) {
     if (isRedirectError(error)) {
@@ -100,6 +101,8 @@ export async function assignStudentLevelAction(
   try {
     await assignStudentLevel(teacherClass.id, studentId, level);
     revalidatePath("/students", "layout");
+    revalidatePath("/onboarding/year-start");
+    revalidatePath("/dictations");
     return { error: null };
   } catch (error) {
     if (isRedirectError(error)) {

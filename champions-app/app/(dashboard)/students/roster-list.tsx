@@ -7,9 +7,10 @@ import { LevelDotPicker } from "./level-dot-picker";
 
 type RosterListProps = {
   students: ActiveStudent[];
+  showLevelUi?: boolean;
 };
 
-export function RosterList({ students }: RosterListProps) {
+export function RosterList({ students, showLevelUi = true }: RosterListProps) {
   if (students.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -26,14 +27,16 @@ export function RosterList({ students }: RosterListProps) {
           className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <span className="text-sm font-medium">{student.displayName}</span>
-          {student.level && isChampionsLevel(student.level) ? (
-            <LevelBadge level={student.level} />
-          ) : (
-            <div className="flex flex-col items-start gap-2 sm:items-end">
-              <RequiredLevelBadge />
-              <LevelDotPicker studentId={student.id} />
-            </div>
-          )}
+          {showLevelUi ? (
+            student.level && isChampionsLevel(student.level) ? (
+              <LevelBadge level={student.level} />
+            ) : (
+              <div className="flex flex-col items-start gap-2 sm:items-end">
+                <RequiredLevelBadge />
+                <LevelDotPicker studentId={student.id} />
+              </div>
+            )
+          ) : null}
         </li>
       ))}
     </ul>

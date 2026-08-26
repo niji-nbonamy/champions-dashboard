@@ -162,6 +162,7 @@ describe("addStudentAction", () => {
     expect(mockAddStudent).toHaveBeenCalledWith(classId, "DUPONT Marie");
     expect(revalidatePath).toHaveBeenCalledWith("/students");
     expect(revalidatePath).toHaveBeenCalledWith("/config");
+    expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
   });
 
   it("returns duplicate errors from the add service", async () => {
@@ -295,6 +296,8 @@ describe("assignStudentLevelAction", () => {
       "green"
     );
     expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
+    expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
   });
 
   it("returns not-found errors from the assign service", async () => {

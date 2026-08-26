@@ -59,6 +59,7 @@ export async function saveWordCountMatrixAction(
   try {
     await replaceWordCountMatrix(teacherClass.id, rawRows);
     revalidatePath("/config");
+    revalidatePath("/onboarding/year-start");
     return {
       error: null,
       success: WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
@@ -119,9 +120,10 @@ export async function importRosterCsvAction(
   try {
     const buffer = await fileField.arrayBuffer();
     const fileBytes = new Uint8Array(buffer);
-    const result = await importRosterFromCsv(teacherClass.id, fileBytes);
+    await importRosterFromCsv(teacherClass.id, fileBytes);
     revalidatePath("/config");
-    redirect(`/config?imported=${result.importedCount}`);
+    revalidatePath("/onboarding/year-start");
+    redirect("/onboarding/year-start?step=1");
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;

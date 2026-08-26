@@ -16,6 +16,25 @@ describe("RosterList", () => {
     expect(html).toContain("Aucun élève actif pour le moment.");
   });
 
+  it("renders names only when level UI is hidden", () => {
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: "770e8400-e29b-41d4-a716-446655440002",
+            displayName: "DUPONT Marie",
+            level: null,
+          },
+        ]}
+        showLevelUi={false}
+      />
+    );
+
+    expect(html).toContain("DUPONT Marie");
+    expect(html).not.toContain("niveau requis");
+    expect(html).not.toContain("level-dot-picker");
+  });
+
   it("renders assigned level badges and unassigned picker rows", () => {
     const html = renderToStaticMarkup(
       <RosterList
