@@ -148,6 +148,7 @@ describe("addStudentAction", () => {
     expect(result.error).toBe(
       "Un élève avec ce nom existe déjà : DUPONT Marie."
     );
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("returns too-long name errors from the add service", async () => {
@@ -167,6 +168,7 @@ describe("addStudentAction", () => {
     );
 
     expect(result.error).toBe(STUDENT_DISPLAY_NAME_TOO_LONG_ERROR);
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("returns validation errors from the add service", async () => {
@@ -186,6 +188,7 @@ describe("addStudentAction", () => {
     );
 
     expect(result.error).toBe(STUDENT_DISPLAY_NAME_EMPTY_ERROR);
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("returns a generic French error for unexpected failures", async () => {
@@ -202,5 +205,6 @@ describe("addStudentAction", () => {
     );
 
     expect(result.error).toBe("Ajout impossible. Réessayez.");
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

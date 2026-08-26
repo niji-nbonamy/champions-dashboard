@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { getDb } from "@/lib/db";
 import { students } from "@/lib/db/schema";
@@ -22,7 +22,6 @@ export async function listActiveStudents(
     })
     .from(students)
     .where(and(eq(students.classId, classId), eq(students.archived, false)))
-    .orderBy(asc(students.displayName))
     .then((rows) =>
       [...rows].sort((left, right) =>
         left.displayName.localeCompare(right.displayName, "fr")

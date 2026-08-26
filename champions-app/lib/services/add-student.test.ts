@@ -42,6 +42,7 @@ describe("addStudent", () => {
       displayName: "DUPONT Marie",
       archived: false,
     });
+    expect(mockValues.mock.calls[0][0]).not.toHaveProperty("level");
   });
 
   it("rejects duplicate names case-insensitively", async () => {

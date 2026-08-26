@@ -24,7 +24,7 @@ context:
 - Manual add on Élèves tab only; one `display_name` per submit (FR5, roster-import.md).
 - Trim whitespace on names; reject empty after trim.
 - Max name length 200 chars (same as CSV, `ROSTER_CSV_MAX_DISPLAY_NAME_LENGTH`).
-- Duplicate names within the class (case-insensitive trim) rejected with French message listing the conflicting name — same normalization as CSV import (`normalizeDuplicateKey`).
+- Duplicate names among **active** students in the class (case-insensitive trim) rejected with French message listing the conflicting name — same normalization as CSV import (`normalizeDuplicateKey`). A name matching an **archived** student is allowed (story 2.6 lifecycle).
 - Inserts scoped to authenticated teacher's `classId` via `getTeacherClass` (NFR1).
 - Mutations: Server Action → `addStudent` service → domain validation → DB insert (AD-3).
 - No `level` assigned at add; no `LevelHistoryEntry` (story 2.3).
@@ -52,7 +52,8 @@ context:
 | Trim name | `"  DUPONT Marie  "` | Stored as `DUPONT Marie` | N/A |
 | Empty name | Whitespace only | No DB change | « Saisissez le nom de l'élève. » |
 | Too long | Name > 200 chars | No DB change | « Nom trop long (max 200 caractères). » |
-| Duplicate | Existing `dupont marie`, add `DUPONT Marie` | No DB change | « Un élève avec ce nom existe déjà : {name}. » |
+| Duplicate (active) | Active student `dupont marie`, add `DUPONT Marie` | No DB change | « Un élève avec ce nom existe déjà : {name}. » |
+| Name matches archived student | Archived `DUPONT Marie`, add `dupont marie` | New active row created | N/A |
 | List roster | 3 active, 1 archived | List shows 3 with name + level status | N/A |
 | Empty roster | Zero active students | Empty state message + add form still visible | N/A |
 | Unauthenticated | No session | Redirect `/login` | N/A |
@@ -168,3 +169,13 @@ context:
 - [x] [Review][Patch] Tests UI formulaire et liste — [`add-student-form.test.tsx:27`](../../champions-app/app/(dashboard)/students/add-student-form.test.tsx#L27)
 - [x] [Review][Defer] Atomicité TOCTOU ajout manuel sans contrainte DB unique — accepté MVP (story 2-1)
 - [x] [Review][Defer] `auth()` redondant dans `page.tsx` vs layout — pattern existant Config
+- [x] [Review][Decision] Doublons vs élèves archivés — Choix 2 : doublons refusés parmi actifs seulement ; nom d'un élève archivé réutilisable. Spec Boundaries + I/O matrix mises à jour.
+- [x] [Review][Patch] Assertion `archived=false` dans test service — [`list-active-students.test.ts:59`](../../champions-app/lib/services/list-active-students.test.ts#L59)
+- [x] [Review][Patch] Test reset formulaire après succès — [`add-student-form.tsx:27`](../../champions-app/app/(dashboard)/students/add-student-form.tsx#L27)
+- [x] [Review][Patch] Supprimer tri SQL redondant, garder `localeCompare('fr')` — [`list-active-students.ts:29`](../../champions-app/lib/services/list-active-students.ts#L29)
+- [x] [Review][Patch] Test négatif `revalidatePath` sur chemins d'erreur — [`actions.test.ts:291`](../../champions-app/app/(dashboard)/students/actions.test.ts#L291)
+- [x] [Review][Patch] Assertion `level` absent à l'insertion — [`add-student.test.ts:81`](../../champions-app/lib/services/add-student.test.ts#L81)
+- [x] [Review][Defer] Redirections auth/classe au niveau page — couvertes par `layout.tsx` (même pattern que Config)
+- [x] [Review][Defer] Test non-régression lien Config → Élèves — non modifié dans ce diff ; vérification manuelle spec
+- [x] [Review][Defer] Pas de test E2E ajout → liste — action item epic-1 retro
+- [x] [Review][Defer] Normalisation Unicode (NFC) pour détection doublons — hors scope spec MVP

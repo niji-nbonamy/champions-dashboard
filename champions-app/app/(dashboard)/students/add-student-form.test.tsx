@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { STUDENT_ADD_SUCCESS_MESSAGE } from "@/lib/domain/student-display-name";
 
+const mockReset = vi.fn();
 const mockUseActionState = vi.fn();
 
 vi.mock("./actions", () => ({
@@ -13,6 +14,12 @@ vi.mock("react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react")>();
   return {
     ...actual,
+    useRef: () => ({ current: { reset: mockReset } }),
+    useEffect: (fn: () => void, deps?: readonly unknown[]) => {
+      if (deps?.[0]) {
+        fn();
+      }
+    },
     useActionState: (...args: unknown[]) => mockUseActionState(...args),
   };
 });
@@ -64,5 +71,17 @@ describe("AddStudentForm", () => {
 
     expect(html).toContain('role="status"');
     expect(html).toContain(STUDENT_ADD_SUCCESS_MESSAGE);
+  });
+
+  it("resets the form after a successful add", () => {
+    mockUseActionState.mockReturnValueOnce([
+      { error: null, success: STUDENT_ADD_SUCCESS_MESSAGE },
+      vi.fn(),
+      false,
+    ]);
+
+    renderToStaticMarkup(<AddStudentForm />);
+
+    expect(mockReset).toHaveBeenCalledOnce();
   });
 });

@@ -59,3 +59,10 @@
 - Pas de contrainte unique `(class_id, display_name)` — story 2.2 ajout manuel (`schema.ts`)
 - Plafond 512 KB uniquement dans l'action serveur — seul point d'entrée pour cette story (`actions.ts:46`)
 - Pas de test E2E flux Config → import → succès — action item epic-1 retro
+
+## Deferred from: code review of spec-2-2-manual-student-add-roster-list.md (2026-08-26)
+
+- Redirections auth/classe au niveau `page.tsx` — déjà garanties par `dashboard/layout.tsx` avant rendu des enfants
+- Test non-régression lien Config → Élèves pour ajout manuel — page Config inchangée dans story 2-2 ; vérification manuelle suffisante
+- Pas de test E2E flux ajout manuel → apparition dans liste — action item epic-1 retro (smoke E2E)
+- Normalisation Unicode (NFC/NFKC) pour détection doublons — hors scope spec MVP ; réévaluer si cas réels signalés

@@ -1,9 +1,25 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { students } from "@/lib/db/schema";
+
 const mockSelect = vi.fn();
 const mockFrom = vi.fn(() => ({ where: mockWhere }));
-const mockWhere = vi.fn(() => ({ orderBy: mockOrderBy }));
-const mockOrderBy = vi.fn();
+const mockWhere = vi.fn();
+
+const { mockEq } = vi.hoisted(() => ({
+  mockEq: vi.fn(),
+}));
+
+vi.mock("drizzle-orm", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("drizzle-orm")>();
+  return {
+    ...actual,
+    eq: (...args: Parameters<typeof actual.eq>) => {
+      mockEq(...args);
+      return actual.eq(...args);
+    },
+  };
+});
 
 const getDb = vi.fn(() => ({
   select: mockSelect,
@@ -22,7 +38,7 @@ describe("listActiveStudents", () => {
 
   it("queries active students ordered by display name", async () => {
     mockSelect.mockReturnValueOnce({ from: mockFrom });
-    mockOrderBy.mockResolvedValueOnce([
+    mockWhere.mockResolvedValueOnce([
       {
         id: "880e8400-e29b-41d4-a716-446655440003",
         displayName: "MARTIN Lucas",
@@ -53,16 +69,16 @@ describe("listActiveStudents", () => {
     expect(mockSelect).toHaveBeenCalledOnce();
     expect(mockFrom).toHaveBeenCalledOnce();
     expect(mockWhere).toHaveBeenCalledOnce();
-    expect(mockOrderBy).toHaveBeenCalledOnce();
   });
 
-  it("filters active students through the archived=false query path", async () => {
+  it("filters active students with archived=false in the query", async () => {
     mockSelect.mockReturnValueOnce({ from: mockFrom });
-    mockOrderBy.mockResolvedValueOnce([]);
+    mockWhere.mockResolvedValueOnce([]);
 
     const { listActiveStudents } = await import("./list-active-students");
     await listActiveStudents(classId);
 
-    expect(mockWhere).toHaveBeenCalledOnce();
+    expect(mockEq).toHaveBeenCalledWith(students.classId, classId);
+    expect(mockEq).toHaveBeenCalledWith(students.archived, false);
   });
 });
