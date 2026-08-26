@@ -164,3 +164,25 @@ Use a native `<table>` with responsive wrapper (`overflow-x-auto`) — no shadcn
 
 - Action auth, empty save, duplicate label error surfacing
   [`actions.test.ts:201`](../../champions-app/app/(dashboard)/config/actions.test.ts#L201)
+
+### Review Findings
+
+- [x] [Review][Patch] FormData parsing stops on index gaps or missing `rows[0]` — crafted or malformed payloads can truncate rows or wipe the matrix silently [`word-count-matrix.ts:165`]
+- [x] [Review][Patch] No DB unique constraint on `(class_id, dictation_label_key)` — duplicate rows possible if app validation is bypassed [`schema.ts:49`]
+- [x] [Review][Patch] Validation errors are global, not row-level — spec I/O matrix expects French row-level errors for incomplete rows [`word-count-matrix.ts:87`]
+- [x] [Review][Patch] `useEffect` resets local edits when `initialRows` changes — unsaved matrix edits lost on parent revalidation [`word-count-matrix-form.tsx:97`]
+- [x] [Review][Patch] `listWordCountMatrixRows` test does not assert `eq(classId)` filter — cross-class row leak undetected by CI [`list-word-count-matrix-rows.test.ts:50`]
+- [x] [Review][Patch] `replaceWordCountMatrix` test does not assert delete scoped to `classId` — global wipe regression undetected [`replace-word-count-matrix.test.ts:68`]
+- [x] [Review][Patch] Config page reload mapping untested — `matrixInitialRows` mapping from DB to form not verified [`page.test.tsx:26`]
+- [x] [Review][Patch] Duplicate-label action test does not assert parsed payload forwarded to service [`actions.test.ts:316`]
+- [x] [Review][Patch] Row removal before save not tested — `removeRow` + submit flow lacks coverage [`word-count-matrix-form.tsx:113`]
+- [x] [Review][Patch] Form tests are static markup only — add/remove/submit/max-rows interactions untested [`word-count-matrix-form.test.tsx:74`]
+- [x] [Review][Patch] Replace service tests missing duplicate-label and max-rows rejection paths [`replace-word-count-matrix.test.ts:123`]
+- [x] [Review][Patch] Domain tests missing boundary cases (max word count, leading zeros) [`word-count-matrix.test.ts`]
+- [x] [Review][Patch] Action tests missing >20 rows and label-too-long FormData cases [`actions.test.ts`]
+- [x] [Review][Patch] No user feedback when max 20 rows reached — add button disabled silently [`word-count-matrix-form.tsx:119`]
+- [x] [Review][Patch] `aria-invalid` applied to all fields on any error — not tied to offending field [`word-count-matrix-form.tsx:170`]
+- [x] [Review][Defer] No index on `word_count_matrix_rows.class_id` — low volume per class in MVP [`schema.ts:51`] — deferred, pre-existing scale
+- [x] [Review][Defer] Config page has no try/catch around `listWordCountMatrixRows` — same pattern as `countActiveStudents` on same page [`page.tsx:24`] — deferred, pre-existing pattern
+- [x] [Review][Defer] `word_count_matrix_rows` lacks `created_at`/`updated_at` — not required by spec [`schema.ts:49`] — deferred, not in AC
+- [x] [Review][Defer] Schema change relies on `db:push` only — project push-only convention [`schema.ts:49`] — deferred, project convention

@@ -28,6 +28,14 @@ export type WordCountMatrixRowInput = {
   wordsGold: string;
 };
 
+export type WordCountMatrixFieldName =
+  | "label"
+  | "wordsYellow"
+  | "wordsGreen"
+  | "wordsViolet"
+  | "wordsGold"
+  | "duplicate";
+
 export type ValidatedWordCountMatrixRow = {
   dictationLabelKey: string;
   wordsYellow: number;
@@ -44,11 +52,15 @@ export type ValidateWordCountMatrixSuccess = {
 export type ValidateWordCountMatrixFailure = {
   ok: false;
   error: string;
+  rowIndex?: number;
+  field?: WordCountMatrixFieldName;
 };
 
 export type ValidateWordCountMatrixResult =
   | ValidateWordCountMatrixSuccess
   | ValidateWordCountMatrixFailure;
+
+const ROW_LABEL_KEY_PATTERN = /^rows\[(\d+)\]\.label$/;
 
 export function normalizeDictationLabel(label: string): string {
   return label.trim();
@@ -56,6 +68,16 @@ export function normalizeDictationLabel(label: string): string {
 
 export function normalizeDictationLabelKey(label: string): string {
   return normalizeDictationLabel(label).toLowerCase();
+}
+
+export function formatWordCountMatrixRowError(
+  rowNumber: number,
+  label: string,
+  message: string
+): string {
+  const trimmed = label.trim();
+  const rowRef = trimmed ? `« ${trimmed} »` : `Ligne ${rowNumber}`;
+  return `${rowRef} : ${message}`;
 }
 
 export function formatDuplicateDictationLabelsError(labels: string[]): string {
@@ -85,43 +107,75 @@ export function parseWordCountCell(value: string): number | null {
 }
 
 export function validateWordCountMatrixRow(
-  rawRow: WordCountMatrixRowInput
+  rawRow: WordCountMatrixRowInput,
+  rowNumber = 1
 ): ValidateWordCountMatrixResult {
   const dictationLabelKey = normalizeDictationLabel(rawRow.label);
 
   if (!dictationLabelKey) {
-    return { ok: false, error: DICTATION_LABEL_REQUIRED_ERROR };
+    return {
+      ok: false,
+      error: formatWordCountMatrixRowError(
+        rowNumber,
+        rawRow.label,
+        DICTATION_LABEL_REQUIRED_ERROR
+      ),
+      rowIndex: rowNumber - 1,
+      field: "label",
+    };
   }
 
   if (dictationLabelKey.length > DICTATION_LABEL_MAX_LENGTH) {
-    return { ok: false, error: DICTATION_LABEL_TOO_LONG_ERROR };
+    return {
+      ok: false,
+      error: formatWordCountMatrixRowError(
+        rowNumber,
+        rawRow.label,
+        DICTATION_LABEL_TOO_LONG_ERROR
+      ),
+      rowIndex: rowNumber - 1,
+      field: "label",
+    };
   }
 
-  const wordsYellow = parseWordCountCell(rawRow.wordsYellow);
-  const wordsGreen = parseWordCountCell(rawRow.wordsGreen);
-  const wordsViolet = parseWordCountCell(rawRow.wordsViolet);
-  const wordsGold = parseWordCountCell(rawRow.wordsGold);
+  const cellFields: Array<{
+    field: WordCountMatrixFieldName;
+    value: string;
+  }> = [
+    { field: "wordsYellow", value: rawRow.wordsYellow },
+    { field: "wordsGreen", value: rawRow.wordsGreen },
+    { field: "wordsViolet", value: rawRow.wordsViolet },
+    { field: "wordsGold", value: rawRow.wordsGold },
+  ];
 
-  if (
-    wordsYellow === null ||
-    wordsGreen === null ||
-    wordsViolet === null ||
-    wordsGold === null
-  ) {
-    return { ok: false, error: WORD_COUNT_CELL_INVALID_ERROR };
+  const parsedCells: ValidatedWordCountMatrixRow = {
+    dictationLabelKey,
+    wordsYellow: 0,
+    wordsGreen: 0,
+    wordsViolet: 0,
+    wordsGold: 0,
+  };
+
+  for (const { field, value } of cellFields) {
+    const parsed = parseWordCountCell(value);
+    if (parsed === null) {
+      return {
+        ok: false,
+        error: formatWordCountMatrixRowError(
+          rowNumber,
+          rawRow.label,
+          WORD_COUNT_CELL_INVALID_ERROR
+        ),
+        rowIndex: rowNumber - 1,
+        field,
+      };
+    }
+    parsedCells[field] = parsed;
   }
 
   return {
     ok: true,
-    rows: [
-      {
-        dictationLabelKey,
-        wordsYellow,
-        wordsGreen,
-        wordsViolet,
-        wordsGold,
-      },
-    ],
+    rows: [parsedCells],
   };
 }
 
@@ -135,8 +189,8 @@ export function validateWordCountMatrix(
   const validatedRows: ValidatedWordCountMatrixRow[] = [];
   const seenKeys = new Map<string, string>();
 
-  for (const rawRow of rawRows) {
-    const rowResult = validateWordCountMatrixRow(rawRow);
+  for (const [index, rawRow] of rawRows.entries()) {
+    const rowResult = validateWordCountMatrixRow(rawRow, index + 1);
     if (!rowResult.ok) {
       return rowResult;
     }
@@ -152,6 +206,7 @@ export function validateWordCountMatrix(
       return {
         ok: false,
         error: formatDuplicateDictationLabelsError(labels),
+        field: "duplicate",
       };
     }
 
@@ -162,22 +217,27 @@ export function validateWordCountMatrix(
   return { ok: true, rows: validatedRows };
 }
 
+export function extractWordCountMatrixRowIndices(formData: FormData): number[] {
+  const indices = new Set<number>();
+
+  for (const key of formData.keys()) {
+    const match = ROW_LABEL_KEY_PATTERN.exec(key);
+    if (match) {
+      indices.add(Number.parseInt(match[1], 10));
+    }
+  }
+
+  return [...indices].sort((a, b) => a - b);
+}
+
 export function parseWordCountMatrixRowsFromFormData(
   formData: FormData
 ): WordCountMatrixRowInput[] {
-  const rows: WordCountMatrixRowInput[] = [];
-  let index = 0;
-
-  while (formData.has(`rows[${index}].label`)) {
-    rows.push({
-      label: String(formData.get(`rows[${index}].label`) ?? ""),
-      wordsYellow: String(formData.get(`rows[${index}].words_yellow`) ?? ""),
-      wordsGreen: String(formData.get(`rows[${index}].words_green`) ?? ""),
-      wordsViolet: String(formData.get(`rows[${index}].words_violet`) ?? ""),
-      wordsGold: String(formData.get(`rows[${index}].words_gold`) ?? ""),
-    });
-    index += 1;
-  }
-
-  return rows;
+  return extractWordCountMatrixRowIndices(formData).map((index) => ({
+    label: String(formData.get(`rows[${index}].label`) ?? ""),
+    wordsYellow: String(formData.get(`rows[${index}].words_yellow`) ?? ""),
+    wordsGreen: String(formData.get(`rows[${index}].words_green`) ?? ""),
+    wordsViolet: String(formData.get(`rows[${index}].words_violet`) ?? ""),
+    wordsGold: String(formData.get(`rows[${index}].words_gold`) ?? ""),
+  }));
 }

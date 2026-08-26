@@ -1,4 +1,12 @@
-import { boolean, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 export const teachers = pgTable("teachers", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -46,14 +54,23 @@ export const levelHistoryEntries = pgTable("level_history_entries", {
     .notNull(),
 });
 
-export const wordCountMatrixRows = pgTable("word_count_matrix_rows", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  classId: uuid("class_id")
-    .notNull()
-    .references(() => classes.id),
-  dictationLabelKey: text("dictation_label_key").notNull(),
-  wordsYellow: integer("words_yellow").notNull(),
-  wordsGreen: integer("words_green").notNull(),
-  wordsViolet: integer("words_violet").notNull(),
-  wordsGold: integer("words_gold").notNull(),
-});
+export const wordCountMatrixRows = pgTable(
+  "word_count_matrix_rows",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    classId: uuid("class_id")
+      .notNull()
+      .references(() => classes.id),
+    dictationLabelKey: text("dictation_label_key").notNull(),
+    wordsYellow: integer("words_yellow").notNull(),
+    wordsGreen: integer("words_green").notNull(),
+    wordsViolet: integer("words_violet").notNull(),
+    wordsGold: integer("words_gold").notNull(),
+  },
+  (table) => [
+    uniqueIndex("word_count_matrix_rows_class_label_uidx").on(
+      table.classId,
+      table.dictationLabelKey
+    ),
+  ]
+);

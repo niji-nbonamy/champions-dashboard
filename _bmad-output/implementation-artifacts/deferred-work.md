@@ -74,3 +74,10 @@
 - Type `LeveledActiveStudent.level` reste `string` au lieu de `ChampionsLevel` — amélioration typage Epic 3 (`list-leveled-active-students.ts:10`)
 - `aria-describedby` pour erreurs picker multi-lignes — amélioration a11y non bloquante (`level-dot-picker.tsx:63`)
 - Test dédié `RequiredLevelBadge` — composant trivial, couvert indirectement par `roster-list.test.tsx`
+
+## Deferred from: code review of spec-2-4-word-count-matrix-configuration-f1.md (2026-08-26)
+
+- No index on `word_count_matrix_rows.class_id` — low volume per class in MVP (`schema.ts:51`)
+- Config page has no try/catch around `listWordCountMatrixRows` — same pattern as `countActiveStudents` on same page (`page.tsx:24`)
+- `word_count_matrix_rows` lacks `created_at`/`updated_at` — not required by story AC (`schema.ts:49`)
+- Schema change relies on `db:push` only — project push-only convention (`schema.ts:49`)

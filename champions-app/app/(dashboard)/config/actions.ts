@@ -34,6 +34,8 @@ export type ImportRosterCsvActionState = {
 export type SaveWordCountMatrixActionState = {
   error: string | null;
   success: string | null;
+  errorRowIndex?: number | null;
+  errorField?: string | null;
 };
 
 export async function saveWordCountMatrixAction(
@@ -57,19 +59,31 @@ export async function saveWordCountMatrixAction(
   try {
     await replaceWordCountMatrix(teacherClass.id, rawRows);
     revalidatePath("/config");
-    return { error: null, success: WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE };
+    return {
+      error: null,
+      success: WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
+      errorRowIndex: null,
+      errorField: null,
+    };
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
 
     if (error instanceof WordCountMatrixValidationError) {
-      return { error: error.message, success: null };
+      return {
+        error: error.message,
+        success: null,
+        errorRowIndex: error.rowIndex ?? null,
+        errorField: error.field ?? null,
+      };
     }
 
     return {
       error: WORD_COUNT_MATRIX_GENERIC_ERROR,
       success: null,
+      errorRowIndex: null,
+      errorField: null,
     };
   }
 }

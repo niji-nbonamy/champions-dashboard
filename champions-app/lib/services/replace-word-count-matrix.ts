@@ -8,9 +8,17 @@ import { getDb } from "@/lib/db";
 import { wordCountMatrixRows } from "@/lib/db/schema";
 
 export class WordCountMatrixValidationError extends Error {
-  constructor(message: string) {
+  rowIndex?: number;
+  field?: string;
+
+  constructor(
+    message: string,
+    options?: { rowIndex?: number; field?: string }
+  ) {
     super(message);
     this.name = "WordCountMatrixValidationError";
+    this.rowIndex = options?.rowIndex;
+    this.field = options?.field;
   }
 }
 
@@ -20,7 +28,10 @@ export async function replaceWordCountMatrix(
 ): Promise<void> {
   const validation = validateWordCountMatrix(rawRows);
   if (!validation.ok) {
-    throw new WordCountMatrixValidationError(validation.error);
+    throw new WordCountMatrixValidationError(validation.error, {
+      rowIndex: validation.rowIndex,
+      field: validation.field,
+    });
   }
 
   const db = getDb();

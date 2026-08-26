@@ -7,6 +7,21 @@ const mockWhere = vi.fn(() => ({ orderBy: mockOrderBy }));
 const mockFrom = vi.fn(() => ({ where: mockWhere }));
 const mockSelect = vi.fn(() => ({ from: mockFrom }));
 
+const { mockEq } = vi.hoisted(() => ({
+  mockEq: vi.fn(),
+}));
+
+vi.mock("drizzle-orm", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("drizzle-orm")>();
+  return {
+    ...actual,
+    eq: (...args: Parameters<typeof actual.eq>) => {
+      mockEq(...args);
+      return actual.eq(...args);
+    },
+  };
+});
+
 const getDb = vi.fn(() => ({
   select: mockSelect,
 }));
@@ -51,5 +66,16 @@ describe("listWordCountMatrixRows", () => {
     expect(mockFrom).toHaveBeenCalledWith(wordCountMatrixRows);
     expect(mockWhere).toHaveBeenCalled();
     expect(mockOrderBy).toHaveBeenCalled();
+  });
+
+  it("filters rows by classId in the query", async () => {
+    mockOrderBy.mockResolvedValueOnce([]);
+
+    const { listWordCountMatrixRows } = await import(
+      "./list-word-count-matrix-rows"
+    );
+    await listWordCountMatrixRows(classId);
+
+    expect(mockEq).toHaveBeenCalledWith(wordCountMatrixRows.classId, classId);
   });
 });

@@ -47,6 +47,8 @@ const LEVEL_COLUMNS: Array<{
 const initialActionState: SaveWordCountMatrixActionState = {
   error: null,
   success: null,
+  errorRowIndex: null,
+  errorField: null,
 };
 
 function createClientId(): string {
@@ -83,26 +85,62 @@ function mapInitialRows(initialRows: WordCountMatrixRowInput[]): MatrixRowState[
   return initialRows.map((row) => toMatrixRowState(row));
 }
 
+function isFieldInvalid(
+  state: SaveWordCountMatrixActionState,
+  rowIndex: number,
+  field: string
+): boolean {
+  if (!state.error || state.errorField === "duplicate") {
+    return false;
+  }
+
+  if (state.errorRowIndex == null) {
+    return false;
+  }
+
+  if (state.errorRowIndex !== rowIndex) {
+    return false;
+  }
+
+  if (!state.errorField) {
+    return true;
+  }
+
+  return state.errorField === field;
+}
+
 export function WordCountMatrixForm({ initialRows }: WordCountMatrixFormProps) {
   const [rows, setRows] = useState<MatrixRowState[]>(() =>
     mapInitialRows(initialRows)
   );
+  const [isDirty, setIsDirty] = useState(false);
   const [state, formAction, pending] = useActionState(
     saveWordCountMatrixAction,
     initialActionState
   );
   const errorId = useId();
   const successId = useId();
+  const atMaxRows = rows.length >= WORD_COUNT_MATRIX_MAX_ROWS;
 
   useEffect(() => {
-    setRows(mapInitialRows(initialRows));
-  }, [initialRows]);
+    if (state.success) {
+      setRows(mapInitialRows(initialRows));
+      setIsDirty(false);
+    }
+  }, [state.success, initialRows]);
+
+  useEffect(() => {
+    if (!isDirty) {
+      setRows(mapInitialRows(initialRows));
+    }
+  }, [initialRows, isDirty]);
 
   function updateRow(
     clientId: string,
     field: keyof MatrixRowState,
     value: string
   ) {
+    setIsDirty(true);
     setRows((currentRows) =>
       currentRows.map((row) =>
         row.clientId === clientId ? { ...row, [field]: value } : row
@@ -111,132 +149,147 @@ export function WordCountMatrixForm({ initialRows }: WordCountMatrixFormProps) {
   }
 
   function removeRow(clientId: string) {
+    setIsDirty(true);
     setRows((currentRows) =>
       currentRows.filter((row) => row.clientId !== clientId)
     );
   }
 
   function addRow() {
-    if (rows.length >= WORD_COUNT_MATRIX_MAX_ROWS) {
+    if (atMaxRows) {
       return;
     }
 
+    setIsDirty(true);
     setRows((currentRows) => [...currentRows, createEmptyRow()]);
   }
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Aucune dictée configurée. Ajoutez une ligne pour définir les totaux de
-          mots par niveau.
-        </p>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="min-w-full text-sm">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="px-3 py-2 text-left font-medium">Dictée</th>
-                {CHAMPIONS_LEVELS.map((level) => (
-                  <th key={level} className="px-3 py-2 text-left font-medium">
-                    <span className="inline-flex items-center gap-1.5">
-                      <LevelBadge level={level} className="px-1.5 py-0">
-                        {getChampionsLevelFrenchLabel(level)}
-                      </LevelBadge>
-                    </span>
+      <fieldset disabled={pending} className="flex flex-col gap-4 border-0 p-0 m-0">
+        {rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucune dictée configurée. Ajoutez une ligne pour définir les totaux de
+            mots par niveau.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="min-w-full text-sm">
+              <thead className="bg-muted/40">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Dictée</th>
+                  {CHAMPIONS_LEVELS.map((level) => (
+                    <th key={level} className="px-3 py-2 text-left font-medium">
+                      <span className="inline-flex items-center gap-1.5">
+                        <LevelBadge level={level} className="px-1.5 py-0">
+                          {getChampionsLevelFrenchLabel(level)}
+                        </LevelBadge>
+                      </span>
+                    </th>
+                  ))}
+                  <th className="px-3 py-2 text-left font-medium">
+                    <span className="sr-only">Actions</span>
                   </th>
-                ))}
-                <th className="px-3 py-2 text-left font-medium">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {rows.map((row, index) => (
-                <tr key={row.clientId}>
-                  <td className="px-3 py-2 align-top">
-                    <label className="sr-only" htmlFor={`label-${row.clientId}`}>
-                      Label dictée {index + 1}
-                    </label>
-                    <input
-                      id={`label-${row.clientId}`}
-                      name={`rows[${index}].label`}
-                      type="text"
-                      value={row.label}
-                      maxLength={DICTATION_LABEL_MAX_LENGTH}
-                      onChange={(event) =>
-                        updateRow(row.clientId, "label", event.target.value)
-                      }
-                      aria-describedby={state.error ? errorId : undefined}
-                      aria-invalid={state.error ? true : undefined}
-                      className="w-full min-w-[10rem] rounded-md border border-border bg-background px-2 py-1.5"
-                    />
-                  </td>
-                  {LEVEL_COLUMNS.map(({ level, field, formName }) => (
-                    <td key={level} className="px-3 py-2 align-top">
-                      <label
-                        className="sr-only"
-                        htmlFor={`${field}-${row.clientId}`}
-                      >
-                        {getChampionsLevelFrenchLabel(level)} dictée {index + 1}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {rows.map((row, index) => (
+                  <tr key={row.clientId}>
+                    <td className="px-3 py-2 align-top">
+                      <label className="sr-only" htmlFor={`label-${row.clientId}`}>
+                        Label dictée {index + 1}
                       </label>
                       <input
-                        id={`${field}-${row.clientId}`}
-                        name={`rows[${index}].${formName}`}
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={row[field]}
+                        id={`label-${row.clientId}`}
+                        name={`rows[${index}].label`}
+                        type="text"
+                        value={row.label}
+                        maxLength={DICTATION_LABEL_MAX_LENGTH}
                         onChange={(event) =>
-                          updateRow(row.clientId, field, event.target.value)
+                          updateRow(row.clientId, "label", event.target.value)
                         }
                         aria-describedby={state.error ? errorId : undefined}
-                        aria-invalid={state.error ? true : undefined}
-                        className="w-full min-w-[4.5rem] rounded-md border border-border bg-background px-2 py-1.5"
+                        aria-invalid={
+                          isFieldInvalid(state, index, "label") ? true : undefined
+                        }
+                        className="w-full min-w-[10rem] rounded-md border border-border bg-background px-2 py-1.5"
                       />
                     </td>
-                  ))}
-                  <td className="px-3 py-2 align-top">
-                    <button
-                      type="button"
-                      onClick={() => removeRow(row.clientId)}
-                      className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-                    >
-                      Supprimer
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {LEVEL_COLUMNS.map(({ level, field, formName }) => (
+                      <td key={level} className="px-3 py-2 align-top">
+                        <label
+                          className="sr-only"
+                          htmlFor={`${field}-${row.clientId}`}
+                        >
+                          {getChampionsLevelFrenchLabel(level)} dictée {index + 1}
+                        </label>
+                        <input
+                          id={`${field}-${row.clientId}`}
+                          name={`rows[${index}].${formName}`}
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={row[field]}
+                          onChange={(event) =>
+                            updateRow(row.clientId, field, event.target.value)
+                          }
+                          aria-describedby={state.error ? errorId : undefined}
+                          aria-invalid={
+                            isFieldInvalid(state, index, field) ? true : undefined
+                          }
+                          className="w-full min-w-[4.5rem] rounded-md border border-border bg-background px-2 py-1.5"
+                        />
+                      </td>
+                    ))}
+                    <td className="px-3 py-2 align-top">
+                      <button
+                        type="button"
+                        onClick={() => removeRow(row.clientId)}
+                        aria-label={`Supprimer la dictée ${index + 1}`}
+                        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+                      >
+                        Supprimer
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {state.error ? (
+          <p id={errorId} className="text-sm text-destructive" role="alert">
+            {state.error}
+          </p>
+        ) : null}
+
+        {state.success ? (
+          <p id={successId} className="text-sm text-primary" role="status">
+            {state.success}
+          </p>
+        ) : null}
+
+        {atMaxRows ? (
+          <p className="text-sm text-muted-foreground">
+            Maximum {WORD_COUNT_MATRIX_MAX_ROWS} dictées atteint.
+          </p>
+        ) : null}
+
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addRow}
+            disabled={atMaxRows}
+          >
+            Ajouter une dictée
+          </Button>
+          <Button type="submit" disabled={pending}>
+            {pending ? "Enregistrement…" : "Enregistrer la matrice"}
+          </Button>
         </div>
-      )}
-
-      {state.error ? (
-        <p id={errorId} className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-
-      {state.success ? (
-        <p id={successId} className="text-sm text-primary" role="status">
-          {state.success}
-        </p>
-      ) : null}
-
-      <div className="flex flex-wrap gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addRow}
-          disabled={rows.length >= WORD_COUNT_MATRIX_MAX_ROWS}
-        >
-          Ajouter une dictée
-        </Button>
-        <Button type="submit" disabled={pending}>
-          {pending ? "Enregistrement…" : "Enregistrer la matrice"}
-        </Button>
-      </div>
+      </fieldset>
     </form>
   );
 }
