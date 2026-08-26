@@ -1,3 +1,9 @@
+import {
+  normalizeDisplayName,
+  normalizeDuplicateKey,
+  STUDENT_DISPLAY_NAME_MAX_LENGTH,
+} from "./student-display-name";
+
 export const ROSTER_CSV_HEADER = "NOM + prénom";
 
 export const ROSTER_CSV_ENCODING_ERROR =
@@ -19,7 +25,7 @@ export const ROSTER_CSV_ROSTER_EXISTS_ERROR =
 
 export const ROSTER_CSV_MAX_FILE_BYTES = 512 * 1024;
 
-export const ROSTER_CSV_MAX_DISPLAY_NAME_LENGTH = 200;
+export const ROSTER_CSV_MAX_DISPLAY_NAME_LENGTH = STUDENT_DISPLAY_NAME_MAX_LENGTH;
 
 export type RosterCsvParseSuccess = {
   ok: true;
@@ -92,14 +98,6 @@ function parseCsvRow(line: string): string[] {
 
   fields.push(current);
   return fields;
-}
-
-function normalizeDisplayName(name: string): string {
-  return name.trim();
-}
-
-function normalizeDuplicateKey(name: string): string {
-  return normalizeDisplayName(name).toLowerCase();
 }
 
 export function parseRosterCsv(bytes: Uint8Array): RosterCsvParseResult {
