@@ -23,6 +23,14 @@ vi.mock("./csv-import-form", () => ({
   CsvImportForm: () => <div data-testid="csv-import-form" />,
 }));
 
+vi.mock("./word-count-matrix-form", () => ({
+  WordCountMatrixForm: () => <div data-testid="word-count-matrix-form" />,
+}));
+
+vi.mock("@/lib/services/list-word-count-matrix-rows", () => ({
+  listWordCountMatrixRows: vi.fn().mockResolvedValue([]),
+}));
+
 import ConfigPage from "./page";
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
@@ -45,6 +53,8 @@ describe("config page", () => {
     );
 
     expect(html).toContain("data-testid=\"csv-import-form\"");
+    expect(html).toContain("data-testid=\"word-count-matrix-form\"");
+    expect(html).toContain("Matrice mots");
   });
 
   it("renders the existing-roster message when students are present", async () => {
@@ -64,6 +74,8 @@ describe("config page", () => {
 
     expect(html).toContain("La liste d&#x27;élèves existe déjà");
     expect(html).not.toContain("data-testid=\"csv-import-form\"");
+    expect(html).toContain("data-testid=\"word-count-matrix-form\"");
+    expect(html).toContain("Matrice mots");
   });
 
   it("renders a singular success message from search params", async () => {

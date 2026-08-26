@@ -4,9 +4,11 @@ import {
 } from "@/lib/domain/roster-import";
 import { countActiveStudents } from "@/lib/services/count-active-students";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
+import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
 import { auth } from "@/auth";
 
 import { CsvImportForm } from "./csv-import-form";
+import { WordCountMatrixForm } from "./word-count-matrix-form";
 
 type ConfigPageProps = {
   searchParams: Promise<{ imported?: string }>;
@@ -19,6 +21,16 @@ export default async function ConfigPage({ searchParams }: ConfigPageProps) {
   const activeStudentCount = teacherClass
     ? await countActiveStudents(teacherClass.id)
     : 0;
+  const matrixRows = teacherClass
+    ? await listWordCountMatrixRows(teacherClass.id)
+    : [];
+  const matrixInitialRows = matrixRows.map((row) => ({
+    label: row.dictationLabelKey,
+    wordsYellow: String(row.wordsYellow),
+    wordsGreen: String(row.wordsGreen),
+    wordsViolet: String(row.wordsViolet),
+    wordsGold: String(row.wordsGold),
+  }));
   const params = await searchParams;
   const importedCount = Number.parseInt(params.imported ?? "", 10);
   const importedMessage =
@@ -50,6 +62,15 @@ export default async function ConfigPage({ searchParams }: ConfigPageProps) {
             {ROSTER_CSV_ROSTER_EXISTS_ERROR}
           </p>
         )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-medium">Matrice mots</h2>
+        <p className="text-sm text-muted-foreground">
+          Définissez le nombre de mots par dictée et par niveau couleur pour
+          calculer les pourcentages globaux.
+        </p>
+        <WordCountMatrixForm initialRows={matrixInitialRows} />
       </section>
     </main>
   );

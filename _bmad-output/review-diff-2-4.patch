@@ -1,0 +1,339 @@
+diff --git a/champions-app/app/(dashboard)/config/actions.test.ts b/champions-app/app/(dashboard)/config/actions.test.ts
+index 4153d6d..96e714e 100644
+--- a/champions-app/app/(dashboard)/config/actions.test.ts
++++ b/champions-app/app/(dashboard)/config/actions.test.ts
+@@ -6,11 +6,17 @@ import {
+   ROSTER_CSV_MAX_FILE_BYTES,
+   ROSTER_CSV_MISSING_FILE_ERROR,
+ } from "@/lib/domain/roster-import";
++import {
++  WORD_COUNT_CELL_INVALID_ERROR,
++  WORD_COUNT_MATRIX_GENERIC_ERROR,
++  WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
++} from "@/lib/domain/word-count-matrix";
+ 
+ const {
+   redirect,
+   revalidatePath,
+   mockImportRosterFromCsv,
++  mockReplaceWordCountMatrix,
+   mockAuth,
+   mockGetTeacherClass,
+ } = vi.hoisted(() => ({
+@@ -19,6 +25,7 @@ const {
+   }),
+   revalidatePath: vi.fn(),
+   mockImportRosterFromCsv: vi.fn(),
++  mockReplaceWordCountMatrix: vi.fn(),
+   mockAuth: vi.fn(),
+   mockGetTeacherClass: vi.fn(),
+ }));
+@@ -60,6 +67,16 @@ vi.mock("@/lib/services/import-roster-csv", () => ({
+   },
+ }));
+ 
++vi.mock("@/lib/services/replace-word-count-matrix", () => ({
++  replaceWordCountMatrix: mockReplaceWordCountMatrix,
++  WordCountMatrixValidationError: class WordCountMatrixValidationError extends Error {
++    constructor(message: string) {
++      super(message);
++      this.name = "WordCountMatrixValidationError";
++    }
++  },
++}));
++
+ const teacherId = "550e8400-e29b-41d4-a716-446655440000";
+ const classId = "660e8400-e29b-41d4-a716-446655440001";
+ 
+@@ -180,3 +197,105 @@ describe("importRosterCsvAction", () => {
+     expect(result.error).toBe("Import impossible. Réessayez.");
+   });
+ });
++
++describe("saveWordCountMatrixAction", () => {
++  afterEach(() => {
++    vi.clearAllMocks();
++  });
++
++  it("redirects unauthenticated users to login", async () => {
++    mockAuth.mockResolvedValueOnce(null);
++
++    const { saveWordCountMatrixAction } = await import("./actions");
++
++    await expect(
++      saveWordCountMatrixAction({ error: null, success: null }, new FormData())
++    ).rejects.toThrow("NEXT_REDIRECT:/login");
++  });
++
++  it("redirects users without a class to onboarding", async () => {
++    mockAuth.mockResolvedValueOnce({
++      user: { id: teacherId, email: "t@example.com" },
++    });
++    mockGetTeacherClass.mockResolvedValueOnce(null);
++
++    const { saveWordCountMatrixAction } = await import("./actions");
++
++    await expect(
++      saveWordCountMatrixAction({ error: null, success: null }, new FormData())
++    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/class");
++  });
++
++  it("saves a valid matrix and revalidates config", async () => {
++    mockAuthenticatedSession();
++    mockReplaceWordCountMatrix.mockResolvedValueOnce(undefined);
++
++    const { saveWordCountMatrixAction } = await import("./actions");
++    const formData = new FormData();
++    formData.set("rows[0].label", "Dictée 1");
++    formData.set("rows[0].words_yellow", "10");
++    formData.set("rows[0].words_green", "12");
++    formData.set("rows[0].words_violet", "14");
++    formData.set("rows[0].words_gold", "16");
++
++    const result = await saveWordCountMatrixAction(
++      { error: null, success: null },
++      formData
++    );
++
++    expect(mockReplaceWordCountMatrix).toHaveBeenCalledWith(classId, [
++      {
++        label: "Dictée 1",
++        wordsYellow: "10",
++        wordsGreen: "12",
++        wordsViolet: "14",
++        wordsGold: "16",
++      },
++    ]);
++    expect(revalidatePath).toHaveBeenCalledWith("/config");
++    expect(result).toEqual({
++      error: null,
++      success: WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
++    });
++  });
++
++  it("returns validation errors to the client", async () => {
++    mockAuthenticatedSession();
++    const { WordCountMatrixValidationError } = await import(
++      "@/lib/services/replace-word-count-matrix"
++    );
++    mockReplaceWordCountMatrix.mockRejectedValueOnce(
++      new WordCountMatrixValidationError(WORD_COUNT_CELL_INVALID_ERROR)
++    );
++
++    const { saveWordCountMatrixAction } = await import("./actions");
++    const formData = new FormData();
++    formData.set("rows[0].label", "Dictée 1");
++    formData.set("rows[0].words_yellow", "0");
++    formData.set("rows[0].words_green", "12");
++    formData.set("rows[0].words_violet", "14");
++    formData.set("rows[0].words_gold", "16");
++
++    const result = await saveWordCountMatrixAction(
++      { error: null, success: null },
++      formData
++    );
++
++    expect(result.error).toBe(WORD_COUNT_CELL_INVALID_ERROR);
++  });
++
++  it("returns a generic French error for unexpected failures", async () => {
++    mockAuthenticatedSession();
++    mockReplaceWordCountMatrix.mockRejectedValueOnce(new Error("database down"));
++
++    const { saveWordCountMatrixAction } = await import("./actions");
++    const formData = new FormData();
++
++    const result = await saveWordCountMatrixAction(
++      { error: null, success: null },
++      formData
++    );
++
++    expect(result.error).toBe(WORD_COUNT_MATRIX_GENERIC_ERROR);
++  });
++});
+diff --git a/champions-app/app/(dashboard)/config/actions.ts b/champions-app/app/(dashboard)/config/actions.ts
+index 54810a9..3393657 100644
+--- a/champions-app/app/(dashboard)/config/actions.ts
++++ b/champions-app/app/(dashboard)/config/actions.ts
+@@ -6,22 +6,74 @@ import { redirect } from "next/navigation";
+ 
+ import { auth } from "@/auth";
+ import {
+-  ROSTER_CSV_MAX_FILE_BYTES,
+-  ROSTER_CSV_MISSING_FILE_ERROR,
+-  ROSTER_CSV_FILE_TOO_LARGE_ERROR,
+-} from "@/lib/domain/roster-import";
++  parseWordCountMatrixRowsFromFormData,
++  WORD_COUNT_MATRIX_GENERIC_ERROR,
++  WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
++} from "@/lib/domain/word-count-matrix";
+ import {
+   importRosterFromCsv,
+   RosterImportError,
+   RosterNotEmptyError,
+ } from "@/lib/services/import-roster-csv";
+ import { getTeacherClass } from "@/lib/services/get-teacher-class";
++import {
++  replaceWordCountMatrix,
++  WordCountMatrixValidationError,
++} from "@/lib/services/replace-word-count-matrix";
++import {
++  ROSTER_CSV_MAX_FILE_BYTES,
++  ROSTER_CSV_MISSING_FILE_ERROR,
++  ROSTER_CSV_FILE_TOO_LARGE_ERROR,
++} from "@/lib/domain/roster-import";
+ 
+ export type ImportRosterCsvActionState = {
+   error: string | null;
+   success: string | null;
+ };
+ 
++export type SaveWordCountMatrixActionState = {
++  error: string | null;
++  success: string | null;
++};
++
++export async function saveWordCountMatrixAction(
++  _prevState: SaveWordCountMatrixActionState,
++  formData: FormData
++): Promise<SaveWordCountMatrixActionState> {
++  const session = await auth();
++  const teacherId = session?.user?.id;
++
++  if (!teacherId) {
++    redirect("/login");
++  }
++
++  const teacherClass = await getTeacherClass(teacherId);
++  if (!teacherClass) {
++    redirect("/onboarding/class");
++  }
++
++  const rawRows = parseWordCountMatrixRowsFromFormData(formData);
++
++  try {
++    await replaceWordCountMatrix(teacherClass.id, rawRows);
++    revalidatePath("/config");
++    return { error: null, success: WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE };
++  } catch (error) {
++    if (isRedirectError(error)) {
++      throw error;
++    }
++
++    if (error instanceof WordCountMatrixValidationError) {
++      return { error: error.message, success: null };
++    }
++
++    return {
++      error: WORD_COUNT_MATRIX_GENERIC_ERROR,
++      success: null,
++    };
++  }
++}
++
+ export async function importRosterCsvAction(
+   _prevState: ImportRosterCsvActionState,
+   formData: FormData
+diff --git a/champions-app/app/(dashboard)/config/page.test.tsx b/champions-app/app/(dashboard)/config/page.test.tsx
+index 6e5af2f..c5032fc 100644
+--- a/champions-app/app/(dashboard)/config/page.test.tsx
++++ b/champions-app/app/(dashboard)/config/page.test.tsx
+@@ -23,6 +23,14 @@ vi.mock("./csv-import-form", () => ({
+   CsvImportForm: () => <div data-testid="csv-import-form" />,
+ }));
+ 
++vi.mock("./word-count-matrix-form", () => ({
++  WordCountMatrixForm: () => <div data-testid="word-count-matrix-form" />,
++}));
++
++vi.mock("@/lib/services/list-word-count-matrix-rows", () => ({
++  listWordCountMatrixRows: vi.fn().mockResolvedValue([]),
++}));
++
+ import ConfigPage from "./page";
+ 
+ const teacherId = "550e8400-e29b-41d4-a716-446655440000";
+@@ -45,6 +53,8 @@ describe("config page", () => {
+     );
+ 
+     expect(html).toContain("data-testid=\"csv-import-form\"");
++    expect(html).toContain("data-testid=\"word-count-matrix-form\"");
++    expect(html).toContain("Matrice mots");
+   });
+ 
+   it("renders the existing-roster message when students are present", async () => {
+diff --git a/champions-app/app/(dashboard)/config/page.tsx b/champions-app/app/(dashboard)/config/page.tsx
+index e81b153..3f75c62 100644
+--- a/champions-app/app/(dashboard)/config/page.tsx
++++ b/champions-app/app/(dashboard)/config/page.tsx
+@@ -4,9 +4,11 @@ import {
+ } from "@/lib/domain/roster-import";
+ import { countActiveStudents } from "@/lib/services/count-active-students";
+ import { getTeacherClass } from "@/lib/services/get-teacher-class";
++import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
+ import { auth } from "@/auth";
+ 
+ import { CsvImportForm } from "./csv-import-form";
++import { WordCountMatrixForm } from "./word-count-matrix-form";
+ 
+ type ConfigPageProps = {
+   searchParams: Promise<{ imported?: string }>;
+@@ -19,6 +21,16 @@ export default async function ConfigPage({ searchParams }: ConfigPageProps) {
+   const activeStudentCount = teacherClass
+     ? await countActiveStudents(teacherClass.id)
+     : 0;
++  const matrixRows = teacherClass
++    ? await listWordCountMatrixRows(teacherClass.id)
++    : [];
++  const matrixInitialRows = matrixRows.map((row) => ({
++    label: row.dictationLabelKey,
++    wordsYellow: String(row.wordsYellow),
++    wordsGreen: String(row.wordsGreen),
++    wordsViolet: String(row.wordsViolet),
++    wordsGold: String(row.wordsGold),
++  }));
+   const params = await searchParams;
+   const importedCount = Number.parseInt(params.imported ?? "", 10);
+   const importedMessage =
+@@ -51,6 +63,15 @@ export default async function ConfigPage({ searchParams }: ConfigPageProps) {
+           </p>
+         )}
+       </section>
++
++      <section className="flex flex-col gap-3">
++        <h2 className="text-lg font-medium">Matrice mots</h2>
++        <p className="text-sm text-muted-foreground">
++          Définissez le nombre de mots par dictée et par niveau couleur pour
++          calculer les pourcentages globaux.
++        </p>
++        <WordCountMatrixForm initialRows={matrixInitialRows} />
++      </section>
+     </main>
+   );
+ }
+diff --git a/champions-app/lib/db/schema.ts b/champions-app/lib/db/schema.ts
+index d2aacad..a1259c2 100644
+--- a/champions-app/lib/db/schema.ts
++++ b/champions-app/lib/db/schema.ts
+@@ -1,4 +1,4 @@
+-import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
++import { boolean, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+ 
+ export const teachers = pgTable("teachers", {
+   id: uuid("id").primaryKey().defaultRandom(),
+@@ -45,3 +45,15 @@ export const levelHistoryEntries = pgTable("level_history_entries", {
+     .defaultNow()
+     .notNull(),
+ });
++
++export const wordCountMatrixRows = pgTable("word_count_matrix_rows", {
++  id: uuid("id").primaryKey().defaultRandom(),
++  classId: uuid("class_id")
++    .notNull()
++    .references(() => classes.id),
++  dictationLabelKey: text("dictation_label_key").notNull(),
++  wordsYellow: integer("words_yellow").notNull(),
++  wordsGreen: integer("words_green").notNull(),
++  wordsViolet: integer("words_violet").notNull(),
++  wordsGold: integer("words_gold").notNull(),
++});
