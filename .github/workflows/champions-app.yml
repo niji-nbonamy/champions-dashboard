@@ -10,13 +10,12 @@ on:
       - "champions-app/**"
       - ".github/workflows/champions-app.yml"
 
-defaults:
-  run:
-    working-directory: champions-app
-
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: champions-app
     env:
       AUTH_SECRET: ci-auth-secret-for-github-actions-only-not-production
       DATABASE_URL: postgresql://ci:ci@localhost:5432/champions_ci
@@ -27,14 +26,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          # App runtime: Node 22 (matches champions-app/.nvmrc and package.json engines)
           node-version: "22"
           cache: npm
           cache-dependency-path: champions-app/package-lock.json
 
-      # Pin npm via package.json packageManager (11.6.2 — matches typical nvm Node 22 installs)
-      - name: Enable Corepack
-        run: corepack enable
+      # Node 22 runners ship npm 10.x; lockfile is generated with npm 11.6.2 (local nvm default).
+      # Must upgrade npm at repo root — defaults.working-directory is champions-app for later steps.
+      - name: Pin npm to 11.6.2
+        working-directory: .
+        run: |
+          npm install -g npm@11.6.2
+          npm --version
 
       - name: Install dependencies
         run: npm ci
