@@ -32,6 +32,10 @@ jobs:
           cache: npm
           cache-dependency-path: champions-app/package-lock.json
 
+      # Pin npm via package.json packageManager (11.6.2 — matches typical nvm Node 22 installs)
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Install dependencies
         run: npm ci
 

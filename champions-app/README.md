@@ -4,7 +4,8 @@ Teacher-facing dictation dashboards for primary classrooms. EU-hosted, class-sco
 
 ## Prerequisites
 
-- **Node.js 22 LTS**
+- **Node.js 22 LTS** (via nvm: `nvm use` reads `.nvmrc`)
+- **npm 11.6.2** — bundled with Node 22 via nvm, or enforced by Corepack from `packageManager` in `package.json`
 - Neon Postgres project in **AWS EU (Frankfurt)** region
 
 ## Setup
@@ -20,6 +21,10 @@ cd champions-app
    ```bash
    npm install
    ```
+
+   **nvm users:** if `npm --version` already shows `11.6.2`, you are aligned with CI — no extra setup. Corepack is optional on your machine.
+
+   **Otherwise** (optional, once per machine): `corepack enable` then re-check `npm --version` in this directory.
 
 2. Copy environment variables:
 
