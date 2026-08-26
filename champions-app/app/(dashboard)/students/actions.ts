@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { ASSIGN_STUDENT_LEVEL_GENERIC_ERROR } from "@/lib/domain/champions-level";
+import { ASSIGN_STUDENT_LEVEL_GENERIC_ERROR, parseChampionsLevel } from "@/lib/domain/champions-level";
 import { STUDENT_ADD_SUCCESS_MESSAGE } from "@/lib/domain/student-display-name";
 import {
   addStudent,
@@ -91,6 +91,10 @@ export async function assignStudentLevelAction(
 
   if (!studentId) {
     return { error: "Élève introuvable." };
+  }
+
+  if (!parseChampionsLevel(level)) {
+    return { error: ASSIGN_STUDENT_LEVEL_GENERIC_ERROR };
   }
 
   try {

@@ -66,3 +66,11 @@
 - Test non-régression lien Config → Élèves pour ajout manuel — page Config inchangée dans story 2-2 ; vérification manuelle suffisante
 - Pas de test E2E flux ajout manuel → apparition dans liste — action item epic-1 retro (smoke E2E)
 - Normalisation Unicode (NFC/NFKC) pour détection doublons — hors scope spec MVP ; réévaluer si cas réels signalés
+
+## Deferred from: code review of spec-2-3-level-assignment-color-dot-picker-e1.md (2026-08-26)
+
+- Index `student_id` sur `level_history_entries` — performance future lectures historique ; volume faible en MVP (`schema.ts:37`)
+- Pas de `teacher_id` dans l'historique — fondation FR33 partielle ; stories 4.x (`schema.ts:37`)
+- Type `LeveledActiveStudent.level` reste `string` au lieu de `ChampionsLevel` — amélioration typage Epic 3 (`list-leveled-active-students.ts:10`)
+- `aria-describedby` pour erreurs picker multi-lignes — amélioration a11y non bloquante (`level-dot-picker.tsx:63`)
+- Test dédié `RequiredLevelBadge` — composant trivial, couvert indirectement par `roster-list.test.tsx`

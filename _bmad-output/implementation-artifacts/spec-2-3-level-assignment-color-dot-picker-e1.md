@@ -175,3 +175,21 @@ context:
 
 - Action + layout + nav badge integration coverage
   [`actions.test.ts:244`](../../champions-app/app/(dashboard)/students/actions.test.ts#L244)
+
+### Review Findings
+
+- [x] [Review][Patch] Niveau invalide en base — autoriser réassignation serveur si hors enum CHAMPIONS [`assign-student-level.ts:68`](../../champions-app/lib/services/assign-student-level.ts#L68) + [`roster-list.tsx:29`](../../champions-app/app/(dashboard)/students/roster-list.tsx#L29)
+
+- [x] [Review][Patch] Transaction DB manquante pour assign + historique [`assign-student-level.ts:72`](../../champions-app/lib/services/assign-student-level.ts#L72)
+- [x] [Review][Patch] UPDATE sans garde `archived = false` [`assign-student-level.ts:75`](../../champions-app/lib/services/assign-student-level.ts#L75)
+- [x] [Review][Patch] Erreur trompeuse si l'UPDATE ne retourne aucune ligne [`assign-student-level.ts:84`](../../champions-app/lib/services/assign-student-level.ts#L84)
+- [x] [Review][Patch] Test élève archivé manquant (matrice I/O) [`assign-student-level.test.ts`](../../champions-app/lib/services/assign-student-level.test.ts)
+- [x] [Review][Patch] Tests prédicats SQL du comptage non assignés [`count-unassigned-active-students.test.ts`](../../champions-app/lib/services/count-unassigned-active-students.test.ts)
+- [x] [Review][Patch] Test action avec niveau invalide manquant [`actions.test.ts`](../../champions-app/app/(dashboard)/students/actions.test.ts)
+- [x] [Review][Patch] Incohérence statut spec `done` vs sprint `review` [`spec-2-3-level-assignment-color-dot-picker-e1.md:5`](./spec-2-3-level-assignment-color-dot-picker-e1.md#L5)
+
+- [x] [Review][Defer] Index `student_id` sur `level_history_entries` [`schema.ts:37`](../../champions-app/lib/db/schema.ts#L37) — deferred, pre-existing
+- [x] [Review][Defer] Pas de `teacher_id` dans l'historique (FR33 partiel) [`schema.ts:37`](../../champions-app/lib/db/schema.ts#L37) — deferred, pre-existing
+- [x] [Review][Defer] Type `LeveledActiveStudent.level` reste `string` [`list-leveled-active-students.ts:10`](../../champions-app/lib/services/list-leveled-active-students.ts#L10) — deferred, pre-existing
+- [x] [Review][Defer] `aria-describedby` pour erreurs multi-lignes du picker [`level-dot-picker.tsx:63`](../../champions-app/app/(dashboard)/students/level-dot-picker.tsx#L63) — deferred, pre-existing
+- [x] [Review][Defer] Test dédié `RequiredLevelBadge` — deferred, pre-existing

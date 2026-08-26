@@ -335,6 +335,21 @@ describe("assignStudentLevelAction", () => {
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
+  it("returns a generic French error for invalid levels", async () => {
+    mockAuthenticatedSession();
+
+    const { assignStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "red");
+
+    const result = await assignStudentLevelAction({ error: null }, formData);
+
+    expect(result.error).toBe(ASSIGN_STUDENT_LEVEL_GENERIC_ERROR);
+    expect(mockAssignStudentLevel).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
   it("returns a generic French error for unexpected failures", async () => {
     mockAuthenticatedSession();
     mockAssignStudentLevel.mockRejectedValueOnce(new Error("database down"));

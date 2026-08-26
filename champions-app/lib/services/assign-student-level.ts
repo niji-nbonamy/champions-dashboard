@@ -1,7 +1,9 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, not, or } from "drizzle-orm";
 
 import {
   ASSIGN_STUDENT_LEVEL_GENERIC_ERROR,
+  CHAMPIONS_LEVELS,
+  isChampionsLevel,
   parseChampionsLevel,
 } from "@/lib/domain/champions-level";
 import type { ChampionsLevel } from "@/lib/design/tokens";
@@ -34,6 +36,17 @@ export type AssignStudentLevelResult = {
   level: ChampionsLevel;
 };
 
+function canAssignLevel(currentLevel: string | null): boolean {
+  return currentLevel === null || !isChampionsLevel(currentLevel);
+}
+
+function assignableLevelWhere() {
+  return or(
+    isNull(students.level),
+    not(inArray(students.level, [...CHAMPIONS_LEVELS]))
+  );
+}
+
 export async function assignStudentLevel(
   classId: string,
   studentId: string,
@@ -65,30 +78,49 @@ export async function assignStudentLevel(
     throw new StudentNotFoundError();
   }
 
-  if (student.level !== null) {
+  if (!canAssignLevel(student.level)) {
     throw new StudentAlreadyAssignedError();
   }
 
-  const [updatedStudent] = await db
-    .update(students)
-    .set({ level })
-    .where(
-      and(
-        eq(students.id, studentId),
-        eq(students.classId, classId),
-        isNull(students.level)
+  await db.transaction(async (tx) => {
+    const [updatedStudent] = await tx
+      .update(students)
+      .set({ level })
+      .where(
+        and(
+          eq(students.id, studentId),
+          eq(students.classId, classId),
+          eq(students.archived, false),
+          assignableLevelWhere()
+        )
       )
-    )
-    .returning({ id: students.id });
+      .returning({ id: students.id });
 
-  if (!updatedStudent) {
-    throw new StudentAlreadyAssignedError();
-  }
+    if (!updatedStudent) {
+      const [stillExists] = await tx
+        .select({ id: students.id, level: students.level })
+        .from(students)
+        .where(
+          and(
+            eq(students.id, studentId),
+            eq(students.classId, classId),
+            eq(students.archived, false)
+          )
+        )
+        .limit(1);
 
-  await db.insert(levelHistoryEntries).values({
-    studentId,
-    level,
-    action: "assigned",
+      if (!stillExists) {
+        throw new StudentNotFoundError();
+      }
+
+      throw new StudentAlreadyAssignedError();
+    }
+
+    await tx.insert(levelHistoryEntries).values({
+      studentId,
+      level,
+      action: "assigned",
+    });
   });
 
   return { studentId, level };
