@@ -1,12 +1,53 @@
-export default function ConfigPage() {
+import { ROSTER_CSV_ROSTER_EXISTS_ERROR } from "@/lib/domain/roster-import";
+import { countActiveStudents } from "@/lib/services/count-active-students";
+import { getTeacherClass } from "@/lib/services/get-teacher-class";
+import { auth } from "@/auth";
+
+import { CsvImportForm } from "./csv-import-form";
+
+type ConfigPageProps = {
+  searchParams: Promise<{ imported?: string }>;
+};
+
+export default async function ConfigPage({ searchParams }: ConfigPageProps) {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+  const teacherClass = teacherId ? await getTeacherClass(teacherId) : null;
+  const activeStudentCount = teacherClass
+    ? await countActiveStudents(teacherClass.id)
+    : 0;
+  const params = await searchParams;
+  const importedCount = Number.parseInt(params.imported ?? "", 10);
+  const importedMessage =
+    Number.isFinite(importedCount) && importedCount > 0
+      ? `${importedCount} élèves importés.`
+      : null;
+
   return (
-    <main className="flex flex-1 flex-col gap-4 p-6">
+    <main className="flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">Config</h1>
         <p className="text-sm text-muted-foreground">
-          La configuration sera disponible dans une prochaine version.
+          Importez votre liste d&apos;élèves pour configurer l&apos;année.
         </p>
       </div>
+
+      {importedMessage ? (
+        <p className="text-sm text-primary" role="status">
+          {importedMessage}
+        </p>
+      ) : null}
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-medium">Liste d&apos;élèves</h2>
+        {activeStudentCount === 0 ? (
+          <CsvImportForm />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {ROSTER_CSV_ROSTER_EXISTS_ERROR}
+          </p>
+        )}
+      </section>
     </main>
   );
 }
