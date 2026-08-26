@@ -8,6 +8,7 @@ const {
   mockGetYearStartWizardStatus,
   mockRemoveActiveStudent,
   mockCompleteYearStartWizard,
+  mockConfirmYearStartRoster,
 } = vi.hoisted(() => ({
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
@@ -18,6 +19,7 @@ const {
   mockGetYearStartWizardStatus: vi.fn(),
   mockRemoveActiveStudent: vi.fn(),
   mockCompleteYearStartWizard: vi.fn(),
+  mockConfirmYearStartRoster: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -65,6 +67,10 @@ vi.mock("@/lib/services/complete-year-start-wizard", () => ({
   },
 }));
 
+vi.mock("@/lib/services/confirm-year-start-roster", () => ({
+  confirmYearStartRoster: mockConfirmYearStartRoster,
+}));
+
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
 const classId = "660e8400-e29b-41d4-a716-446655440001";
 const studentId = "770e8400-e29b-41d4-a716-446655440002";
@@ -99,12 +105,15 @@ describe("year-start wizard actions", () => {
     it("redirects to step 2 when students exist", async () => {
       mockAuthenticatedSession();
       mockIncompleteWizardStatus();
+      mockConfirmYearStartRoster.mockResolvedValueOnce(undefined);
 
       const { confirmRosterStepAction } = await import("./actions");
 
       await expect(confirmRosterStepAction()).rejects.toThrow(
         "NEXT_REDIRECT:/onboarding/year-start?step=2"
       );
+      expect(mockConfirmYearStartRoster).toHaveBeenCalledWith(classId);
+      expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
     });
 
     it("keeps step 1 when the roster is empty", async () => {
@@ -159,6 +168,23 @@ describe("year-start wizard actions", () => {
         "NEXT_REDIRECT:/onboarding/year-start?step=1"
       );
     });
+
+    it("redirects to step 2 when students still lack a level", async () => {
+      mockAuthenticatedSession();
+      mockGetYearStartWizardStatus.mockResolvedValueOnce({
+        completed: false,
+        step: 2,
+        activeStudentCount: 2,
+        unassignedCount: 1,
+        matrixRowCount: 0,
+      });
+
+      const { confirmLevelsStepAction } = await import("./actions");
+
+      await expect(confirmLevelsStepAction()).rejects.toThrow(
+        "NEXT_REDIRECT:/onboarding/year-start?step=2"
+      );
+    });
   });
 
   describe("removeStudentFromWizardAction", () => {
@@ -178,6 +204,27 @@ describe("year-start wizard actions", () => {
       expect(result).toEqual({ error: null });
       expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
       expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    });
+
+    it("returns a French error when removal fails", async () => {
+      mockAuthenticatedSession();
+      const { RemoveActiveStudentError } = await import(
+        "@/lib/services/remove-active-student"
+      );
+      mockRemoveActiveStudent.mockRejectedValueOnce(
+        new RemoveActiveStudentError("Retrait impossible.")
+      );
+
+      const { removeStudentFromWizardAction } = await import("./actions");
+      const formData = new FormData();
+      formData.set("student_id", studentId);
+
+      const result = await removeStudentFromWizardAction(
+        { error: null },
+        formData
+      );
+
+      expect(result.error).toBe("Retrait impossible.");
     });
   });
 
@@ -201,6 +248,29 @@ describe("year-start wizard actions", () => {
       await expect(
         completeYearStartWizardAction({ error: null })
       ).rejects.toThrow("NEXT_REDIRECT:/dictations");
+      expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
+      expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+      expect(revalidatePath).toHaveBeenCalledWith("/students");
+      expect(revalidatePath).toHaveBeenCalledWith("/config");
+    });
+
+    it("returns a French error when prerequisites are incomplete before completion", async () => {
+      mockAuthenticatedSession();
+      mockGetYearStartWizardStatus.mockResolvedValueOnce({
+        completed: false,
+        step: 2,
+        activeStudentCount: 2,
+        unassignedCount: 1,
+        matrixRowCount: 0,
+      });
+
+      const { completeYearStartWizardAction } = await import("./actions");
+      const result = await completeYearStartWizardAction({ error: null });
+
+      expect(result.error).toBe(
+        "Assignez un niveau à chaque élève avant de terminer la configuration."
+      );
+      expect(mockCompleteYearStartWizard).not.toHaveBeenCalled();
     });
 
     it("returns a French error when completion prerequisites fail in the service", async () => {

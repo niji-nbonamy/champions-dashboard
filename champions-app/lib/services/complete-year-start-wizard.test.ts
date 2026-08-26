@@ -123,4 +123,44 @@ describe("completeYearStartWizard", () => {
     );
     expect(mockUpdate).not.toHaveBeenCalled();
   });
+
+  it("rejects completion when students still lack a level", async () => {
+    mockLimit.mockResolvedValueOnce([{ yearStartWizardCompletedAt: null }]);
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 2,
+      activeStudentCount: 2,
+      unassignedCount: 1,
+      matrixRowCount: 1,
+    });
+
+    const { completeYearStartWizard } = await import(
+      "./complete-year-start-wizard"
+    );
+
+    await expect(completeYearStartWizard(classId)).rejects.toThrow(
+      "Assignez un niveau à chaque élève avant de terminer la configuration."
+    );
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects completion when the roster is empty", async () => {
+    mockLimit.mockResolvedValueOnce([{ yearStartWizardCompletedAt: null }]);
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 1,
+      activeStudentCount: 0,
+      unassignedCount: 0,
+      matrixRowCount: 0,
+    });
+
+    const { completeYearStartWizard } = await import(
+      "./complete-year-start-wizard"
+    );
+
+    await expect(completeYearStartWizard(classId)).rejects.toThrow(
+      "Ajoutez au moins un élève avant de terminer la configuration."
+    );
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
 });

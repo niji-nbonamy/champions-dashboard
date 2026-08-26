@@ -65,7 +65,7 @@ describe("config page", () => {
     mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
-      await ConfigPage({ searchParams: Promise.resolve({}) })
+      await ConfigPage()
     );
 
     expect(html).toContain("data-testid=\"csv-import-form\"");
@@ -96,7 +96,7 @@ describe("config page", () => {
     ]);
 
     renderToStaticMarkup(
-      await ConfigPage({ searchParams: Promise.resolve({}) })
+      await ConfigPage()
     );
 
     expect(mockListWordCountMatrixRows).toHaveBeenCalledWith(classId);
@@ -124,32 +124,12 @@ describe("config page", () => {
     mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
-      await ConfigPage({ searchParams: Promise.resolve({}) })
+      await ConfigPage()
     );
 
     expect(html).toContain("La liste d&#x27;élèves existe déjà");
     expect(html).not.toContain("data-testid=\"csv-import-form\"");
     expect(html).toContain("data-testid=\"word-count-matrix-form\"");
     expect(html).toContain("Matrice mots");
-  });
-
-  it("renders a singular success message from search params", async () => {
-    auth.mockResolvedValueOnce({
-      user: { id: teacherId, email: "t@example.com" },
-    });
-    mockGetTeacherClass.mockResolvedValueOnce({
-      id: classId,
-      teacherId,
-      schoolYearLabel: "2025-2026",
-    });
-    mockCountActiveStudents.mockResolvedValueOnce(1);
-    mockListWordCountMatrixRows.mockResolvedValueOnce([]);
-
-    const html = renderToStaticMarkup(
-      await ConfigPage({ searchParams: Promise.resolve({ imported: "1" }) })
-    );
-
-    expect(html).toContain("1 élève importé.");
-    expect(html).toContain('role="status"');
   });
 });

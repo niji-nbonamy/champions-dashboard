@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import type { ActiveStudent } from "@/lib/services/list-active-students";
@@ -45,17 +46,19 @@ export function StepRoster({ students }: StepRosterProps) {
             className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
           >
             <span className="text-sm font-medium">{student.displayName}</span>
-            <form action={removeAction}>
-              <input type="hidden" name="student_id" value={student.id} />
-              <Button
-                type="submit"
-                variant="ghost"
-                size="sm"
-                disabled={removePending}
-              >
-                Retirer
-              </Button>
-            </form>
+            {student.level == null ? (
+              <form action={removeAction}>
+                <input type="hidden" name="student_id" value={student.id} />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="sm"
+                  disabled={removePending}
+                >
+                  Retirer
+                </Button>
+              </form>
+            ) : null}
           </li>
         ))}
       </ul>
@@ -68,14 +71,20 @@ export function StepRoster({ students }: StepRosterProps) {
     ) : null}
 
     <form action={confirmRosterStepAction}>
-      <Button
-        type="submit"
-        variant="accent"
+      <ConfirmRosterButton
         disabled={students.length === 0 || removePending}
-      >
-        Confirmer
-      </Button>
+      />
     </form>
     </div>
+  );
+}
+
+function ConfirmRosterButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" variant="accent" disabled={disabled || pending}>
+      {pending ? "Confirmation…" : "Confirmer"}
+    </Button>
   );
 }

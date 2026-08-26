@@ -49,9 +49,22 @@ vi.mock("./step-matrix", () => ({
   StepMatrix: () => <div data-testid="step-matrix" />,
 }));
 
+vi.mock("./year-start-step-three", () => ({
+  YearStartStepThree: () => <div data-testid="step-three" />,
+}));
+
 vi.mock("./wizard-shell", () => ({
-  WizardShell: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="wizard-shell">{children}</div>
+  WizardShell: ({
+    children,
+    footer,
+  }: {
+    children: React.ReactNode;
+    footer?: React.ReactNode;
+  }) => (
+    <div data-testid="wizard-shell">
+      {children}
+      {footer}
+    </div>
   ),
 }));
 
@@ -111,6 +124,21 @@ describe("YearStartWizardPage", () => {
     ).rejects.toThrow("NEXT_REDIRECT:/onboarding/year-start?step=2");
   });
 
+  it("redirects to step 1 when the roster is not confirmed and step 2 is requested", async () => {
+    mockAuthenticatedClass();
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 1,
+      activeStudentCount: 3,
+      unassignedCount: 2,
+      matrixRowCount: 0,
+    });
+
+    await expect(
+      YearStartWizardPage({ searchParams: Promise.resolve({ step: "2" }) })
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/year-start?step=1");
+  });
+
   it("renders step 1 when the roster still needs confirmation", async () => {
     mockAuthenticatedClass();
     mockGetYearStartWizardStatus.mockResolvedValueOnce({
@@ -127,7 +155,6 @@ describe("YearStartWizardPage", () => {
         level: null,
       },
     ]);
-    mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
       await YearStartWizardPage({ searchParams: Promise.resolve({ step: "1" }) })
@@ -135,6 +162,7 @@ describe("YearStartWizardPage", () => {
 
     expect(html).toContain("data-testid=\"step-roster\"");
     expect(html).not.toContain("data-testid=\"step-levels\"");
+    expect(mockListWordCountMatrixRows).not.toHaveBeenCalled();
   });
 
   it("renders step 2 when levels still need assignment", async () => {
@@ -147,7 +175,6 @@ describe("YearStartWizardPage", () => {
       matrixRowCount: 0,
     });
     mockListActiveStudents.mockResolvedValueOnce([]);
-    mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
       await YearStartWizardPage({ searchParams: Promise.resolve({ step: "2" }) })
@@ -155,6 +182,9 @@ describe("YearStartWizardPage", () => {
 
     expect(html).toContain("data-testid=\"step-levels\"");
     expect(html).not.toContain("data-testid=\"step-roster\"");
+    expect(html).toContain("disabled=\"\"");
+    expect(html).toContain("Suivant");
+    expect(mockListWordCountMatrixRows).not.toHaveBeenCalled();
   });
 
   it("renders step 3 when the matrix still needs configuration", async () => {
@@ -166,14 +196,14 @@ describe("YearStartWizardPage", () => {
       unassignedCount: 0,
       matrixRowCount: 0,
     });
-    mockListActiveStudents.mockResolvedValueOnce([]);
     mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
       await YearStartWizardPage({ searchParams: Promise.resolve({ step: "3" }) })
     );
 
-    expect(html).toContain("data-testid=\"step-matrix\"");
+    expect(html).toContain("data-testid=\"step-three\"");
     expect(html).not.toContain("data-testid=\"step-levels\"");
+    expect(mockListWordCountMatrixRows).toHaveBeenCalledOnce();
   });
 });

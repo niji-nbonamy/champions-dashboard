@@ -13,7 +13,13 @@ const initialState: CompleteYearStartWizardActionState = {
   error: null,
 };
 
-export function WizardFinishButton({ canFinish }: { canFinish: boolean }) {
+export function WizardFinishButton({
+  canFinish,
+  isMatrixDirty = false,
+}: {
+  canFinish: boolean;
+  isMatrixDirty?: boolean;
+}) {
   const [state, formAction, pending] = useActionState(
     completeYearStartWizardAction,
     initialState
@@ -24,7 +30,12 @@ export function WizardFinishButton({ canFinish }: { canFinish: boolean }) {
       <Button type="submit" disabled={!canFinish || pending}>
         {pending ? "Finalisation…" : "Terminer la configuration"}
       </Button>
-      {!canFinish ? (
+      {!canFinish && isMatrixDirty ? (
+        <p className="text-sm text-muted-foreground">
+          Enregistrez la matrice avant de terminer la configuration.
+        </p>
+      ) : null}
+      {!canFinish && !isMatrixDirty ? (
         <p className="text-sm text-muted-foreground">
           Enregistrez au moins une dictée complète dans la matrice (quatre
           totaux de mots supérieurs à 0) pour terminer.

@@ -9,6 +9,7 @@ import {
   completeYearStartWizard,
   CompleteYearStartWizardError,
 } from "@/lib/services/complete-year-start-wizard";
+import { confirmYearStartRoster } from "@/lib/services/confirm-year-start-roster";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getYearStartWizardStatus } from "@/lib/services/get-year-start-wizard-status";
 import {
@@ -60,12 +61,14 @@ async function requireWizardClassContext() {
 }
 
 export async function confirmRosterStepAction(): Promise<void> {
-  const { status } = await requireWizardClassContext();
+  const { teacherClass, status } = await requireWizardClassContext();
 
   if (status.activeStudentCount === 0) {
     redirect("/onboarding/year-start?step=1");
   }
 
+  await confirmYearStartRoster(teacherClass.id);
+  revalidateWizardAffectedPaths();
   redirect("/onboarding/year-start?step=2");
 }
 
@@ -150,7 +153,23 @@ export async function completeYearStartWizardAction(
     status.unassignedCount > 0 ||
     status.matrixRowCount === 0
   ) {
-    redirect(`/onboarding/year-start?step=${status.step}`);
+    if (status.activeStudentCount === 0) {
+      return {
+        error:
+          "Ajoutez au moins un élève avant de terminer la configuration.",
+      };
+    }
+
+    if (status.unassignedCount > 0) {
+      return {
+        error:
+          "Assignez un niveau à chaque élève avant de terminer la configuration.",
+      };
+    }
+
+    return {
+      error: "Enregistrez au moins une dictée complète dans la matrice.",
+    };
   }
 
   try {

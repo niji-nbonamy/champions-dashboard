@@ -29,6 +29,7 @@ type MatrixRowState = {
 type WordCountMatrixFormProps = {
   initialRows: WordCountMatrixRowInput[];
   showDefaultSaveButton?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
 };
 
 const LEVEL_COLUMNS: Array<{
@@ -113,6 +114,7 @@ function isFieldInvalid(
 export function WordCountMatrixForm({
   initialRows,
   showDefaultSaveButton = true,
+  onDirtyChange,
 }: WordCountMatrixFormProps) {
   const [rows, setRows] = useState<MatrixRowState[]>(() =>
     mapInitialRows(initialRows)
@@ -138,6 +140,10 @@ export function WordCountMatrixForm({
       setRows(mapInitialRows(initialRows));
     }
   }, [initialRows, isDirty]);
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   function updateRow(
     clientId: string,

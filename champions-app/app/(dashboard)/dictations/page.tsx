@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
@@ -27,16 +28,33 @@ export default async function DictationsPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">Dictées</h1>
           <p className="text-sm text-muted-foreground">
-            Les dictées seront disponibles dans une prochaine version.
+            {canCreateDictation
+              ? "La création de dictées sera disponible dans une prochaine version."
+              : "Configurez votre année scolaire pour préparer les dictées."}
           </p>
         </div>
         <div className="flex flex-col items-start gap-2">
-          <Button type="button" disabled={!canCreateDictation} aria-disabled={!canCreateDictation}>
+          <Button
+            type="button"
+            disabled={!canCreateDictation}
+            aria-disabled={!canCreateDictation}
+            title={
+              canCreateDictation
+                ? "Création de dictée — bientôt disponible"
+                : undefined
+            }
+          >
             Nouvelle dictée
           </Button>
           {!canCreateDictation ? (
             <p className="text-sm text-muted-foreground">
-              Terminez la configuration de l&apos;année pour créer une dictée.
+              <Link
+                href="/onboarding/year-start"
+                className="underline underline-offset-4"
+              >
+                Terminez la configuration de l&apos;année
+              </Link>{" "}
+              pour créer une dictée.
             </p>
           ) : null}
         </div>

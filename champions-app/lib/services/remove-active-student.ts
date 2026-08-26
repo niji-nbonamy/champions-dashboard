@@ -10,6 +10,13 @@ export class RemoveActiveStudentError extends Error {
   }
 }
 
+export class ClassNotFoundError extends RemoveActiveStudentError {
+  constructor() {
+    super("Classe introuvable.");
+    this.name = "ClassNotFoundError";
+  }
+}
+
 export class StudentNotFoundError extends RemoveActiveStudentError {
   constructor() {
     super("Élève introuvable.");
@@ -43,7 +50,7 @@ export async function removeActiveStudent(
     .limit(1);
 
   if (!classRow) {
-    throw new StudentNotFoundError();
+    throw new ClassNotFoundError();
   }
 
   if (classRow.yearStartWizardCompletedAt != null) {

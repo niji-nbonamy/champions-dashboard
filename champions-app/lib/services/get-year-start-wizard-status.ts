@@ -32,9 +32,14 @@ function isCompleteMatrixRow(row: WordCountMatrixRowRecord): boolean {
 export function resolveEarliestIncompleteWizardStep(
   activeStudentCount: number,
   unassignedCount: number,
-  matrixRowCount: number
+  matrixRowCount: number,
+  rosterConfirmed: boolean
 ): YearStartWizardStep {
   if (activeStudentCount === 0) {
+    return 1;
+  }
+
+  if (!rosterConfirmed) {
     return 1;
   }
 
@@ -56,6 +61,7 @@ export async function getYearStartWizardStatus(
 
   const [classRow] = await db
     .select({
+      yearStartRosterConfirmedAt: classes.yearStartRosterConfirmedAt,
       yearStartWizardCompletedAt: classes.yearStartWizardCompletedAt,
     })
     .from(classes)
@@ -66,11 +72,13 @@ export async function getYearStartWizardStatus(
   const unassignedCount = await countUnassignedActiveStudents(classId);
   const matrixRows = await listWordCountMatrixRows(classId);
   const matrixRowCount = matrixRows.filter(isCompleteMatrixRow).length;
+  const rosterConfirmed = classRow?.yearStartRosterConfirmedAt != null;
   const completed = classRow?.yearStartWizardCompletedAt != null;
   const step = resolveEarliestIncompleteWizardStep(
     activeStudentCount,
     unassignedCount,
-    matrixRowCount
+    matrixRowCount,
+    rosterConfirmed
   );
 
   return {

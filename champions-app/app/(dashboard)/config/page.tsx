@@ -1,5 +1,4 @@
 import {
-  formatRosterImportSuccessMessage,
   ROSTER_CSV_ROSTER_EXISTS_ERROR,
 } from "@/lib/domain/roster-import";
 import { countActiveStudents } from "@/lib/services/count-active-students";
@@ -10,11 +9,7 @@ import { auth } from "@/auth";
 import { CsvImportForm } from "./csv-import-form";
 import { WordCountMatrixForm } from "./word-count-matrix-form";
 
-type ConfigPageProps = {
-  searchParams: Promise<{ imported?: string }>;
-};
-
-export default async function ConfigPage({ searchParams }: ConfigPageProps) {
+export default async function ConfigPage() {
   const session = await auth();
   const teacherId = session?.user?.id;
   const teacherClass = teacherId ? await getTeacherClass(teacherId) : null;
@@ -31,12 +26,6 @@ export default async function ConfigPage({ searchParams }: ConfigPageProps) {
     wordsViolet: String(row.wordsViolet),
     wordsGold: String(row.wordsGold),
   }));
-  const params = await searchParams;
-  const importedCount = Number.parseInt(params.imported ?? "", 10);
-  const importedMessage =
-    Number.isFinite(importedCount) && importedCount > 0
-      ? formatRosterImportSuccessMessage(importedCount)
-      : null;
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -46,12 +35,6 @@ export default async function ConfigPage({ searchParams }: ConfigPageProps) {
           Importez votre liste d&apos;élèves pour configurer l&apos;année.
         </p>
       </div>
-
-      {importedMessage ? (
-        <p className="text-sm text-primary" role="status">
-          {importedMessage}
-        </p>
-      ) : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-medium">Liste d&apos;élèves</h2>

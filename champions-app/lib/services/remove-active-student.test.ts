@@ -102,4 +102,16 @@ describe("removeActiveStudent", () => {
       StudentNotFoundError
     );
   });
+
+  it("returns class-not-found when the class row is missing", async () => {
+    mockLimit.mockResolvedValueOnce([]);
+
+    const { removeActiveStudent, ClassNotFoundError } = await import(
+      "./remove-active-student"
+    );
+
+    await expect(removeActiveStudent(classId, studentId)).rejects.toBeInstanceOf(
+      ClassNotFoundError
+    );
+  });
 });

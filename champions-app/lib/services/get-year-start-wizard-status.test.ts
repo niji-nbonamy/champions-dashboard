@@ -48,21 +48,26 @@ import {
 
 describe("resolveEarliestIncompleteWizardStep", () => {
   it("returns step 1 when there are no active students", () => {
-    expect(resolveEarliestIncompleteWizardStep(0, 0, 0)).toBe(1);
-    expect(resolveEarliestIncompleteWizardStep(0, 2, 3)).toBe(1);
+    expect(resolveEarliestIncompleteWizardStep(0, 0, 0, false)).toBe(1);
+    expect(resolveEarliestIncompleteWizardStep(0, 2, 3, true)).toBe(1);
+  });
+
+  it("returns step 1 when the roster has not been confirmed", () => {
+    expect(resolveEarliestIncompleteWizardStep(3, 2, 0, false)).toBe(1);
+    expect(resolveEarliestIncompleteWizardStep(1, 1, 5, false)).toBe(1);
   });
 
   it("returns step 2 when students exist but some lack a level", () => {
-    expect(resolveEarliestIncompleteWizardStep(3, 2, 0)).toBe(2);
-    expect(resolveEarliestIncompleteWizardStep(1, 1, 5)).toBe(2);
+    expect(resolveEarliestIncompleteWizardStep(3, 2, 0, true)).toBe(2);
+    expect(resolveEarliestIncompleteWizardStep(1, 1, 5, true)).toBe(2);
   });
 
   it("returns step 3 when all students are leveled but the matrix is empty", () => {
-    expect(resolveEarliestIncompleteWizardStep(4, 0, 0)).toBe(3);
+    expect(resolveEarliestIncompleteWizardStep(4, 0, 0, true)).toBe(3);
   });
 
   it("returns step 3 when prerequisites are satisfied so the teacher can finish", () => {
-    expect(resolveEarliestIncompleteWizardStep(4, 0, 2)).toBe(3);
+    expect(resolveEarliestIncompleteWizardStep(4, 0, 2, true)).toBe(3);
   });
 });
 
@@ -75,7 +80,10 @@ describe("getYearStartWizardStatus", () => {
 
   it("marks the wizard complete when the class timestamp is set", async () => {
     mockLimit.mockResolvedValueOnce([
-      { yearStartWizardCompletedAt: new Date("2026-01-01T00:00:00.000Z") },
+      {
+        yearStartRosterConfirmedAt: new Date("2026-01-01T00:00:00.000Z"),
+        yearStartWizardCompletedAt: new Date("2026-01-01T00:00:00.000Z"),
+      },
     ]);
     mockCountActiveStudents.mockResolvedValueOnce(3);
     mockCountUnassignedActiveStudents.mockResolvedValueOnce(0);
@@ -99,7 +107,12 @@ describe("getYearStartWizardStatus", () => {
   });
 
   it("counts only matrix rows with all four word counts greater than zero", async () => {
-    mockLimit.mockResolvedValueOnce([{ yearStartWizardCompletedAt: null }]);
+    mockLimit.mockResolvedValueOnce([
+      {
+        yearStartRosterConfirmedAt: new Date("2026-01-01T00:00:00.000Z"),
+        yearStartWizardCompletedAt: null,
+      },
+    ]);
     mockCountActiveStudents.mockResolvedValueOnce(2);
     mockCountUnassignedActiveStudents.mockResolvedValueOnce(0);
     mockListWordCountMatrixRows.mockResolvedValueOnce([
@@ -124,5 +137,22 @@ describe("getYearStartWizardStatus", () => {
     expect(status.completed).toBe(false);
     expect(status.matrixRowCount).toBe(1);
     expect(status.step).toBe(3);
+  });
+
+  it("keeps step 1 when students exist but the roster is not confirmed", async () => {
+    mockLimit.mockResolvedValueOnce([
+      {
+        yearStartRosterConfirmedAt: null,
+        yearStartWizardCompletedAt: null,
+      },
+    ]);
+    mockCountActiveStudents.mockResolvedValueOnce(2);
+    mockCountUnassignedActiveStudents.mockResolvedValueOnce(2);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([]);
+
+    const status = await getYearStartWizardStatus(classId);
+
+    expect(status.completed).toBe(false);
+    expect(status.step).toBe(1);
   });
 });

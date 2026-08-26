@@ -80,6 +80,7 @@ describe("DictationsPage", () => {
     expect(html).toContain("Nouvelle dictée");
     expect(html).toContain("disabled=\"\"");
     expect(html).toContain("Terminez la configuration de l");
+    expect(html).toContain('href="/onboarding/year-start"');
   });
 
   it("renders an enabled create button when the wizard is complete", async () => {
@@ -96,6 +97,7 @@ describe("DictationsPage", () => {
 
     expect(html).toContain("Nouvelle dictée");
     expect(html).toContain("aria-disabled=\"false\"");
+    expect(html).toContain("Création de dictée — bientôt disponible");
     expect(html).not.toContain("Terminez la configuration de l");
   });
 });

@@ -159,6 +159,29 @@ Use a centered column layout matching `onboarding/class` (max-width ~640px for s
 - [x] [Review][Defer] Post-import success count no longer surfaced after redirect change [`config/actions.ts:126`]
 - [x] [Review][Reject] CSV re-import after wizard complete — blocked by empty-roster-only import rule (story 2.1)
 
+### Review Findings (2026-08-26 — pass 2)
+
+- [x] [Review][Patch] Persister confirmation roster (`rosterConfirmedAt`) pour bloquer l'accès à l'étape 2 sans « Confirmer » — décision : **1A** [`get-year-start-wizard-status.ts`, `schema.ts`, `actions.ts`]
+- [x] [Review][Patch] Désactiver « Terminer » tant que `WordCountMatrixForm` est dirty (modifications non enregistrées) — décision : **2A** [`step-matrix.tsx`, `word-count-matrix-form.tsx`]
+- [x] [Review][Patch] Message Dictées contradictoire quand le wizard est terminé [`dictations/page.tsx:29`]
+- [x] [Review][Patch] Texte d'aide Dictées sans lien vers le wizard [`dictations/page.tsx:38`]
+- [x] [Review][Patch] Bouton « Nouvelle dictée » activé sans tooltip/placeholder Epic 3 [`dictations/page.tsx:34`]
+- [x] [Review][Patch] `completeYearStartWizardAction` redirige silencieusement si prérequis incomplets au lieu d'un message d'erreur [`actions.ts:148`]
+- [x] [Review][Patch] Bouton « Retirer » affiché pour élèves déjà nivelés au retour étape 1 [`step-roster.tsx:22`]
+- [x] [Review][Patch] `removeActiveStudent` lève `StudentNotFoundError` si la classe est absente [`remove-active-student.ts:45`]
+- [x] [Review][Patch] Chargement matrice sur toutes les étapes (requêtes inutiles étapes 1–2) [`page.tsx:66`]
+- [x] [Review][Patch] CTAs étapes 1–2 sans état `pending` (double soumission) [`page.tsx:88`, `step-roster.tsx`]
+- [x] [Review][Patch] Bouton « Terminer » hors footer du shell (design note) [`step-matrix.tsx:19`]
+- [x] [Review][Patch] Bannière Config `?imported=N` orpheline pour le flux principal [`config/page.tsx`]
+- [x] [Review][Patch] Test manquant : `confirmLevelsStepAction` avec `unassignedCount > 0` [`actions.test.ts`]
+- [x] [Review][Patch] Test manquant : bouton « Suivant » désactivé étape 2 [`page.test.tsx`]
+- [x] [Review][Patch] Test manquant : `WizardFinishButton` / `canFinish={false}` [`step-matrix.tsx`]
+- [x] [Review][Patch] Tests manquants : rejet `completeYearStartWizard` roster vide / élèves non assignés [`complete-year-start-wizard.test.ts`]
+- [x] [Review][Patch] Test manquant : `revalidatePath` après complétion wizard [`actions.test.ts`]
+- [x] [Review][Patch] Test manquant : erreur `removeStudentFromWizardAction` [`actions.test.ts`]
+- [x] [Review][Defer] Redirection wizard au premier ajout manuel — déjà reporté (Ask First, pass 1) [`students/actions.ts`]
+- [x] [Review][Defer] Compteur élèves importés après redirection CSV — déjà reporté (pass 1) [`config/actions.ts:126`]
+
 ## Suggested Review Order
 
 **Wizard orchestration**

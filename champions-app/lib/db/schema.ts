@@ -24,6 +24,9 @@ export const classes = pgTable("classes", {
     .unique()
     .references(() => teachers.id),
   schoolYearLabel: text("school_year_label").notNull(),
+  yearStartRosterConfirmedAt: timestamp("year_start_roster_confirmed_at", {
+    withTimezone: true,
+  }),
   yearStartWizardCompletedAt: timestamp("year_start_wizard_completed_at", {
     withTimezone: true,
   }),
