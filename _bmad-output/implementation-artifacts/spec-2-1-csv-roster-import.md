@@ -144,3 +144,24 @@ context:
 
 - Service tests for success, non-empty roster, invalid CSV
   [`import-roster-csv.test.ts:37`](../../champions-app/lib/services/import-roster-csv.test.ts#L37)
+
+### Review Findings
+
+- [x] [Review][Decision] Atomicité import roster (gate + insert) — **Résolu : option C (MVP).** Risque TOCTOU accepté : usage enseignant ponctuel, driver `neon-http` sans transaction. Réévaluer si migration `neon-serverless` (story 2.8 reset) ou contrainte unique en story 2.2.
+
+- [x] [Review][Patch] BOM UTF-8 non géré [`roster-import.ts:112`](../../champions-app/lib/domain/roster-import.ts#L112)
+- [x] [Review][Patch] Message doublons incomplet (une seule variante listée) [`roster-import.ts:153`](../../champions-app/lib/domain/roster-import.ts#L153)
+- [x] [Review][Patch] Accord singulier « 1 élève importé » [`import-roster-csv.ts:26`](../../champions-app/lib/services/import-roster-csv.ts#L26)
+- [x] [Review][Patch] Test manquant : nom > 200 caractères [`roster-import.test.ts`](../../champions-app/lib/domain/roster-import.test.ts)
+- [x] [Review][Patch] Test service manquant : rejet doublons CSV [`import-roster-csv.test.ts`](../../champions-app/lib/services/import-roster-csv.test.ts)
+- [x] [Review][Patch] Tests action manquants (fichier absent, trop volumineux, redirect, erreurs) [`actions.ts`](../../champions-app/app/(dashboard)/config/actions.ts)
+- [x] [Review][Patch] Test manquant : countActiveStudents filtre archived [`count-active-students.ts`](../../champions-app/lib/services/count-active-students.ts)
+- [x] [Review][Patch] Tests page Config manquants [`page.tsx`](../../champions-app/app/(dashboard)/config/page.tsx)
+- [x] [Review][Patch] arrayBuffer hors try/catch [`actions.ts:53`](../../champions-app/app/(dashboard)/config/actions.ts#L53)
+- [x] [Review][Patch] Accessibilité formulaire (required, aria-describedby) [`csv-import-form.tsx`](../../champions-app/app/(dashboard)/config/csv-import-form.tsx)
+
+- [x] [Review][Defer] `students.level` en text libre sans enum [`schema.ts:30`](../../champions-app/lib/db/schema.ts#L30) — deferred, story 2.3
+- [x] [Review][Defer] Pas d'index DB sur `students.class_id` [`schema.ts:26`](../../champions-app/lib/db/schema.ts#L26) — deferred, volume roster faible en MVP
+- [x] [Review][Defer] Pas de contrainte unique `(class_id, display_name)` [`schema.ts`](../../champions-app/lib/db/schema.ts) — deferred, story 2.2 ajout manuel
+- [x] [Review][Defer] Plafond 512 KB uniquement dans l'action serveur [`actions.ts:46`](../../champions-app/app/(dashboard)/config/actions.ts#L46) — deferred, seul point d'entrée pour cette story
+- [x] [Review][Defer] Pas de test E2E flux Config → import → succès — deferred, action item epic-1 retro

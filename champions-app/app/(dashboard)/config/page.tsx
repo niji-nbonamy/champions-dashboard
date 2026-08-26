@@ -1,4 +1,7 @@
-import { ROSTER_CSV_ROSTER_EXISTS_ERROR } from "@/lib/domain/roster-import";
+import {
+  formatRosterImportSuccessMessage,
+  ROSTER_CSV_ROSTER_EXISTS_ERROR,
+} from "@/lib/domain/roster-import";
 import { countActiveStudents } from "@/lib/services/count-active-students";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { auth } from "@/auth";
@@ -20,7 +23,7 @@ export default async function ConfigPage({ searchParams }: ConfigPageProps) {
   const importedCount = Number.parseInt(params.imported ?? "", 10);
   const importedMessage =
     Number.isFinite(importedCount) && importedCount > 0
-      ? `${importedCount} élèves importés.`
+      ? formatRosterImportSuccessMessage(importedCount)
       : null;
 
   return (

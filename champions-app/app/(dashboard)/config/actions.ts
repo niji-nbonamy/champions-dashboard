@@ -50,10 +50,9 @@ export async function importRosterCsvAction(
     };
   }
 
-  const buffer = await fileField.arrayBuffer();
-  const fileBytes = new Uint8Array(buffer);
-
   try {
+    const buffer = await fileField.arrayBuffer();
+    const fileBytes = new Uint8Array(buffer);
     const result = await importRosterFromCsv(teacherClass.id, fileBytes);
     revalidatePath("/config");
     redirect(`/config?imported=${result.importedCount}`);

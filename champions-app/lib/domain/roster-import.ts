@@ -33,6 +33,13 @@ export type RosterCsvParseFailure = {
 
 export type RosterCsvParseResult = RosterCsvParseSuccess | RosterCsvParseFailure;
 
+export function formatRosterImportSuccessMessage(importedCount: number): string {
+  if (importedCount === 1) {
+    return "1 élève importé.";
+  }
+  return `${importedCount} élèves importés.`;
+}
+
 function formatDuplicateError(duplicateNames: string[]): string {
   return `Doublons détectés : ${duplicateNames.join(", ")}.`;
 }
@@ -100,7 +107,7 @@ export function parseRosterCsv(bytes: Uint8Array): RosterCsvParseResult {
     return { ok: false, error: ROSTER_CSV_ENCODING_ERROR };
   }
 
-  const text = new TextDecoder("utf-8").decode(bytes);
+  const text = new TextDecoder("utf-8").decode(bytes).replace(/^\uFEFF/, "");
   const normalizedText = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   const lines = normalizedText.split("\n");
 
@@ -117,7 +124,7 @@ export function parseRosterCsv(bytes: Uint8Array): RosterCsvParseResult {
   }
 
   const names: string[] = [];
-  const seenKeys = new Map<string, string>();
+  const namesByKey = new Map<string, string[]>();
   const duplicateKeys = new Set<string>();
 
   for (let lineIndex = 1; lineIndex < lines.length; lineIndex += 1) {
@@ -141,18 +148,20 @@ export function parseRosterCsv(bytes: Uint8Array): RosterCsvParseResult {
     }
 
     const key = normalizeDuplicateKey(displayName);
-    if (seenKeys.has(key)) {
+    const existingNames = namesByKey.get(key);
+    if (existingNames) {
+      existingNames.push(displayName);
       duplicateKeys.add(key);
       continue;
     }
 
-    seenKeys.set(key, displayName);
+    namesByKey.set(key, [displayName]);
     names.push(displayName);
   }
 
   if (duplicateKeys.size > 0) {
     const duplicateNames = [...duplicateKeys]
-      .map((key) => seenKeys.get(key) ?? key)
+      .flatMap((key) => namesByKey.get(key) ?? [])
       .sort((left, right) => left.localeCompare(right, "fr"));
     return { ok: false, error: formatDuplicateError(duplicateNames) };
   }

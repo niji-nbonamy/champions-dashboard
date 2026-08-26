@@ -29,7 +29,10 @@ export function CsvImportForm() {
         <label htmlFor="csv_file" className="text-sm font-medium">
           Fichier CSV
         </label>
-        <p className="text-sm text-muted-foreground">
+        <p
+          id="csv_file_help"
+          className="text-sm text-muted-foreground"
+        >
           Une colonne avec l&apos;en-tête « NOM + prénom », encodage UTF-8.
         </p>
         <input
@@ -37,6 +40,8 @@ export function CsvImportForm() {
           name="csv_file"
           type="file"
           accept=".csv,text/csv"
+          required
+          aria-describedby="csv_file_help"
           className="text-sm file:mr-3 file:rounded-lg file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm"
         />
       </div>

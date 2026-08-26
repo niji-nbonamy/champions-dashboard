@@ -58,6 +58,36 @@ describe("importRosterFromCsv", () => {
     ]);
   });
 
+  it("returns a singular French success message for one student", async () => {
+    mockCountActiveStudents.mockResolvedValueOnce(0);
+    mockValues.mockResolvedValueOnce(undefined);
+
+    const csv = `${ROSTER_CSV_HEADER}\nDUPONT Marie`;
+    const bytes = new TextEncoder().encode(csv);
+
+    const { importRosterFromCsv } = await import("./import-roster-csv");
+    const result = await importRosterFromCsv(classId, bytes);
+
+    expect(result.successMessage).toBe("1 élève importé.");
+  });
+
+  it("rejects duplicate names in the CSV without inserting", async () => {
+    mockCountActiveStudents.mockResolvedValueOnce(0);
+
+    const csv = `${ROSTER_CSV_HEADER}\nDUPONT Marie\ndupont marie`;
+    const bytes = new TextEncoder().encode(csv);
+
+    const { importRosterFromCsv, RosterImportError } = await import(
+      "./import-roster-csv"
+    );
+
+    await expect(importRosterFromCsv(classId, bytes)).rejects.toMatchObject({
+      name: "RosterImportError",
+    });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
   it("rejects import when the roster is not empty", async () => {
     mockCountActiveStudents.mockResolvedValueOnce(3);
 

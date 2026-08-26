@@ -81,7 +81,26 @@ describe("parseRosterCsv", () => {
     if (!result.ok) {
       expect(result.error).toContain("Doublons détectés");
       expect(result.error).toContain("DUPONT Marie");
+      expect(result.error).toContain("dupont marie");
     }
+  });
+
+  it("accepts UTF-8 files with a byte-order mark", () => {
+    const csv = `\uFEFF${ROSTER_CSV_HEADER}\nDUPONT Marie`;
+    const result = parseRosterCsv(toBytes(csv));
+
+    expect(result).toEqual({
+      ok: true,
+      names: ["DUPONT Marie"],
+    });
+  });
+
+  it("rejects display names longer than 200 characters", () => {
+    const longName = "A".repeat(201);
+    const csv = `${ROSTER_CSV_HEADER}\n${longName}`;
+    const result = parseRosterCsv(toBytes(csv));
+
+    expect(result).toEqual({ ok: false, error: ROSTER_CSV_FORMAT_ERROR });
   });
 
   it("rejects when zero valid rows remain", () => {

@@ -50,3 +50,12 @@
 - Duplicated `next/image` and `next/link` mocks across dashboard test files — refactor when shared test utils exist (`app-bar.test.tsx:6`)
 - `next/image` missing `sizes` attribute for responsive logo optimization — low impact with fixed height classes (`app-bar.tsx:7`)
 - Spec Change Log empty for story iteration decisions — documentation hygiene, non-blocking (`spec-1-6-app-shell-with-navigation-app-bar.md:116`)
+
+## Deferred from: code review of spec-2-1-csv-roster-import.md (2026-08-26)
+
+- Atomicité import roster (TOCTOU) — option C acceptée pour MVP ; driver `neon-http` sans transaction ; réévaluer à migration `neon-serverless` ou story 2.2 (`import-roster-csv.ts`)
+- `students.level` en text libre sans enum — story 2.3 assignera les niveaux (`schema.ts:30`)
+- Pas d'index DB sur `students.class_id` — volume roster faible en MVP (`schema.ts:26`)
+- Pas de contrainte unique `(class_id, display_name)` — story 2.2 ajout manuel (`schema.ts`)
+- Plafond 512 KB uniquement dans l'action serveur — seul point d'entrée pour cette story (`actions.ts:46`)
+- Pas de test E2E flux Config → import → succès — action item epic-1 retro

@@ -1,4 +1,5 @@
 import {
+  formatRosterImportSuccessMessage,
   parseRosterCsv,
   ROSTER_CSV_ROSTER_EXISTS_ERROR,
 } from "@/lib/domain/roster-import";
@@ -52,6 +53,6 @@ export async function importRosterFromCsv(
   const importedCount = parsed.names.length;
   return {
     importedCount,
-    successMessage: `${importedCount} élèves importés.`,
+    successMessage: formatRosterImportSuccessMessage(importedCount),
   };
 }
