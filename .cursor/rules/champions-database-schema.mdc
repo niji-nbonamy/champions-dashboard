@@ -1,0 +1,28 @@
+---
+description: Remind to run db:push after Drizzle schema changes (champions-app)
+globs: champions-app/lib/db/schema.ts,champions-app/drizzle/**/*
+alwaysApply: true
+---
+
+# Database schema sync (champions-app)
+
+When `champions-app/lib/db/schema.ts` (or Drizzle migrations) changes — or when a story adds/modifies DB tables — **remind the user** to sync Neon before testing dashboard pages:
+
+```bash
+cd champions-app && npm run db:push
+```
+
+## When to remind
+
+- After editing `lib/db/schema.ts` or adding tables/columns
+- After merging or implementing a story that touches the schema
+- If the user reports runtime errors on `/config`, `/students`, or other pages that query new tables (e.g. `relation "…" does not exist`)
+
+## Requirements
+
+- `.env.local` must define `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED` (direct, no `-pooler`) — see `champions-app/README.md`
+- `db:push` is **not** run by CI or Vercel deploy; run it locally against each target database (dev + prod Neon) after schema changes
+
+## What to say
+
+Keep it short: schema changed in code ≠ schema updated in Neon; run `npm run db:push` from `champions-app/`, then retry the page.
