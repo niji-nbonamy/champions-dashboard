@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { auth, redirect, mockGetTeacherClass } = vi.hoisted(() => ({
+const { auth, redirect, mockGetTeacherClass, mockCountUnassignedActiveStudents } =
+  vi.hoisted(() => ({
   auth: vi.fn(),
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   }),
   mockGetTeacherClass: vi.fn(),
+  mockCountUnassignedActiveStudents: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
@@ -18,6 +20,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/services/get-teacher-class", () => ({
   getTeacherClass: mockGetTeacherClass,
+}));
+
+vi.mock("@/lib/services/count-unassigned-active-students", () => ({
+  countUnassignedActiveStudents: mockCountUnassignedActiveStudents,
 }));
 
 import DashboardLayout from "./layout";
@@ -54,13 +60,17 @@ describe("dashboard layout", () => {
       teacherId: "550e8400-e29b-41d4-a716-446655440000",
       schoolYearLabel: "2025-2026",
     });
+    mockCountUnassignedActiveStudents.mockResolvedValueOnce(2);
 
     const result = await DashboardLayout({ children: <div>child</div> });
 
     expect(result).toEqual(
-      <DashboardShell>
+      <DashboardShell unassignedStudentCount={2}>
         <div>child</div>
       </DashboardShell>
+    );
+    expect(mockCountUnassignedActiveStudents).toHaveBeenCalledWith(
+      "660e8400-e29b-41d4-a716-446655440001"
     );
   });
 });

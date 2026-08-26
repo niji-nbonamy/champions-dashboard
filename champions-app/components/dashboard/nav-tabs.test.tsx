@@ -82,4 +82,43 @@ describe("NavTabs", () => {
     expect(html).not.toMatch(/href="\/config"[^>]*aria-current="page"/);
     expect(html).not.toMatch(/href="\/alerts"[^>]*aria-current="page"/);
   });
+
+  it("shows a warning count on the Élèves tab when unassigned students exist", () => {
+    usePathname.mockReturnValue("/dictations");
+
+    const html = renderToStaticMarkup(<NavTabs unassignedStudentCount={3} />);
+
+    expect(html).toContain("3");
+    expect(html).toContain("3 élèves sans niveau");
+  });
+
+  it("hides the warning count when every student has a level", () => {
+    usePathname.mockReturnValue("/dictations");
+
+    const html = renderToStaticMarkup(<NavTabs unassignedStudentCount={0} />);
+
+    expect(html).not.toContain("élève sans niveau");
+    expect(html).not.toContain("élèves sans niveau");
+  });
+
+  it("uses singular French copy for one unassigned student", () => {
+    usePathname.mockReturnValue("/dictations");
+
+    const html = renderToStaticMarkup(<NavTabs unassignedStudentCount={1} />);
+
+    expect(html).toContain("1 élève sans niveau");
+    expect(html).not.toContain("1 élèves sans niveau");
+  });
+
+  it("does not show the warning badge on other tabs", () => {
+    usePathname.mockReturnValue("/dictations");
+
+    const html = renderToStaticMarkup(<NavTabs unassignedStudentCount={2} />);
+
+    expect(html).toContain('href="/students"');
+    expect(html).toContain("2 élèves sans niveau");
+    expect(html).not.toMatch(/href="\/dictations"[^>]*2 élèves sans niveau/);
+    expect(html).not.toMatch(/href="\/config"[^>]*2 élèves sans niveau/);
+    expect(html).not.toMatch(/href="\/alerts"[^>]*2 élèves sans niveau/);
+  });
 });

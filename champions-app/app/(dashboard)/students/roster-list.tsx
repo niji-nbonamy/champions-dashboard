@@ -1,17 +1,9 @@
 import { LevelBadge } from "@/components/ui/level-badge";
-import type { ChampionsLevel } from "@/lib/design/tokens";
+import { RequiredLevelBadge } from "@/components/ui/required-level-badge";
+import { isChampionsLevel } from "@/lib/domain/champions-level";
 import type { ActiveStudent } from "@/lib/services/list-active-students";
 
-const CHAMPIONS_LEVELS = new Set<string>([
-  "yellow",
-  "green",
-  "violet",
-  "gold",
-]);
-
-function isChampionsLevel(level: string): level is ChampionsLevel {
-  return CHAMPIONS_LEVELS.has(level);
-}
+import { LevelDotPicker } from "./level-dot-picker";
 
 type RosterListProps = {
   students: ActiveStudent[];
@@ -31,15 +23,16 @@ export function RosterList({ students }: RosterListProps) {
       {students.map((student) => (
         <li
           key={student.id}
-          className="flex items-center justify-between gap-4 px-4 py-3"
+          className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <span className="text-sm font-medium">{student.displayName}</span>
           {student.level && isChampionsLevel(student.level) ? (
             <LevelBadge level={student.level} />
           ) : (
-            <span className="text-sm text-muted-foreground">
-              Niveau non assigné
-            </span>
+            <div className="flex flex-col items-start gap-2 sm:items-end">
+              <RequiredLevelBadge />
+              <LevelDotPicker studentId={student.id} />
+            </div>
           )}
         </li>
       ))}

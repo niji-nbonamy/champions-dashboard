@@ -5,16 +5,25 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { ASSIGN_STUDENT_LEVEL_GENERIC_ERROR } from "@/lib/domain/champions-level";
 import { STUDENT_ADD_SUCCESS_MESSAGE } from "@/lib/domain/student-display-name";
 import {
   addStudent,
   AddStudentError,
 } from "@/lib/services/add-student";
+import {
+  assignStudentLevel,
+  AssignStudentLevelError,
+} from "@/lib/services/assign-student-level";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 
 export type AddStudentActionState = {
   error: string | null;
   success: string | null;
+};
+
+export type AssignStudentLevelActionState = {
+  error: string | null;
 };
 
 export async function addStudentAction(
@@ -55,5 +64,48 @@ export async function addStudentAction(
       error: "Ajout impossible. Réessayez.",
       success: null,
     };
+  }
+}
+
+export async function assignStudentLevelAction(
+  _prevState: AssignStudentLevelActionState,
+  formData: FormData
+): Promise<AssignStudentLevelActionState> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  const studentIdField = formData.get("student_id");
+  const levelField = formData.get("level");
+  const studentId =
+    typeof studentIdField === "string" ? studentIdField.trim() : "";
+  const level = typeof levelField === "string" ? levelField : "";
+
+  if (!studentId) {
+    return { error: "Élève introuvable." };
+  }
+
+  try {
+    await assignStudentLevel(teacherClass.id, studentId, level);
+    revalidatePath("/students", "layout");
+    return { error: null };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (error instanceof AssignStudentLevelError) {
+      return { error: error.message };
+    }
+
+    return { error: ASSIGN_STUDENT_LEVEL_GENERIC_ERROR };
   }
 }

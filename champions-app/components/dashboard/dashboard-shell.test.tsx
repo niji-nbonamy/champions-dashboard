@@ -65,4 +65,14 @@ describe("DashboardShell", () => {
     expect(html).toContain("Élèves");
     expect(html).toContain("page content");
   });
+
+  it("forwards the unassigned student count to the Élèves tab badge", () => {
+    const html = renderToStaticMarkup(
+      <DashboardShell unassignedStudentCount={3}>
+        <main>page content</main>
+      </DashboardShell>
+    );
+
+    expect(html).toContain("3 élèves sans niveau");
+  });
 });

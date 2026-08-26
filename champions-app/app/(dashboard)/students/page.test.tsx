@@ -76,7 +76,8 @@ describe("students page", () => {
     const html = renderToStaticMarkup(await StudentsPage());
 
     expect(html).toContain("DUPONT Marie");
-    expect(html).toContain("Niveau non assigné");
+    expect(html).toContain("niveau requis");
+    expect(html).toContain("Assigner le niveau jaune");
     expect(html).toContain("MARTIN Lucas");
     expect(html).toContain("yellow");
     expect(mockListActiveStudents).toHaveBeenCalledWith(classId);

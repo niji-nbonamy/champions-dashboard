@@ -33,3 +33,15 @@ export const students = pgTable("students", {
     .defaultNow()
     .notNull(),
 });
+
+export const levelHistoryEntries = pgTable("level_history_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studentId: uuid("student_id")
+    .notNull()
+    .references(() => students.id),
+  level: text("level").notNull(),
+  action: text("action").notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

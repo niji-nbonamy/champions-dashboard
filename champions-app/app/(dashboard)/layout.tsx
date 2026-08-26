@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { countUnassignedActiveStudents } from "@/lib/services/count-unassigned-active-students";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 
 export default async function DashboardLayout({
@@ -21,5 +22,13 @@ export default async function DashboardLayout({
     redirect("/onboarding/class");
   }
 
-  return <DashboardShell>{children}</DashboardShell>;
+  const unassignedStudentCount = await countUnassignedActiveStudents(
+    teacherClass.id
+  );
+
+  return (
+    <DashboardShell unassignedStudentCount={unassignedStudentCount}>
+      {children}
+    </DashboardShell>
+  );
 }

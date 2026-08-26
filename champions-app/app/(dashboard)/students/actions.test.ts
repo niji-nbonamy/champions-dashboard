@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  ASSIGN_STUDENT_LEVEL_GENERIC_ERROR,
+} from "@/lib/domain/champions-level";
+import {
   STUDENT_ADD_SUCCESS_MESSAGE,
   STUDENT_DISPLAY_NAME_EMPTY_ERROR,
   STUDENT_DISPLAY_NAME_TOO_LONG_ERROR,
@@ -10,6 +13,7 @@ const {
   redirect,
   revalidatePath,
   mockAddStudent,
+  mockAssignStudentLevel,
   mockAuth,
   mockGetTeacherClass,
 } = vi.hoisted(() => ({
@@ -18,6 +22,7 @@ const {
   }),
   revalidatePath: vi.fn(),
   mockAddStudent: vi.fn(),
+  mockAssignStudentLevel: vi.fn(),
   mockAuth: vi.fn(),
   mockGetTeacherClass: vi.fn(),
 }));
@@ -62,6 +67,36 @@ vi.mock("@/lib/services/add-student", () => {
     addStudent: mockAddStudent,
     AddStudentError,
     StudentDuplicateError,
+  };
+});
+
+vi.mock("@/lib/services/assign-student-level", () => {
+  class AssignStudentLevelError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "AssignStudentLevelError";
+    }
+  }
+
+  class StudentNotFoundError extends AssignStudentLevelError {
+    constructor() {
+      super("Élève introuvable.");
+      this.name = "StudentNotFoundError";
+    }
+  }
+
+  class StudentAlreadyAssignedError extends AssignStudentLevelError {
+    constructor() {
+      super("Le niveau est déjà assigné.");
+      this.name = "StudentAlreadyAssignedError";
+    }
+  }
+
+  return {
+    assignStudentLevel: mockAssignStudentLevel,
+    AssignStudentLevelError,
+    StudentNotFoundError,
+    StudentAlreadyAssignedError,
   };
 });
 
@@ -205,6 +240,113 @@ describe("addStudentAction", () => {
     );
 
     expect(result.error).toBe("Ajout impossible. Réessayez.");
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("assignStudentLevelAction", () => {
+  const studentId = "770e8400-e29b-41d4-a716-446655440002";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { assignStudentLevelAction } = await import("./actions");
+
+    await expect(
+      assignStudentLevelAction({ error: null }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
+  it("redirects users without a class to onboarding", async () => {
+    mockAuth.mockResolvedValueOnce({
+      user: { id: teacherId, email: "t@example.com" },
+    });
+    mockGetTeacherClass.mockResolvedValueOnce(null);
+
+    const { assignStudentLevelAction } = await import("./actions");
+
+    await expect(
+      assignStudentLevelAction({ error: null }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/class");
+  });
+
+  it("assigns a level and revalidates the students page", async () => {
+    mockAuthenticatedSession();
+    mockAssignStudentLevel.mockResolvedValueOnce({
+      studentId,
+      level: "green",
+    });
+
+    const { assignStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "green");
+
+    const result = await assignStudentLevelAction({ error: null }, formData);
+
+    expect(result).toEqual({ error: null });
+    expect(mockAssignStudentLevel).toHaveBeenCalledWith(
+      classId,
+      studentId,
+      "green"
+    );
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
+  });
+
+  it("returns not-found errors from the assign service", async () => {
+    mockAuthenticatedSession();
+    const { StudentNotFoundError } = await import(
+      "@/lib/services/assign-student-level"
+    );
+    mockAssignStudentLevel.mockRejectedValueOnce(new StudentNotFoundError());
+
+    const { assignStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "yellow");
+
+    const result = await assignStudentLevelAction({ error: null }, formData);
+
+    expect(result.error).toBe("Élève introuvable.");
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns already-assigned errors from the assign service", async () => {
+    mockAuthenticatedSession();
+    const { StudentAlreadyAssignedError } = await import(
+      "@/lib/services/assign-student-level"
+    );
+    mockAssignStudentLevel.mockRejectedValueOnce(
+      new StudentAlreadyAssignedError()
+    );
+
+    const { assignStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "yellow");
+
+    const result = await assignStudentLevelAction({ error: null }, formData);
+
+    expect(result.error).toBe("Le niveau est déjà assigné.");
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns a generic French error for unexpected failures", async () => {
+    mockAuthenticatedSession();
+    mockAssignStudentLevel.mockRejectedValueOnce(new Error("database down"));
+
+    const { assignStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "yellow");
+
+    const result = await assignStudentLevelAction({ error: null }, formData);
+
+    expect(result.error).toBe(ASSIGN_STUDENT_LEVEL_GENERIC_ERROR);
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

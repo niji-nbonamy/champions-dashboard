@@ -14,7 +14,11 @@ function isActiveTab(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function NavTabs() {
+type NavTabsProps = {
+  unassignedStudentCount?: number;
+};
+
+export function NavTabs({ unassignedStudentCount = 0 }: NavTabsProps) {
   const pathname = usePathname();
 
   return (
@@ -25,19 +29,31 @@ export function NavTabs() {
       <ul className="flex flex-wrap gap-1 overflow-x-auto px-4 md:gap-2">
         {tabs.map((tab) => {
           const active = isActiveTab(pathname, tab.href);
+          const showUnassignedBadge =
+            tab.href === "/students" && unassignedStudentCount > 0;
 
           return (
             <li key={tab.href}>
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex border-b-2 px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                className={`inline-flex items-center border-b-2 px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                   active
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
                 }`}
               >
                 {tab.label}
+                {showUnassignedBadge ? (
+                  <span
+                    aria-label={`${unassignedStudentCount} élève${
+                      unassignedStudentCount > 1 ? "s" : ""
+                    } sans niveau`}
+                    className="ml-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white"
+                  >
+                    {unassignedStudentCount}
+                  </span>
+                ) : null}
               </Link>
             </li>
           );
