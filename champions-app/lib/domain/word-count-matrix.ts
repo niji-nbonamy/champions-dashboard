@@ -139,7 +139,10 @@ export function validateWordCountMatrixRow(
   }
 
   const cellFields: Array<{
-    field: WordCountMatrixFieldName;
+    field: keyof Pick<
+      ValidatedWordCountMatrixRow,
+      "wordsYellow" | "wordsGreen" | "wordsViolet" | "wordsGold"
+    >;
     value: string;
   }> = [
     { field: "wordsYellow", value: rawRow.wordsYellow },
