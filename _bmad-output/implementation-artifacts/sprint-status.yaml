@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-27-2026 14:40
+last_updated: 08-27-2026 14:50
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -55,7 +55,7 @@ development_status:
   2-6-mid-year-roster-changes-student-archiving: done
   2-7-empty-roster-pre-setup-states: done
   2-8-annual-year-reset: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   epic-3: backlog
   3-1-create-dictation: backlog
@@ -86,7 +86,7 @@ action_items:
     epic: 1
     action: "Add GitHub Actions workflow: npm ci, npm test, npm run build on champions-app"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-08-26-2026.md"
   - id: "epic-1-retro-item-2-extend-middleware-matcher-to-register-an"
     epic: 1
@@ -124,7 +124,7 @@ action_items:
     epic: 1
     action: "Schedule security hardening story: rate limiting on register and login"
     owner: "pm"
-    status: open
+    status: in-progress
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-08-26-2026.md"
   - id: "epic-1-retro-item-8-add-e2e-smoke-test-register-to-login-to"
     epic: 1
@@ -132,3 +132,38 @@ action_items:
     owner: "dev"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-08-26-2026.md"
+  - id: "epic-2-retro-item-9-add-e2e-smoke-test-register-to-onboardin"
+    epic: 2
+    action: "Add E2E smoke test: register to onboarding to CSV import to wizard to
+      dashboard tabs (Epic 3 pilot gate)"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-08-27-2026.md"
+  - id: "epic-2-retro-item-10-document-auth_url-and-trusthost-for-auth"
+    epic: 2
+    action: "Document AUTH_URL and trustHost for Auth.js v5 on Vercel in README and
+      .env.example"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-08-27-2026.md"
+  - id: "epic-2-retro-item-11-evaluate-neon-serverless-driver-migratio"
+    epic: 2
+    action: "Evaluate neon-serverless driver migration for true DB transactions before
+      Epic 3 dictation saves"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-08-27-2026.md"
+  - id: "epic-2-retro-item-12-schedule-auth-hardening-story-register-r"
+    epic: 2
+    action: "Schedule auth hardening story: register redirect, signOut, callbackUrl,
+      rate limiting"
+    owner: "pm"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-08-27-2026.md"
+  - id: "epic-2-retro-item-13-implement-wizard-redirect-when-first-stu"
+    epic: 2
+    action: "Implement wizard redirect when first student is added manually (story
+      2-5 gap)"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-08-27-2026.md"
