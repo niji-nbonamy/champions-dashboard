@@ -20,7 +20,9 @@ export function EmptyRosterPreSetup({
 }: EmptyRosterPreSetupProps) {
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <p className="text-sm text-muted-foreground">{EMPTY_ROSTER_MESSAGE}</p>
+      <p className="text-sm text-muted-foreground" role="status">
+        {EMPTY_ROSTER_MESSAGE}
+      </p>
       {showCta && ctaHref ? (
         <Link href={ctaHref} className={buttonVariants({ variant: "default" })}>
           {EMPTY_ROSTER_CTA_LABEL}

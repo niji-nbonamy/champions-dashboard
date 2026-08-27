@@ -82,6 +82,9 @@ describe("DictationsPage", () => {
     expect(html).toContain("Nouvelle dictée");
     expect(html).toContain("disabled=\"\"");
     expect(html).not.toContain("Terminez la configuration de l");
+    expect(html).not.toContain("Configurez votre année scolaire pour préparer les dictées.");
+    expect(html).not.toContain("Configurez la matrice sur Config");
+    expect(html).not.toContain('href="/config#matrice-mots"');
   });
 
   it("renders a disabled create button when the matrix is missing", async () => {
@@ -99,6 +102,7 @@ describe("DictationsPage", () => {
     expect(html).toContain("Dictées");
     expect(html).toContain("Nouvelle dictée");
     expect(html).toContain("disabled=\"\"");
+    expect(html).toContain("Configurez votre année scolaire pour préparer les dictées.");
     expect(html).toContain("Configurez la matrice sur Config");
     expect(html).toContain('href="/config#matrice-mots"');
     expect(html).not.toContain("Importez votre liste d&#x27;élèves pour commencer.");
@@ -119,6 +123,9 @@ describe("DictationsPage", () => {
     expect(html).toContain("disabled=\"\"");
     expect(html).not.toContain("aria-disabled=\"false\"");
     expect(html).toContain("Importez votre liste d&#x27;élèves pour commencer.");
+    expect(html).not.toContain("Configurez votre année scolaire pour préparer les dictées.");
+    expect(html).not.toContain("Configurez la matrice sur Config");
+    expect(html).not.toContain('href="/config#matrice-mots"');
   });
 
   it("keeps the create button disabled when wizard is complete but matrix is missing", async () => {

@@ -91,3 +91,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-5-year-start-wizard-e3.md`
   summary: Surface imported student count after CSV redirect to wizard step 1
   evidence: Post-import redirect no longer passes `importedCount`; Config `?imported=N` banner orphaned for primary flow
+
+## Deferred from: code review of spec-2-7-empty-roster-pre-setup-states.md (2026-08-27)
+
+- No E2E test for `/config#liste-eleves` and `/config#matrice-mots` hash navigation from Dictées CTAs — epic-1 retro E2E smoke scope; unit tests cover href presence only

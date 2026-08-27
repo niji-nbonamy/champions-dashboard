@@ -70,6 +70,7 @@ describe("config page", () => {
 
     expect(html).toContain("Importez votre liste d&#x27;élèves pour commencer.");
     expect(html).toContain('id="liste-eleves"');
+    expect(html).toContain('id="matrice-mots"');
     expect(html).not.toContain("Importer la liste");
     expect(html).not.toContain('href="/config#liste-eleves"');
     expect(html).toContain("data-testid=\"csv-import-form\"");

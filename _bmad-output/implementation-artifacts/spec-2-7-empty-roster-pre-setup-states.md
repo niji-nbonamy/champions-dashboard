@@ -113,6 +113,9 @@ Config empty roster: same message component without external CTA; `CsvImportForm
 - [x] [Review][Patch] Dictations enabled test checked only `aria-disabled`, not absence of native `disabled` [`dictations/page.test.tsx`]
 - [x] [Review][Patch] Matrix hint on Dictées linked to `/config` without anchor — added `#matrice-mots` [`dictations/page.tsx`, `config/page.tsx`]
 - [x] [Review][Patch] `canCreateDictation` missing explicit `0,0` case [`dictation-readiness.test.ts`]
+- [x] [Review][Patch] Config `#matrice-mots` anchor untested — assertion added [`config/page.test.tsx`]
+- [x] [Review][Patch] Dictations empty-roster regression guards for subtitle and matrix hint [`dictations/page.test.tsx`]
+- [x] [Review][Patch] EmptyRosterPreSetup `role="status"` + Dictées layout reorder [`empty-roster-pre-setup.tsx`, `dictations/page.tsx`]
 
 ## Suggested Review Order
 
@@ -139,3 +142,16 @@ Config empty roster: same message component without external CTA; `CsvImportForm
 
 - Config message-only variant and liste-eleves anchor
   [`page.test.tsx:55`](../../champions-app/app/(dashboard)/config/page.test.tsx#L55)
+
+### Review Findings
+
+- [x] [Review][Decision] Dictées empty-state layout order — Reordered markup: `EmptyRosterPreSetup` now renders above the disabled « Nouvelle dictée » button on empty roster (design notes).
+
+- [x] [Review][Patch] Config test missing `#matrice-mots` anchor assertion [`config/page.test.tsx:72`]
+- [x] [Review][Patch] Dictations empty-roster tests missing negative matrix-hint assertions [`dictations/page.test.tsx:67`]
+- [x] [Review][Patch] Dictations empty-roster tests missing negative subtitle assertion [`dictations/page.test.tsx:67`]
+- [x] [Review][Patch] Dictations matrix-missing test missing subtitle presence assertion [`dictations/page.test.tsx:87`]
+- [x] [Review][Patch] EmptyRosterPreSetup message lacks `role="status"` (inconsistent with `students/page.tsx`) [`empty-roster-pre-setup.tsx:23`]
+- [x] [Review][Patch] Dictées empty-state layout reorder — panel above disabled button [`dictations/page.tsx:28`]
+
+- [x] [Review][Defer] No E2E test for `/config#liste-eleves` and `/config#matrice-mots` hash navigation from Dictées CTAs — deferred, pre-existing E2E gap (epic-1 retro action item)
