@@ -9,6 +9,7 @@ export default auth((req) =>
 export const config = {
   matcher: [
     "/login",
+    "/register",
     "/onboarding/:path*",
     "/dictations/:path*",
     "/students/:path*",

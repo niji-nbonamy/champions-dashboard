@@ -15,6 +15,8 @@ import {
   addStudent,
   AddStudentError,
 } from "@/lib/services/add-student";
+import { countActiveStudents } from "@/lib/services/count-active-students";
+import { getYearStartWizardStatus } from "@/lib/services/get-year-start-wizard-status";
 import {
   archiveStudent,
   ArchiveStudentError,
@@ -73,11 +75,21 @@ export async function addStudentAction(
   const rawDisplayName =
     typeof displayNameField === "string" ? displayNameField : "";
 
+  const activeCountBefore = await countActiveStudents(teacherClass.id);
+
   try {
     await addStudent(teacherClass.id, rawDisplayName);
     revalidatePath("/students");
     revalidatePath("/config");
     revalidatePath("/onboarding/year-start");
+
+    if (activeCountBefore === 0) {
+      const wizardStatus = await getYearStartWizardStatus(teacherClass.id);
+      if (!wizardStatus.completed) {
+        redirect("/onboarding/year-start?step=1");
+      }
+    }
+
     return { error: null, success: STUDENT_ADD_SUCCESS_MESSAGE };
   } catch (error) {
     if (isRedirectError(error)) {

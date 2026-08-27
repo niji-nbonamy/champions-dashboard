@@ -10,6 +10,7 @@ export const ONBOARDING_ROUTE_PREFIX = "/onboarding";
 // Keep in sync with `middleware.ts` config.matcher (Next.js requires literals there).
 export const AUTH_MIDDLEWARE_MATCHER = [
   "/login",
+  "/register",
   "/onboarding/:path*",
   "/dictations/:path*",
   "/students/:path*",
@@ -38,7 +39,7 @@ export function getAuthRedirectPath(
   pathname: string,
   isLoggedIn: boolean
 ): "/dictations" | "/login" | null {
-  if (isLoggedIn && pathname === "/login") {
+  if (isLoggedIn && (pathname === "/login" || pathname === "/register")) {
     return "/dictations";
   }
 

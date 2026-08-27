@@ -27,8 +27,9 @@ describe("middleware policy", () => {
     expect(getAuthRedirectPath("/onboarding/class", false)).toBe("/login");
   });
 
-  it("redirects authenticated users away from login", () => {
+  it("redirects authenticated users away from login and register", () => {
     expect(getAuthRedirectPath("/login", true)).toBe("/dictations");
+    expect(getAuthRedirectPath("/register", true)).toBe("/dictations");
   });
 
   it("allows public routes without redirect", () => {
@@ -41,6 +42,7 @@ describe("middleware policy", () => {
     const matcher = getAuthMiddlewareMatcher();
 
     expect(matcher).toContain("/login");
+    expect(matcher).toContain("/register");
     expect(matcher).toContain("/onboarding/:path*");
     for (const prefix of DASHBOARD_ROUTE_PREFIXES) {
       expect(matcher).toContain(`${prefix}/:path*`);

@@ -46,6 +46,10 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("./sign-out-button", () => ({
+  SignOutButton: () => <button type="submit">Se déconnecter</button>,
+}));
+
 import { DashboardShell } from "./dashboard-shell";
 
 describe("DashboardShell", () => {

@@ -22,6 +22,10 @@ vi.mock("next/image", () => ({
   ),
 }));
 
+vi.mock("./sign-out-button", () => ({
+  SignOutButton: () => <button type="submit">Se déconnecter</button>,
+}));
+
 import { AppBar } from "./app-bar";
 
 describe("AppBar", () => {
@@ -60,5 +64,12 @@ describe("AppBar", () => {
     const html = renderToStaticMarkup(<AppBar />);
 
     expect(html).not.toMatch(/<a\s/);
+  });
+
+  it("renders the sign-out control", () => {
+    const html = renderToStaticMarkup(<AppBar />);
+
+    expect(html).toContain("Se déconnecter");
+    expect(html).toContain('type="submit"');
   });
 });

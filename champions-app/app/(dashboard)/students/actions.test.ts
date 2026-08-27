@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ASSIGN_STUDENT_LEVEL_GENERIC_ERROR,
@@ -19,6 +19,8 @@ const {
   mockAssignStudentLevel,
   mockAuth,
   mockGetTeacherClass,
+  mockCountActiveStudents,
+  mockGetYearStartWizardStatus,
 } = vi.hoisted(() => ({
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
@@ -29,6 +31,8 @@ const {
   mockAssignStudentLevel: vi.fn(),
   mockAuth: vi.fn(),
   mockGetTeacherClass: vi.fn(),
+  mockCountActiveStudents: vi.fn(),
+  mockGetYearStartWizardStatus: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -50,6 +54,14 @@ vi.mock("@/auth", () => ({
 
 vi.mock("@/lib/services/get-teacher-class", () => ({
   getTeacherClass: mockGetTeacherClass,
+}));
+
+vi.mock("@/lib/services/count-active-students", () => ({
+  countActiveStudents: mockCountActiveStudents,
+}));
+
+vi.mock("@/lib/services/get-year-start-wizard-status", () => ({
+  getYearStartWizardStatus: mockGetYearStartWizardStatus,
 }));
 
 vi.mock("@/lib/services/add-student", () => {
@@ -145,6 +157,10 @@ describe("addStudentAction", () => {
     vi.clearAllMocks();
   });
 
+  beforeEach(() => {
+    mockCountActiveStudents.mockResolvedValue(1);
+  });
+
   it("redirects unauthenticated users to login", async () => {
     mockAuth.mockResolvedValueOnce(null);
 
@@ -186,6 +202,31 @@ describe("addStudentAction", () => {
       success: STUDENT_ADD_SUCCESS_MESSAGE,
     });
     expect(mockAddStudent).toHaveBeenCalledWith(classId, "DUPONT Marie");
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/config");
+    expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
+  });
+
+  it("redirects to the year-start wizard after the first manual student add", async () => {
+    mockAuthenticatedSession();
+    mockCountActiveStudents.mockResolvedValueOnce(0);
+    mockAddStudent.mockResolvedValueOnce({ displayName: "DUPONT Marie" });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 1,
+      activeStudentCount: 1,
+      unassignedCount: 1,
+      matrixRowCount: 0,
+    });
+
+    const { addStudentAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("display_name", "DUPONT Marie");
+
+    await expect(
+      addStudentAction({ error: null, success: null }, formData)
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/year-start?step=1");
+
     expect(revalidatePath).toHaveBeenCalledWith("/students");
     expect(revalidatePath).toHaveBeenCalledWith("/config");
     expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
