@@ -101,3 +101,10 @@
 - No DB integration test for real `neon-http` transaction atomicity on `resetClassYear` — spec « Ask First » decision point; mock-based unit tests pass
 - No `inArray` batching for very large student rosters in `reset-class-year.ts` — speculative scale edge case; typical class sizes unlikely to hit parameter limits
 - `auth()` / `getTeacherClass()` throws outside try/catch in `resetClassYearAction` — pre-existing pattern across all config server actions
+
+## Epic 3 gate: neon-serverless driver migration (2026-08-27)
+
+- **Trigger:** story `3-3-grid-validation-save-blocking` is `done`, **before** starting story `3-4-scoring-engine-dictation-save`
+- **Action:** migrate `lib/db/index.ts` from `neon-http` to `neon-serverless` per `spike-neon-serverless-transactions.md`
+- **Sprint item:** `epic-2-retro-item-11-evaluate-neon-serverless-driver-migratio` (currently `in-progress` — spike doc done, migration pending)
+- **Why:** dictation save (3-4) writes multiple rows in one transaction; `neon-http` batch TX is weaker than WebSocket TX
