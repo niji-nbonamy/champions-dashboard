@@ -10,6 +10,7 @@ import { EmptyRosterPreSetup } from "@/components/dashboard/empty-roster-pre-set
 
 import { CsvImportForm } from "./csv-import-form";
 import { WordCountMatrixForm } from "./word-count-matrix-form";
+import { YearResetSection } from "./year-reset-section";
 
 export default async function ConfigPage() {
   const session = await auth();
@@ -63,6 +64,12 @@ export default async function ConfigPage() {
         </p>
         <WordCountMatrixForm initialRows={matrixInitialRows} />
       </section>
+
+      {teacherClass ? (
+        <YearResetSection
+          currentSchoolYearLabel={teacherClass.schoolYearLabel}
+        />
+      ) : null}
     </main>
   );
 }

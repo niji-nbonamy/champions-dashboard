@@ -7,6 +7,14 @@ import {
   ROSTER_CSV_MISSING_FILE_ERROR,
 } from "@/lib/domain/roster-import";
 import {
+  CLASS_ONBOARDING_ERROR_MESSAGE,
+  MAX_SCHOOL_YEAR_LABEL_LENGTH,
+  SCHOOL_YEAR_LABEL_EMPTY_MESSAGE,
+} from "@/lib/domain/class";
+import {
+  RESET_CLASS_YEAR_GENERIC_ERROR,
+} from "@/lib/services/reset-class-year";
+import {
   DICTATION_LABEL_TOO_LONG_ERROR,
   formatDuplicateDictationLabelsError,
   formatWordCountMatrixRowError,
@@ -22,9 +30,12 @@ const {
   revalidatePath,
   mockImportRosterFromCsv,
   mockReplaceWordCountMatrix,
+  mockResetClassYear,
   mockAuth,
   mockGetTeacherClass,
   WordCountMatrixValidationError,
+  ResetClassYearError,
+  ClassNotFoundError,
 } = vi.hoisted(() => {
   class WordCountMatrixValidationError extends Error {
     rowIndex?: number;
@@ -41,6 +52,20 @@ const {
     }
   }
 
+  class ResetClassYearError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "ResetClassYearError";
+    }
+  }
+
+  class ClassNotFoundError extends ResetClassYearError {
+    constructor() {
+      super("Classe introuvable.");
+      this.name = "ClassNotFoundError";
+    }
+  }
+
   return {
     redirect: vi.fn((url: string): never => {
       throw new Error(`NEXT_REDIRECT:${url}`);
@@ -48,9 +73,12 @@ const {
     revalidatePath: vi.fn(),
     mockImportRosterFromCsv: vi.fn(),
     mockReplaceWordCountMatrix: vi.fn(),
+    mockResetClassYear: vi.fn(),
     mockAuth: vi.fn(),
     mockGetTeacherClass: vi.fn(),
     WordCountMatrixValidationError,
+    ResetClassYearError,
+    ClassNotFoundError,
   };
 });
 
@@ -109,6 +137,13 @@ function mockValidationOnlyReplace() {
 vi.mock("@/lib/services/replace-word-count-matrix", () => ({
   replaceWordCountMatrix: mockReplaceWordCountMatrix,
   WordCountMatrixValidationError,
+}));
+
+vi.mock("@/lib/services/reset-class-year", () => ({
+  resetClassYear: mockResetClassYear,
+  ResetClassYearError,
+  ClassNotFoundError,
+  RESET_CLASS_YEAR_GENERIC_ERROR: "Réinitialisation impossible. Réessayez.",
 }));
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
@@ -488,5 +523,117 @@ describe("saveWordCountMatrixAction", () => {
       },
     ]);
     expect(result.success).toBe(WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE);
+  });
+});
+
+describe("resetClassYearAction", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { resetClassYearAction } = await import("./actions");
+
+    await expect(
+      resetClassYearAction({ error: null }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
+  it("redirects users without a class to onboarding", async () => {
+    mockAuth.mockResolvedValueOnce({
+      user: { id: teacherId, email: "t@example.com" },
+    });
+    mockGetTeacherClass.mockResolvedValueOnce(null);
+
+    const { resetClassYearAction } = await import("./actions");
+
+    await expect(
+      resetClassYearAction({ error: null }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/class");
+  });
+
+  it("returns a validation error for whitespace-only labels without resetting", async () => {
+    mockAuthenticatedSession();
+
+    const { resetClassYearAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("school_year_label", "   ");
+
+    const result = await resetClassYearAction({ error: null }, formData);
+
+    expect(result.error).toBe(SCHOOL_YEAR_LABEL_EMPTY_MESSAGE);
+    expect(mockResetClassYear).not.toHaveBeenCalled();
+  });
+
+  it("returns a validation error for labels longer than the maximum", async () => {
+    mockAuthenticatedSession();
+
+    const { resetClassYearAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set(
+      "school_year_label",
+      "a".repeat(MAX_SCHOOL_YEAR_LABEL_LENGTH + 1)
+    );
+
+    const result = await resetClassYearAction({ error: null }, formData);
+
+    expect(result.error).toBe(CLASS_ONBOARDING_ERROR_MESSAGE);
+    expect(mockResetClassYear).not.toHaveBeenCalled();
+  });
+
+  it("redirects to the year-start wizard after a successful reset", async () => {
+    mockAuthenticatedSession();
+    mockResetClassYear.mockResolvedValueOnce({ classId });
+
+    const { resetClassYearAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("school_year_label", "2026-2027");
+
+    await expect(
+      resetClassYearAction({ error: null }, formData)
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/year-start?step=1");
+
+    expect(mockResetClassYear).toHaveBeenCalledWith(classId, "2026-2027");
+    expect(revalidatePath).toHaveBeenCalledWith("/config");
+    expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+  });
+
+  it("keeps the current label when the optional field is blank", async () => {
+    mockAuthenticatedSession();
+    mockResetClassYear.mockResolvedValueOnce({ classId });
+
+    const { resetClassYearAction } = await import("./actions");
+
+    await expect(
+      resetClassYearAction({ error: null }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/year-start?step=1");
+
+    expect(mockResetClassYear).toHaveBeenCalledWith(classId, null);
+  });
+
+  it("returns a generic French error for unexpected failures", async () => {
+    mockAuthenticatedSession();
+    mockResetClassYear.mockRejectedValueOnce(new Error("database down"));
+
+    const { resetClassYearAction } = await import("./actions");
+
+    const result = await resetClassYearAction({ error: null }, new FormData());
+
+    expect(result.error).toBe(RESET_CLASS_YEAR_GENERIC_ERROR);
+  });
+
+  it("returns the class-not-found message for ResetClassYearError", async () => {
+    mockAuthenticatedSession();
+    mockResetClassYear.mockRejectedValueOnce(new ClassNotFoundError());
+
+    const { resetClassYearAction } = await import("./actions");
+
+    const result = await resetClassYearAction({ error: null }, new FormData());
+
+    expect(result.error).toBe("Classe introuvable.");
   });
 });

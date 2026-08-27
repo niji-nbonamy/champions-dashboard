@@ -6,6 +6,10 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import {
+  getSchoolYearLabelValidationError,
+  validateSchoolYearLabel,
+} from "@/lib/domain/class";
+import {
   parseWordCountMatrixRowsFromFormData,
   WORD_COUNT_MATRIX_GENERIC_ERROR,
   WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
@@ -20,6 +24,11 @@ import {
   replaceWordCountMatrix,
   WordCountMatrixValidationError,
 } from "@/lib/services/replace-word-count-matrix";
+import {
+  resetClassYear,
+  RESET_CLASS_YEAR_GENERIC_ERROR,
+  ResetClassYearError,
+} from "@/lib/services/reset-class-year";
 import {
   ROSTER_CSV_MAX_FILE_BYTES,
   ROSTER_CSV_MISSING_FILE_ERROR,
@@ -36,6 +45,10 @@ export type SaveWordCountMatrixActionState = {
   success: string | null;
   errorRowIndex?: number | null;
   errorField?: string | null;
+};
+
+export type ResetClassYearActionState = {
+  error: string | null;
 };
 
 export async function saveWordCountMatrixAction(
@@ -137,5 +150,56 @@ export async function importRosterCsvAction(
       error: "Import impossible. Réessayez.",
       success: null,
     };
+  }
+}
+
+export async function resetClassYearAction(
+  _prevState: ResetClassYearActionState,
+  formData: FormData
+): Promise<ResetClassYearActionState> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  const schoolYearLabelField = formData.get("school_year_label");
+  const schoolYearLabelRaw =
+    typeof schoolYearLabelField === "string" ? schoolYearLabelField : "";
+
+  let newSchoolYearLabel: string | null = null;
+
+  if (schoolYearLabelRaw.length > 0) {
+    const validationError = getSchoolYearLabelValidationError(schoolYearLabelRaw);
+    if (validationError) {
+      return { error: validationError };
+    }
+
+    newSchoolYearLabel = validateSchoolYearLabel(schoolYearLabelRaw);
+  }
+
+  try {
+    await resetClassYear(teacherClass.id, newSchoolYearLabel);
+    revalidatePath("/config");
+    revalidatePath("/onboarding/year-start");
+    revalidatePath("/dictations");
+    revalidatePath("/students");
+    redirect("/onboarding/year-start?step=1");
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (error instanceof ResetClassYearError) {
+      return { error: error.message };
+    }
+
+    return { error: RESET_CLASS_YEAR_GENERIC_ERROR };
   }
 }

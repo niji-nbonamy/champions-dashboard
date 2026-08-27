@@ -42,6 +42,19 @@ vi.mock("./word-count-matrix-form", () => ({
   },
 }));
 
+vi.mock("./year-reset-section", () => ({
+  YearResetSection: ({
+    currentSchoolYearLabel,
+  }: {
+    currentSchoolYearLabel: string;
+  }) => (
+    <section id="reset-annuel" data-testid="year-reset-section">
+      <button type="button">Remettre à zéro pour la nouvelle année</button>
+      <span data-testid="current-school-year-label">{currentSchoolYearLabel}</span>
+    </section>
+  ),
+}));
+
 vi.mock("@/lib/services/list-word-count-matrix-rows", () => ({
   listWordCountMatrixRows: mockListWordCountMatrixRows,
 }));
@@ -76,6 +89,9 @@ describe("config page", () => {
     expect(html).toContain("data-testid=\"csv-import-form\"");
     expect(html).toContain("data-testid=\"word-count-matrix-form\"");
     expect(html).toContain("Matrice mots");
+    expect(html).toContain("data-testid=\"year-reset-section\"");
+    expect(html).toContain("Remettre à zéro pour la nouvelle année");
+    expect(html).toContain("2025-2026");
     expect(html).not.toContain("pour configurer l");
     expect(mockListWordCountMatrixRows).toHaveBeenCalledWith(classId);
     expect(capturedInitialRows.value).toEqual([]);
@@ -139,5 +155,6 @@ describe("config page", () => {
     expect(html).not.toContain("data-testid=\"csv-import-form\"");
     expect(html).toContain("data-testid=\"word-count-matrix-form\"");
     expect(html).toContain("Matrice mots");
+    expect(html).toContain("Remettre à zéro pour la nouvelle année");
   });
 });
