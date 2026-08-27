@@ -76,6 +76,20 @@ npm run build
 npm test
 ```
 
+### E2E smoke (Playwright)
+
+Builds the app, starts it on port 3100, and runs browser smoke tests (login, register, auth redirect):
+
+```bash
+npm run test:e2e
+```
+
+First run: install the Chromium browser with `npx playwright install chromium`.
+
+`npm run test:e2e` sets `AUTH_URL` and `AUTH_TRUST_HOST=true` for the test server so Auth.js accepts `127.0.0.1:3100`.
+
+CI uses the same `AUTH_SECRET` and a placeholder `DATABASE_URL` as unit tests — smoke tests only hit public auth routes, not the database.
+
 ## Database
 
 - **ORM:** Drizzle with `@neondatabase/serverless` HTTP driver
