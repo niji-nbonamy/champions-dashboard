@@ -1,16 +1,20 @@
 import { LevelBadge } from "@/components/ui/level-badge";
 import { RequiredLevelBadge } from "@/components/ui/required-level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
-import type {
-  ClassStudent,
-  ClassStudentFilter,
-} from "@/lib/services/list-class-students";
+import type { ClassStudentFilter } from "@/lib/services/list-class-students";
 
 import { ArchiveStudentButton } from "./archive-student-button";
 import { LevelDotPicker } from "./level-dot-picker";
 
+type RosterListStudent = {
+  id: string;
+  displayName: string;
+  level: string | null;
+  archived?: boolean;
+};
+
 type RosterListProps = {
-  students: ClassStudent[];
+  students: RosterListStudent[];
   filter?: ClassStudentFilter;
   showLevelUi?: boolean;
   showArchiveAction?: boolean;
