@@ -88,7 +88,7 @@ describe("RosterList", () => {
       'data-testid="level-dot-picker-770e8400-e29b-41d4-a716-446655440002"'
     );
     expect(html).toContain("MARTIN Lucas");
-    expect(html).toContain("yellow");
+    expect(html).toContain("jaune");
     expect(html).not.toContain("Niveau non assigné");
   });
 

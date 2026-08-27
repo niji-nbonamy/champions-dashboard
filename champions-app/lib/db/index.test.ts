@@ -25,26 +25,26 @@ describe("database client", () => {
     expect(() => getDb()).toThrow(/\.env\.example/);
   });
 
-  it("passes DATABASE_URL to neon when checking the connection", async () => {
+  it("passes DATABASE_URL to Pool when checking the connection", async () => {
     const databaseUrl = "postgresql://user:pass@localhost/test";
     vi.stubEnv("DATABASE_URL", databaseUrl);
 
     const execute = vi.fn().mockResolvedValue({ rows: [{ "?column?": 1 }] });
-    const neon = vi.fn(() => vi.fn());
+    const Pool = vi.fn(() => ({}));
     const drizzle = vi.fn(() => ({ execute }));
 
     vi.doMock("@neondatabase/serverless", () => ({
-      neon,
+      Pool,
     }));
-    vi.doMock("drizzle-orm/neon-http", () => ({
+    vi.doMock("drizzle-orm/neon-serverless", () => ({
       drizzle,
     }));
 
     const { checkDatabaseConnection } = await import("./index");
     await checkDatabaseConnection();
 
-    expect(neon).toHaveBeenCalledWith(databaseUrl);
-    expect(drizzle).toHaveBeenCalledWith(expect.any(Function), {
+    expect(Pool).toHaveBeenCalledWith({ connectionString: databaseUrl });
+    expect(drizzle).toHaveBeenCalledWith(expect.any(Object), {
       schema: expect.any(Object),
     });
     expect(execute).toHaveBeenCalled();

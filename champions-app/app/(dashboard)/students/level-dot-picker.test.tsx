@@ -29,8 +29,10 @@ describe("LevelDotPicker", () => {
       <LevelDotPicker studentId="770e8400-e29b-41d4-a716-446655440002" />
     );
 
-    expect(html).not.toContain('name="student_id"');
-    expect(html).toContain('type="button"');
+    expect(html).toContain('name="student_id"');
+    expect(html).toContain('type="submit"');
+    expect(html).toContain('name="level"');
+    expect(html).toContain('value="yellow"');
     expect(html).toContain("Assigner le niveau jaune");
     expect(html).toContain("Assigner le niveau vert");
     expect(html).toContain("Assigner le niveau violet");

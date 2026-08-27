@@ -106,7 +106,7 @@ describe("students page", () => {
     expect(html).toContain("niveau requis");
     expect(html).toContain("Assigner le niveau jaune");
     expect(html).toContain("MARTIN Lucas");
-    expect(html).toContain("yellow");
+    expect(html).toContain("jaune");
     expect(mockListClassStudents).toHaveBeenCalledWith(classId, "active");
   });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 
 import {
   CHAMPIONS_LEVELS,
@@ -29,40 +30,51 @@ type LevelDotPickerProps = {
   studentId: string;
 };
 
+function LevelDotButton({
+  level,
+  disabled,
+}: {
+  level: ChampionsLevel;
+  disabled: boolean;
+}) {
+  const { pending: formPending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      name="level"
+      value={level}
+      disabled={disabled || formPending}
+      aria-label={`Assigner le niveau ${getChampionsLevelFrenchLabel(level)}`}
+      className={cn(
+        "inline-flex min-h-8 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50",
+        DOT_BUTTON_CLASSES[level]
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className="size-2.5 rounded-full bg-current"
+      />
+      {getChampionsLevelFrenchLabel(level)}
+    </button>
+  );
+}
+
 export function LevelDotPicker({ studentId }: LevelDotPickerProps) {
   const [state, formAction, pending] = useActionState(
     assignStudentLevelAction,
     initialState
   );
 
-  function assignLevel(level: ChampionsLevel) {
-    const formData = new FormData();
-    formData.set("student_id", studentId);
-    formData.set("level", level);
-    formAction(formData);
-  }
-
   return (
-    <div className="flex flex-col items-end gap-1">
+    <form
+      action={formAction}
+      className="flex flex-col items-end gap-1"
+    >
+      <input type="hidden" name="student_id" value={studentId} />
       <div className="flex flex-wrap items-center justify-end gap-2">
         {CHAMPIONS_LEVELS.map((level) => (
-          <button
-            key={level}
-            type="button"
-            disabled={pending}
-            aria-label={`Assigner le niveau ${getChampionsLevelFrenchLabel(level)}`}
-            onClick={() => assignLevel(level)}
-            className={cn(
-              "inline-flex min-h-8 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50",
-              DOT_BUTTON_CLASSES[level]
-            )}
-          >
-            <span
-              aria-hidden="true"
-              className="size-2.5 rounded-full bg-current"
-            />
-            {getChampionsLevelFrenchLabel(level)}
-          </button>
+          <LevelDotButton key={level} level={level} disabled={pending} />
         ))}
       </div>
       {state.error ? (
@@ -70,6 +82,6 @@ export function LevelDotPicker({ studentId }: LevelDotPickerProps) {
           {state.error}
         </p>
       ) : null}
-    </div>
+    </form>
   );
 }

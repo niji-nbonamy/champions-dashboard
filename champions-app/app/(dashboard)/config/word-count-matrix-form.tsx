@@ -191,9 +191,7 @@ export function WordCountMatrixForm({
                   {CHAMPIONS_LEVELS.map((level) => (
                     <th key={level} className="px-3 py-2 text-left font-medium">
                       <span className="inline-flex items-center gap-1.5">
-                        <LevelBadge level={level} className="px-1.5 py-0">
-                          {getChampionsLevelFrenchLabel(level)}
-                        </LevelBadge>
+                        <LevelBadge level={level} className="px-1.5 py-0" />
                       </span>
                     </th>
                   ))}

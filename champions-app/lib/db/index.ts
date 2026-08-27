@@ -1,10 +1,10 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
+import { Pool } from "@neondatabase/serverless";
+import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
 import { sql } from "drizzle-orm";
 
 import * as schema from "./schema";
 
-type Database = NeonHttpDatabase<typeof schema>;
+type Database = NeonDatabase<typeof schema>;
 
 let dbInstance: Database | null = null;
 
@@ -20,8 +20,8 @@ function getDatabaseUrl(): string {
 
 export function getDb(): Database {
   if (!dbInstance) {
-    const client = neon(getDatabaseUrl());
-    dbInstance = drizzle(client, { schema });
+    const pool = new Pool({ connectionString: getDatabaseUrl() });
+    dbInstance = drizzle(pool, { schema });
   }
   return dbInstance;
 }

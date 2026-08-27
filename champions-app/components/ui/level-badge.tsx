@@ -1,10 +1,11 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
+import { getChampionsLevelFrenchLabel } from "@/lib/domain/champions-level";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import { cn } from "@/lib/utils";
 
 const levelBadgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+  "inline-flex shrink-0 items-center justify-center rounded-full px-2.5 py-0.5 text-center text-xs font-medium w-[4.5rem]",
   {
     variants: {
       level: {
@@ -34,7 +35,7 @@ function LevelBadge({
 }: LevelBadgeProps) {
   return (
     <span className={cn(levelBadgeVariants({ level }), className)} {...props}>
-      {children ?? level}
+      {children ?? getChampionsLevelFrenchLabel(level)}
     </span>
   );
 }
