@@ -53,7 +53,7 @@
 
 ## Deferred from: code review of spec-2-1-csv-roster-import.md (2026-08-26)
 
-- Atomicité import roster (TOCTOU) — option C acceptée pour MVP ; driver `neon-http` sans transaction ; réévaluer à migration `neon-serverless` ou story 2.2 (`import-roster-csv.ts`)
+- Atomicité import roster (TOCTOU) — option C acceptée pour MVP ; `import-roster-csv.ts` n'utilise pas `db.transaction()` (count-then-insert) ; driver `neon-serverless` migré (`2b6c241`) mais import non enveloppé — réévaluer si contrainte unique story 2.2
 - `students.level` en text libre sans enum — story 2.3 assignera les niveaux (`schema.ts:30`)
 - Pas d'index DB sur `students.class_id` — volume roster faible en MVP (`schema.ts:26`)
 - Pas de contrainte unique `(class_id, display_name)` — story 2.2 ajout manuel (`schema.ts`)
@@ -98,16 +98,17 @@
 
 ## Deferred from: code review of spec-2-8-annual-year-reset.md (2026-08-27)
 
-- No DB integration test for real `neon-http` transaction atomicity on `resetClassYear` — spec « Ask First » decision point; mock-based unit tests pass
+- No DB integration test for real `neon-serverless` transaction atomicity on `resetClassYear` — spec « Ask First » decision point; mock-based unit tests pass; driver migration done (`2b6c241`)
 - No `inArray` batching for very large student rosters in `reset-class-year.ts` — speculative scale edge case; typical class sizes unlikely to hit parameter limits
 - `auth()` / `getTeacherClass()` throws outside try/catch in `resetClassYearAction` — pre-existing pattern across all config server actions
 
-## Epic 3 gate: neon-serverless driver migration (2026-08-27)
+## Completed: neon-serverless driver migration (2026-08-27)
 
-- **Trigger:** story `3-3-grid-validation-save-blocking` is `done`, **before** starting story `3-4-scoring-engine-dictation-save`
-- **Action:** migrate `lib/db/index.ts` from `neon-http` to `neon-serverless` per `spike-neon-serverless-transactions.md`
-- **Sprint item:** `epic-2-retro-item-11-evaluate-neon-serverless-driver-migratio` (currently `in-progress` — spike doc done, migration pending)
-- **Why:** dictation save (3-4) writes multiple rows in one transaction; `neon-http` batch TX is weaker than WebSocket TX
+- **Done:** `lib/db/index.ts` migrated from `neon-http` to `neon-serverless` (`Pool`) — commit `2b6c241`
+- **Why accelerated:** `neon-http` throws on `db.transaction()` — level assignment, matrix replace, and year reset failed at runtime
+- **Spike:** `spike-neon-serverless-transactions.md` (acceptance criteria + execution notes)
+- **Sprint item:** `epic-2-retro-item-11-evaluate-neon-serverless-driver-migratio` → **done**
+- **Still open:** manual verify year reset + matrix save on dev Neon; DB integration test for `resetClassYear` rollback (see spec 2-8 deferrals above)
 
 ## Deferred from: code review of spec-3-1-create-dictation.md (2026-08-27)
 

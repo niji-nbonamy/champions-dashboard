@@ -34,7 +34,7 @@ context:
 **Ask First:**
 - Modal implementation style (default: native `<dialog>` client component with focus trap — first real modal in app; FR43 requires modal, not bare `window.confirm`).
 - Exact modal warning body copy if UX team wants wording beyond epics AC paraphrase.
-- Whether to migrate `lib/db/index.ts` from `neon-http` to `neon-serverless` if integration tests show transaction batching issues (story 2.1 flagged this decision point).
+- ~~Whether to migrate `lib/db/index.ts` from `neon-http` to `neon-serverless`~~ — **Done** (`2b6c241`, `spike-neon-serverless-transactions.md`).
 
 **Never:**
 - Delete or recreate `teachers` or `classes` rows.
@@ -64,7 +64,7 @@ context:
 ## Code Map
 
 - `champions-app/lib/db/schema.ts` -- **READ** class-scoped tables: `students`, `levelHistoryEntries`, `wordCountMatrixRows`, `classes` wizard fields. [`schema.ts:20`](../../champions-app/lib/db/schema.ts#L20)
-- `champions-app/lib/db/index.ts` -- **READ** `neon-http` driver; transaction re-evaluation point per story 2.1. [`index.ts:1`](../../champions-app/lib/db/index.ts#L1)
+- `champions-app/lib/db/index.ts` -- **READ** `neon-serverless` `Pool` driver (migrated `2b6c241`). [`index.ts:1`](../../champions-app/lib/db/index.ts#L1)
 - `champions-app/lib/domain/class.ts` -- **READ** `validateSchoolYearLabel`, `getSchoolYearLabelValidationError`. [`class.ts:9`](../../champions-app/lib/domain/class.ts#L9)
 - `champions-app/lib/services/reset-class-year.ts` -- **CREATE** transactional cascade delete + class timestamp reset + optional label update.
 - `champions-app/lib/services/reset-class-year.test.ts` -- **CREATE** delete order, label update/keep, class-not-found, transaction rollback mock.
@@ -161,6 +161,6 @@ Post-reset redirect matches CSV import success path.
 - [x] [Review][Patch] Add modal interaction tests: pending blocks close, backdrop cancel, form submit with label [`year-reset-section.test.tsx`]
 - [x] [Review][Patch] Assert `#reset-annuel` absent when `getTeacherClass` returns null [`page.test.tsx`]
 - [x] [Review][Patch] Reuse shared `WIZARD_AFFECTED_PATHS` for `revalidatePath` calls instead of hardcoded list [`actions.ts:189`]
-- [x] [Review][Defer] No DB integration test for real `neon-http` transaction atomicity on `resetClassYear` — deferred, spec « Ask First » decision point
+- [x] [Review][Defer] No DB integration test for real `neon-serverless` transaction atomicity on `resetClassYear` — deferred; driver migration done (`2b6c241`)
 - [x] [Review][Defer] No `inArray` batching for very large student rosters — deferred, speculative scale edge case
 - [x] [Review][Defer] `auth()` / `getTeacherClass()` throws outside try/catch — deferred, pre-existing pattern across config actions

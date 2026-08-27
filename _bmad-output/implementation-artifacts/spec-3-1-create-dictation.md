@@ -40,7 +40,7 @@ context:
 - Class grid UI, error counts, scoring, snapshots, or promotion logic (stories 3.2–3.6).
 - `dictation_entries` or `pending_promotions` tables.
 - Dictation delete/purge (FR42).
-- neon-serverless driver migration (deferred to pre-3.4 per spike).
+- ~~neon-serverless driver migration~~ — **Done early** (`2b6c241`, before 3-2; see `spike-neon-serverless-transactions.md`).
 - Client-only dictation persistence.
 
 ## I/O & Edge-Case Matrix

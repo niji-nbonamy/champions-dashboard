@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-27-2026 16:40
+last_updated: 08-27-2026 17:05
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -152,8 +152,10 @@ action_items:
     action: "Evaluate neon-serverless driver migration for true DB transactions before
       Epic 3 dictation saves"
     owner: "dev"
-    status: in-progress
-    ref: "_bmad-output/implementation-artifacts/epic-2-retro-08-27-2026.md"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/spike-neon-serverless-transactions.md"
+    completed_note: "Executed 2026-08-27 in commit 2b6c241 (accelerated after level-assignment
+      runtime failure with neon-http)"
   - id: "epic-2-retro-item-12-schedule-auth-hardening-story-register-r"
     epic: 2
     action: "Schedule auth hardening story: register redirect, signOut, callbackUrl,

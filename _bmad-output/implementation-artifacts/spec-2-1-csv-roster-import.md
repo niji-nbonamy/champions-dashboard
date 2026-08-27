@@ -147,7 +147,7 @@ context:
 
 ### Review Findings
 
-- [x] [Review][Decision] Atomicité import roster (gate + insert) — **Résolu : option C (MVP).** Risque TOCTOU accepté : usage enseignant ponctuel, driver `neon-http` sans transaction. Réévaluer si migration `neon-serverless` (story 2.8 reset) ou contrainte unique en story 2.2.
+- [x] [Review][Decision] Atomicité import roster (gate + insert) — **Résolu : option C (MVP).** Risque TOCTOU accepté : usage enseignant ponctuel ; `import-roster-csv.ts` sans `db.transaction()`. Driver `neon-serverless` migré (`2b6c241`) — import non enveloppé ; réévaluer contrainte unique story 2.2.
 
 - [x] [Review][Patch] BOM UTF-8 non géré [`roster-import.ts:112`](../../champions-app/lib/domain/roster-import.ts#L112)
 - [x] [Review][Patch] Message doublons incomplet (une seule variante listée) [`roster-import.ts:153`](../../champions-app/lib/domain/roster-import.ts#L153)
