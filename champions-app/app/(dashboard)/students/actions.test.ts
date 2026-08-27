@@ -5,6 +5,8 @@ import {
 } from "@/lib/domain/champions-level";
 import {
   STUDENT_ADD_SUCCESS_MESSAGE,
+  STUDENT_ARCHIVE_GENERIC_ERROR,
+  STUDENT_ARCHIVE_NOT_FOUND_ERROR,
   STUDENT_DISPLAY_NAME_EMPTY_ERROR,
   STUDENT_DISPLAY_NAME_TOO_LONG_ERROR,
 } from "@/lib/domain/student-display-name";
@@ -13,6 +15,7 @@ const {
   redirect,
   revalidatePath,
   mockAddStudent,
+  mockArchiveStudent,
   mockAssignStudentLevel,
   mockAuth,
   mockGetTeacherClass,
@@ -22,6 +25,7 @@ const {
   }),
   revalidatePath: vi.fn(),
   mockAddStudent: vi.fn(),
+  mockArchiveStudent: vi.fn(),
   mockAssignStudentLevel: vi.fn(),
   mockAuth: vi.fn(),
   mockGetTeacherClass: vi.fn(),
@@ -97,6 +101,28 @@ vi.mock("@/lib/services/assign-student-level", () => {
     AssignStudentLevelError,
     StudentNotFoundError,
     StudentAlreadyAssignedError,
+  };
+});
+
+vi.mock("@/lib/services/archive-student", () => {
+  class ArchiveStudentError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "ArchiveStudentError";
+    }
+  }
+
+  class StudentNotFoundError extends ArchiveStudentError {
+    constructor() {
+      super("Élève introuvable.");
+      this.name = "StudentNotFoundError";
+    }
+  }
+
+  return {
+    archiveStudent: mockArchiveStudent,
+    ArchiveStudentError,
+    StudentNotFoundError,
   };
 });
 
@@ -365,6 +391,131 @@ describe("assignStudentLevelAction", () => {
     const result = await assignStudentLevelAction({ error: null }, formData);
 
     expect(result.error).toBe(ASSIGN_STUDENT_LEVEL_GENERIC_ERROR);
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("archiveStudentAction", () => {
+  const studentId = "770e8400-e29b-41d4-a716-446655440002";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { archiveStudentAction } = await import("./actions");
+
+    await expect(
+      archiveStudentAction({ error: null }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
+  it("redirects users without a class to onboarding", async () => {
+    mockAuth.mockResolvedValueOnce({
+      user: { id: teacherId, email: "t@example.com" },
+    });
+    mockGetTeacherClass.mockResolvedValueOnce(null);
+
+    const { archiveStudentAction } = await import("./actions");
+
+    await expect(
+      archiveStudentAction({ error: null }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/class");
+  });
+
+  it("archives a student, revalidates paths, and redirects with notice", async () => {
+    mockAuthenticatedSession();
+    mockArchiveStudent.mockResolvedValueOnce({ studentId });
+
+    const { archiveStudentAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("filter", "active");
+
+    await expect(
+      archiveStudentAction({ error: null }, formData)
+    ).rejects.toThrow("NEXT_REDIRECT:/students?notice=archived");
+
+    expect(mockArchiveStudent).toHaveBeenCalledWith(classId, studentId);
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    expect(revalidatePath).toHaveBeenCalledWith("/config");
+    expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
+  });
+
+  it("preserves the archived filter in the redirect", async () => {
+    mockAuthenticatedSession();
+    mockArchiveStudent.mockResolvedValueOnce({ studentId });
+
+    const { archiveStudentAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("filter", "all");
+
+    await expect(
+      archiveStudentAction({ error: null }, formData)
+    ).rejects.toThrow("NEXT_REDIRECT:/students?filter=all&notice=archived");
+  });
+
+  it("preserves the archived-only filter in the redirect", async () => {
+    mockAuthenticatedSession();
+    mockArchiveStudent.mockResolvedValueOnce({ studentId });
+
+    const { archiveStudentAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("filter", "archived");
+
+    await expect(
+      archiveStudentAction({ error: null }, formData)
+    ).rejects.toThrow(
+      "NEXT_REDIRECT:/students?filter=archived&notice=archived"
+    );
+  });
+
+  it("returns not-found when student_id is missing", async () => {
+    mockAuthenticatedSession();
+
+    const { archiveStudentAction } = await import("./actions");
+    const formData = new FormData();
+
+    const result = await archiveStudentAction({ error: null }, formData);
+
+    expect(result.error).toBe(STUDENT_ARCHIVE_NOT_FOUND_ERROR);
+    expect(mockArchiveStudent).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns not-found errors from the archive service", async () => {
+    mockAuthenticatedSession();
+    const { StudentNotFoundError } = await import(
+      "@/lib/services/archive-student"
+    );
+    mockArchiveStudent.mockRejectedValueOnce(new StudentNotFoundError());
+
+    const { archiveStudentAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+
+    const result = await archiveStudentAction({ error: null }, formData);
+
+    expect(result.error).toBe("Élève introuvable.");
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns a generic French error for unexpected failures", async () => {
+    mockAuthenticatedSession();
+    mockArchiveStudent.mockRejectedValueOnce(new Error("database down"));
+
+    const { archiveStudentAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+
+    const result = await archiveStudentAction({ error: null }, formData);
+
+    expect(result.error).toBe(STUDENT_ARCHIVE_GENERIC_ERROR);
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

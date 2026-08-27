@@ -6,11 +6,19 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { ASSIGN_STUDENT_LEVEL_GENERIC_ERROR, parseChampionsLevel } from "@/lib/domain/champions-level";
-import { STUDENT_ADD_SUCCESS_MESSAGE } from "@/lib/domain/student-display-name";
+import {
+  STUDENT_ADD_SUCCESS_MESSAGE,
+  STUDENT_ARCHIVE_GENERIC_ERROR,
+  STUDENT_ARCHIVE_NOT_FOUND_ERROR,
+} from "@/lib/domain/student-display-name";
 import {
   addStudent,
   AddStudentError,
 } from "@/lib/services/add-student";
+import {
+  archiveStudent,
+  ArchiveStudentError,
+} from "@/lib/services/archive-student";
 import {
   assignStudentLevel,
   AssignStudentLevelError,
@@ -25,6 +33,25 @@ export type AddStudentActionState = {
 export type AssignStudentLevelActionState = {
   error: string | null;
 };
+
+export type ArchiveStudentActionState = {
+  error: string | null;
+};
+
+type RosterFilterParam = "active" | "archived" | "all";
+
+function parseArchiveFilterParam(
+  rawFilter: FormDataEntryValue | null
+): RosterFilterParam {
+  if (
+    typeof rawFilter === "string" &&
+    (rawFilter === "archived" || rawFilter === "all")
+  ) {
+    return rawFilter;
+  }
+
+  return "active";
+}
 
 export async function addStudentAction(
   _prevState: AddStudentActionState,
@@ -114,5 +141,52 @@ export async function assignStudentLevelAction(
     }
 
     return { error: ASSIGN_STUDENT_LEVEL_GENERIC_ERROR };
+  }
+}
+
+export async function archiveStudentAction(
+  _prevState: ArchiveStudentActionState,
+  formData: FormData
+): Promise<ArchiveStudentActionState> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  const studentIdField = formData.get("student_id");
+  const studentId =
+    typeof studentIdField === "string" ? studentIdField.trim() : "";
+  const filter = parseArchiveFilterParam(formData.get("filter"));
+
+  if (!studentId) {
+    return { error: STUDENT_ARCHIVE_NOT_FOUND_ERROR };
+  }
+
+  try {
+    await archiveStudent(teacherClass.id, studentId);
+    revalidatePath("/students");
+    revalidatePath("/dictations");
+    revalidatePath("/config");
+    revalidatePath("/onboarding/year-start");
+    const query =
+      filter === "active" ? "notice=archived" : `filter=${filter}&notice=archived`;
+    redirect(`/students?${query}`);
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (error instanceof ArchiveStudentError) {
+      return { error: error.message };
+    }
+
+    return { error: STUDENT_ARCHIVE_GENERIC_ERROR };
   }
 }

@@ -8,6 +8,13 @@ export const STUDENT_DISPLAY_NAME_TOO_LONG_ERROR =
 
 export const STUDENT_ADD_SUCCESS_MESSAGE = "Élève ajouté.";
 
+export const STUDENT_ARCHIVE_SUCCESS_MESSAGE = "Élève archivé.";
+
+export const STUDENT_ARCHIVE_NOT_FOUND_ERROR = "Élève introuvable.";
+
+export const STUDENT_ARCHIVE_GENERIC_ERROR =
+  "Archivage impossible. Réessayez.";
+
 export type ValidateDisplayNameSuccess = {
   ok: true;
   displayName: string;
