@@ -4,23 +4,66 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/auth", () => ({
+  auth: vi.fn(async () => null),
   handlers: {
     GET: vi.fn(async () => Response.json({})),
     POST: vi.fn(async () => new Response(null, { status: 400 })),
   },
 }));
 
+vi.mock("next/navigation", () => ({
+  redirect: vi.fn((path: string) => {
+    throw new Error(`REDIRECT:${path}`);
+  }),
+}));
+
+vi.mock("next/image", () => ({
+  default: ({
+    src,
+    alt,
+    className,
+    width,
+    height,
+  }: {
+    src: string;
+    alt: string;
+    className?: string;
+    width: number;
+    height: number;
+  }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} className={className} width={width} height={height} />
+  ),
+}));
+
 import Home from "./page";
 import { GET } from "./api/auth/[...nextauth]/route";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 const appRoot = path.resolve(__dirname);
 
 describe("application shell", () => {
-  it("renders the scaffold landing copy", () => {
-    const html = renderToStaticMarkup(<Home />);
+  it("renders the public landing page with hero and auth CTAs", async () => {
+    const html = renderToStaticMarkup(await Home());
 
-    expect(html).toContain("CHAMPIONS");
-    expect(html).toContain("Development environment ready");
+    expect(html).toContain('src="/logo-champions-method-full.jpg"');
+    expect(html).toContain("La méthode CHAMPIONS");
+    expect(html).toContain('class="sr-only"');
+    expect(html).toContain('href="/login"');
+    expect(html).toContain("Se connecter");
+    expect(html).toContain('href="/register"');
+    expect(html).toContain("Créer un compte");
+    expect(html).not.toContain("Development environment ready");
+  });
+
+  it("redirects authenticated users to dictations", async () => {
+    vi.mocked(auth).mockResolvedValueOnce({
+      user: { id: "teacher-1", email: "teacher@example.com" },
+    } as Awaited<ReturnType<typeof auth>>);
+
+    await expect(Home()).rejects.toThrow("REDIRECT:/dictations");
+    expect(redirect).toHaveBeenCalledWith("/dictations");
   });
 
   it("documents root layout metadata", () => {

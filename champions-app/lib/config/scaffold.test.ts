@@ -17,7 +17,8 @@ describe("scaffold configuration", () => {
       "lib/db",
       "lib/db/queries",
       "drizzle",
-      "public/logo-ecole-saint-hermeland.png",
+      "public/logo-champions-wordmark.jpg",
+      "public/logo-champions-method-full.jpg",
     ];
 
     for (const relativePath of requiredPaths) {

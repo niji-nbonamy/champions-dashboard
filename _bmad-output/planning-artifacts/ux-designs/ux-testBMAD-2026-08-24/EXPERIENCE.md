@@ -73,8 +73,9 @@ Behavioral. Visual specs in `DESIGN.md.Components` or shadcn defaults.
 | **Promotion + button (D3+)** | Class grid | **+** at row end when criteria met. Opens Valider/Refuser dialog (same as D1). Confirming records level change without leaving grid. |
 | **Student dossier (C1)** | Élèves | Hero global curve top. Dictation table below — collapsed by default; expand reveals per-category error counts (no %). Level badge + history link. |
 | **Promotion banner (D1)** | Dossier | « Prêt à monter → [niveau] » + Valider / Refuser. Reads same pending state as D2/D3/D3+. |
-| **App bar** | All laptop tabs, mobile hub | Saint Hermeland wordmark left (`{school-logo-app-bar}`: 52px h laptop, 40px h mobile, width auto, `object-fit: contain`). Muted subtitle « champions » beside or below logo. App bar min-height 64px. Logo not clickable in MVP. |
-| **Presentation mode (C3)** | Full-screen overlay | Global curve dominant. Three highlights: last %, trend delta, level badge. Per-category counts on demand via collapsed table toggle. School wordmark bottom-right (`{school-logo-presentation}`: 44px height, width auto, opacity 0.85, 24px margin from edges) — legible for parents, never overlaps data. Exit via Esc or « Fermer ». |
+| **App bar** | All laptop tabs, mobile hub | CHAMPIONS method wordmark left (`{champions-logo-app-bar}`: 52px h laptop, 40px h mobile, width auto, `object-fit: contain`). No subtitle. App bar min-height 64px. Logo not clickable in MVP. |
+| **Landing** | Unauthenticated `/` | Full « La méthode CHAMPIONS » hero centered; CTAs « Se connecter » and « Créer un compte ». Authenticated `/` redirects to Dictées. |
+| **Presentation mode (C3)** | Full-screen overlay | Global curve dominant. Three highlights: last %, trend delta, level badge. Per-category counts on demand via collapsed table toggle. CHAMPIONS wordmark bottom-right (`{champions-logo-presentation}`: 44px height, width auto, opacity 0.85, 24px margin from edges) — legible for parents, never overlaps data. Exit via Esc or « Fermer ». |
 | **Alerts queue (D2)** | Alertes tab | List of students with pending promotions. Process one-by-one: tap row → Valider/Refuser dialog. Count badge on tab: « N élèves prêts ». |
 | **Level dot picker (E1)** | Élèves roster | Four color dots per unassigned student. Tap assigns level; student becomes eligible for grids. |
 | **Year-start wizard (E3)** | Post-import | Linear 3 steps with back navigation. Cannot skip level assignment before first scored dictation. |
@@ -201,7 +202,7 @@ Rachel has 3 students left to enter from this morning's dictation. She's on play
 | Item | Status | Notes |
 |---|---|---|
 | Brand color palette | **Resolved** | Theme C Menthe Douce — primary `#059669`, accent `#7C3AED`, no orange |
-| School logo placement | **Resolved** | App bar (all surfaces) + presentation mode bottom-right |
+| School logo placement | **Resolved** | CHAMPIONS wordmark in app bar + presentation mode bottom-right |
 | Mobile hub access to Élèves/Config/Alertes | **Resolved** | Mobile is dictation-capture-only; Élèves/Config/Alertes require laptop (≥ 1024px). No hub drawer. |
 | Per-student completion tracking on mobile | **Resolved** | Completion derived from existing DictationEntry per (dictation, student); picker shows « saisi » indicator and remaining count. |
 | PWA install | `[ASSUMPTION]` | Optional post-MVP |

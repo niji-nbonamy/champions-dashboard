@@ -60,7 +60,8 @@ describe("DashboardShell", () => {
       </DashboardShell>
     );
 
-    expect(html).toContain('alt="École Saint Hermeland"');
+    expect(html).toContain('alt="La méthode CHAMPIONS"');
+    expect(html).toContain('src="/logo-champions-wordmark.jpg"');
     expect(html).toContain('href="/dictations"');
     expect(html).toContain('href="/students"');
     expect(html).toContain('href="/config"');

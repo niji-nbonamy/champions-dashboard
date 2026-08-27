@@ -93,21 +93,26 @@ components:
     fontFamily: '{typography.data-lg.fontFamily}'
     fontSize: '{typography.data-lg.fontSize}'
     fontWeight: '{typography.data-lg.fontWeight}'
-  school-logo-app-bar:
-    asset: 'imports/logo-ecole-saint-hermeland.png'
+  champions-logo-app-bar:
+    asset: 'public/logo-champions-wordmark.jpg'
     height: '{spacing.logo-app-bar-height}'
     width: 'auto'
     objectFit: 'contain'
-    aspectRatio: '975 / 700'
+    aspectRatio: '1024 / 409'
     placement: 'app-bar-left'
-  school-logo-app-bar-mobile:
-    asset: 'imports/logo-ecole-saint-hermeland.png'
+  champions-logo-app-bar-mobile:
+    asset: 'public/logo-champions-wordmark.jpg'
     height: '{spacing.logo-app-bar-height-mobile}'
     width: 'auto'
     objectFit: 'contain'
     placement: 'app-bar-left'
-  school-logo-presentation:
-    asset: 'imports/logo-ecole-saint-hermeland.png'
+  champions-landing-hero:
+    asset: 'public/logo-champions-method-full.jpg'
+    maxWidth: '48rem'
+    objectFit: 'contain'
+    placement: 'landing-center'
+  champions-logo-presentation:
+    asset: 'public/logo-champions-wordmark.jpg'
     height: '{spacing.logo-presentation-height}'
     width: 'auto'
     objectFit: 'contain'
@@ -148,10 +153,10 @@ Grid cells use shadcn default body size at regular weight.
 
 shadcn / Tailwind spacing inherited. Product overrides:
 
-- **App bar** — Min height `{spacing.app-bar-min-height}` (64px). School wordmark left at `{spacing.logo-app-bar-height}` (52px laptop / 40px mobile) — width auto-scales (~72px / ~56px at native aspect ratio) so « Hermeland » stays legible. Subtitle « champions » in muted grey to the right of the logo or below on narrow viewports. Tabs below or inline on wide screens.
+- **App bar** — Min height `{spacing.app-bar-min-height}` (64px). CHAMPIONS method wordmark left at `{spacing.logo-app-bar-height}` (52px laptop / 40px mobile) — width auto-scales. No subtitle. Tabs below or inline on wide screens.
 - **Class grid** — Cell min `{spacing.grid-cell-min}` (44px), row height `{spacing.grid-row-height}` (40px). Horizontal scroll when viewport < 9 columns + name column.
 - **Dossier** — `max-w-4xl` (896px).
-- **Presentation mode (C3)** — Full viewport, no chrome. School wordmark fixed bottom-right at `{spacing.logo-presentation-height}` (44px, ~61px wide), `{school-logo-presentation.opacity}` — legible for parents, never overlaps curve or highlights. Safe margin 24px from viewport edges.
+- **Presentation mode (C3)** — Full viewport, no chrome. CHAMPIONS wordmark fixed bottom-right at `{spacing.logo-presentation-height}` (44px, width auto), `{champions-logo-presentation.opacity}` — legible for parents, never overlaps curve or highlights. Safe margin 24px from viewport edges.
 - **Mobile per-student form** — Full width, 48px min field height.
 
 ## Elevation & Depth
@@ -170,8 +175,9 @@ Brand-layer:
 
 - **Button (primary)** — `{colors.primary}` fill. Save, Valider, confirm actions.
 - **Button (accent outline)** — `{button-accent}`. « RDV parents », wizard forward steps.
-- **School logo (app bar)** — `{school-logo-app-bar}`. All laptop G1 surfaces and mobile hub header. `alt="École Saint Hermeland"`. Not clickable in MVP.
-- **School logo (presentation)** — `{school-logo-presentation}`. C3 full-screen only. Bottom-right, does not capture focus or block Fermer.
+- **CHAMPIONS logo (app bar)** — `{champions-logo-app-bar}`. All laptop G1 surfaces and mobile hub header. `alt="La méthode CHAMPIONS"`. Not clickable in MVP.
+- **CHAMPIONS hero (landing)** — `{champions-landing-hero}`. Public `/` only when unauthenticated.
+- **CHAMPIONS logo (presentation)** — `{champions-logo-presentation}`. C3 full-screen only. Bottom-right, does not capture focus or block Fermer.
 - **Level badges** — Four variants, pill shape.
 - **Promotion banner (D1)** — `{colors.promotion-ready}` bar, Valider / Refuser.
 - **Grid cell** — Centered integer, `{spacing.grid-cell-min}`. Destructive border when Σ > word total.
@@ -219,7 +225,7 @@ Layout (top → bottom):
 |---|---|
 | Use `{colors.primary}` mint for everyday actions | Use orange anywhere in UI |
 | Use `{colors.accent}` violet for RDV parents and wizard CTAs | Use accent for promotion (use `promotion-ready`) |
-| Show school logo in app bar + presentation mode | Stretch, recolor, or crop the logo asset |
+| Show CHAMPIONS logo in app bar + presentation mode | Stretch, recolor, or crop the logo asset |
 | Size logo by height (52px bar / 44px presentation), width auto | Squash/stretch logo or crop the wordmark |
 | Keep app bar min-height 64px to fit wordmark | Shrink logo below 40px mobile / 48px laptop |
 | Use level badge colors only for CHAMPIONS levels | Color-code error categories C–S |

@@ -12,10 +12,15 @@ describe("runAuthMiddleware", () => {
     expect(response.headers.get("location")).toBe("http://localhost:3000/login");
   });
 
-  it("redirects authenticated users away from login and register", () => {
+  it("redirects authenticated users away from login, register, and home", () => {
+    const homeResponse = runAuthMiddleware("/", true, baseUrl);
     const loginResponse = runAuthMiddleware("/login", true, baseUrl);
     const registerResponse = runAuthMiddleware("/register", true, baseUrl);
 
+    expect(homeResponse.status).toBe(307);
+    expect(homeResponse.headers.get("location")).toBe(
+      "http://localhost:3000/dictations"
+    );
     expect(loginResponse.status).toBe(307);
     expect(loginResponse.headers.get("location")).toBe(
       "http://localhost:3000/dictations"

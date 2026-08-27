@@ -29,27 +29,26 @@ vi.mock("./sign-out-button", () => ({
 import { AppBar } from "./app-bar";
 
 describe("AppBar", () => {
-  it("renders the school wordmark with correct alt text and sizing classes", () => {
+  it("renders the CHAMPIONS wordmark with correct alt text and sizing classes", () => {
     const html = renderToStaticMarkup(<AppBar />);
 
-    expect(html).toContain('alt="École Saint Hermeland"');
-    expect(html).toContain('src="/logo-ecole-saint-hermeland.png"');
+    expect(html).toContain('alt="La méthode CHAMPIONS"');
+    expect(html).toContain('src="/logo-champions-wordmark.jpg"');
     expect(html).toContain("object-contain");
     expect(html).toContain(
       `h-[var(--spacing-logo-app-bar-height-mobile)]`
     );
     expect(html).toContain(`lg:h-[var(--spacing-logo-app-bar-height)]`);
-    expect(html).toContain("lg:flex-row");
-    expect(html).toContain("lg:items-center");
     expect(SPACING.logoAppBarHeight).toBe("52px");
     expect(SPACING.logoAppBarHeightMobile).toBe("40px");
   });
 
-  it("renders the muted champions subtitle", () => {
+  it("does not render the Hermeland school logo or champions subtitle", () => {
     const html = renderToStaticMarkup(<AppBar />);
 
-    expect(html).toContain("champions");
-    expect(html).toContain("text-muted-foreground");
+    expect(html).not.toContain("logo-ecole-saint-hermeland");
+    expect(html).not.toContain("École Saint Hermeland");
+    expect(html).not.toContain(">champions<");
   });
 
   it("uses the app bar minimum height token", () => {

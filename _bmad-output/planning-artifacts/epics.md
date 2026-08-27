@@ -115,7 +115,7 @@ UX-DR2: Implement four CHAMPIONS level badge variants (yellow, green, violet, go
 UX-DR3: Implement typography tokens: DM Sans Light for display titles (28px/300), display-sm (20px/300), monospace data-lg (32px/600) for presentation highlights.
 UX-DR4: Implement spacing tokens: grid-cell-min 44px, grid-row-height 40px, app-bar-min-height 64px, logo heights 52px laptop / 40px mobile / 44px presentation.
 UX-DR5: Implement app bar with École Saint Hermeland wordmark left (52px h laptop, 40px h mobile, width auto, object-fit contain), muted « champions » subtitle, tabs below/inline on wide screens.
-UX-DR6: Implement school logo in presentation mode bottom-right (44px height, opacity 0.85, 24px safe margin, non-interactive, does not overlap curve/highlights).
+UX-DR6: Implement CHAMPIONS wordmark in presentation mode bottom-right (44px height, opacity 0.85, 24px safe margin, non-interactive, does not overlap curve/highlights).
 UX-DR7: Implement primary button style (mint fill) for Enregistrer, Valider, confirm actions; accent outline button for « RDV parents » and wizard forward steps.
 UX-DR8: Implement promotion banner component (D1) with promotion-ready blue fill, Valider / Refuser actions.
 UX-DR9: Implement promotion + button (D3+) — circular promotion-ready blue at row end on class grid.
@@ -298,7 +298,7 @@ So that I can reach Dictées, Élèves, Config, and Alertes from any screen.
 
 **Given** I am authenticated on a viewport ≥ 1024px
 **When** I view any dashboard page
-**Then** the app bar displays the Saint Hermeland wordmark at 52px height (width auto, `object-fit: contain`) with muted « champions » subtitle (UX-DR5)
+**Then** the app bar displays the CHAMPIONS method wordmark at 52px height (width auto, `object-fit: contain`) — no separate subtitle (UX-DR5)
 **And** four tabs are visible: Dictées · Élèves · Config · Alertes (FR41, UX-DR12)
 **And** the active tab is highlighted with the primary mint color
 **And** tab navigation works without full page reload
@@ -334,6 +334,31 @@ So that I can create my account confidently and sign in without friction.
 **Then** the password field displays a visibility toggle (œil) to show or hide typed characters
 **And** all login labels and error messages are in French
 **And** no captcha is shown on login
+
+### Story 1.8: Public Landing Page & CHAMPIONS App Bar Branding
+
+As a primary teacher (or prospective user),
+I want a branded landing page with clear auth entry points and consistent CHAMPIONS branding in the app bar,
+So that I can discover the method and reach login/registration quickly, and authenticated sessions skip the public page.
+
+**Acceptance Criteria:**
+
+**Given** I am not authenticated
+**When** I visit `/`
+**Then** I see the full « La méthode CHAMPIONS » hero image centered on the page
+**And** I see two primary CTAs: « Se connecter » (links to `/login`) and « Créer un compte » (links to `/register`)
+**And** all microcopy is in French (NFR14)
+**And** the dev scaffold copy is removed
+
+**Given** I am authenticated
+**When** I visit `/`
+**Then** I am redirected to `/dictations` (existing onboarding/class guards still apply)
+
+**Given** I am authenticated on any dashboard page
+**When** I view the app bar
+**Then** the CHAMPIONS wordmark logo is displayed (replacing Hermeland logo and « champions » subtitle)
+**And** logo height follows existing tokens (40px mobile / 52px laptop)
+**And** the logo is not clickable in MVP
 
 ## Epic 2: Year Setup & Roster Management
 
@@ -681,7 +706,7 @@ So that I can orient the parent in about 30 seconds.
 **And** the global curve is dominant with three factual highlights: last dictation %, trend delta, and current level badge using `data-lg` monospace typography (FR35, UX-DR11)
 **And** trend = most recent % minus previous %; shows « — » when fewer than 2 dictations exist (FR35)
 **And** per-category error counts are available on demand via a collapsed table toggle — no pedagogical narrative (FR36)
-**And** the Saint Hermeland logo appears bottom-right at 44px height, opacity 0.85, 24px margin (UX-DR6)
+**And** the CHAMPIONS wordmark appears bottom-right at 44px height, opacity 0.85, 24px margin (UX-DR6)
 **And** focus is trapped; Esc or « Fermer » exits; screen reader announces « Mode RDV parents, {prénom} » (UX-DR16, UX-DR25)
 **And** no school grade (CE2, CM1, etc.) appears anywhere (NFR8)
 
@@ -701,7 +726,7 @@ So that I can quickly access mobile capture without the full laptop layout.
 **When** the mobile dictation hub loads
 **Then** I see the last dictation label and date (FR40)
 **And** shortcuts « Saisir » (opens student picker for B4 entry) and « Voir » (read-only summary) are available (FR40, UX-DR13)
-**And** the app bar shows the school wordmark at 40px height (UX-DR5)
+**And** the app bar shows the CHAMPIONS wordmark at 40px height (UX-DR5)
 **And** the G1 tab bar (Dictées · Élèves · Config · Alertes) is not shown — mobile is dictation-capture-only (UX-DR13)
 **And** there is no drawer or navigation to Élèves, Config, or Alertes on mobile; those surfaces require a laptop (≥ 1024px)
 
