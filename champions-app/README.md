@@ -41,6 +41,8 @@ cd champions-app
    | `DATABASE_URL` | Yes | Neon **pooled** connection string (hostname contains `-pooler`) for the app |
    | `DATABASE_URL_UNPOOLED` | Yes for migrations | Neon **direct** connection string (no `-pooler`) for `npm run db:push` |
    | `AUTH_SECRET` | Yes | Auth.js session secret (`openssl rand -base64 32`) |
+   | `AUTH_URL` | Yes on Vercel | Canonical public URL of the app, without trailing slash (e.g. `https://champions.vercel.app`). Auth.js uses it for callback URLs in production. |
+   | `AUTH_TRUST_HOST` | Yes on Vercel | Set to `true` so Auth.js trusts the `Host` header behind Vercel's reverse proxy. Omit or leave unset for local `npm run dev`. |
    | `RECAPTCHA_SITE_KEY` | Prod when captcha enabled | Google reCAPTCHA v2 site key (registration widget) |
    | `RECAPTCHA_SECRET_KEY` | Prod when captcha enabled | Google reCAPTCHA v2 secret for server verification. In non-production, verification is bypassed when this variable is absent |
 
@@ -86,6 +88,7 @@ npm test
 - **Platform:** Vercel (EU region `fra1` via `vercel.json`)
 - **Monorepo:** set **Root Directory** to `champions-app` in the Vercel project settings (the Next.js app is not at the repository root)
 - **Database:** Neon Frankfurt — no replica outside EU on free tier
+- **Auth.js on Vercel:** add `AUTH_URL` (your production URL) and `AUTH_TRUST_HOST=true` in the Vercel project environment variables, alongside `AUTH_SECRET`. Without them, login callbacks can fail in production even when local dev works.
 
 ## Architecture
 
