@@ -52,7 +52,7 @@ const teacherId = "550e8400-e29b-41d4-a716-446655440000";
 const classId = "660e8400-e29b-41d4-a716-446655440001";
 
 describe("config page", () => {
-  it("renders the CSV import form when the roster is empty", async () => {
+  it("renders the empty roster message, anchor, and CSV import form", async () => {
     auth.mockResolvedValueOnce({
       user: { id: teacherId, email: "t@example.com" },
     });
@@ -68,9 +68,14 @@ describe("config page", () => {
       await ConfigPage()
     );
 
+    expect(html).toContain("Importez votre liste d&#x27;élèves pour commencer.");
+    expect(html).toContain('id="liste-eleves"');
+    expect(html).not.toContain("Importer la liste");
+    expect(html).not.toContain('href="/config#liste-eleves"');
     expect(html).toContain("data-testid=\"csv-import-form\"");
     expect(html).toContain("data-testid=\"word-count-matrix-form\"");
     expect(html).toContain("Matrice mots");
+    expect(html).not.toContain("pour configurer l");
     expect(mockListWordCountMatrixRows).toHaveBeenCalledWith(classId);
     expect(capturedInitialRows.value).toEqual([]);
   });
@@ -128,6 +133,8 @@ describe("config page", () => {
     );
 
     expect(html).toContain("La liste d&#x27;élèves existe déjà");
+    expect(html).toContain("pour configurer l");
+    expect(html).not.toContain("Importez votre liste d&#x27;élèves pour commencer.");
     expect(html).not.toContain("data-testid=\"csv-import-form\"");
     expect(html).toContain("data-testid=\"word-count-matrix-form\"");
     expect(html).toContain("Matrice mots");

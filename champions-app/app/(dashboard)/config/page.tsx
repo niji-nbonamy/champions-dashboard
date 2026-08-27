@@ -6,6 +6,8 @@ import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
 import { auth } from "@/auth";
 
+import { EmptyRosterPreSetup } from "@/components/dashboard/empty-roster-pre-setup";
+
 import { CsvImportForm } from "./csv-import-form";
 import { WordCountMatrixForm } from "./word-count-matrix-form";
 
@@ -26,20 +28,26 @@ export default async function ConfigPage() {
     wordsViolet: String(row.wordsViolet),
     wordsGold: String(row.wordsGold),
   }));
+  const isEmptyRoster = activeStudentCount === 0;
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">Config</h1>
-        <p className="text-sm text-muted-foreground">
-          Importez votre liste d&apos;élèves pour configurer l&apos;année.
-        </p>
+        {!isEmptyRoster ? (
+          <p className="text-sm text-muted-foreground">
+            Importez votre liste d&apos;élèves pour configurer l&apos;année.
+          </p>
+        ) : null}
       </div>
 
-      <section className="flex flex-col gap-3">
+      <section id="liste-eleves" className="flex flex-col gap-3">
         <h2 className="text-lg font-medium">Liste d&apos;élèves</h2>
-        {activeStudentCount === 0 ? (
-          <CsvImportForm />
+        {isEmptyRoster ? (
+          <>
+            <EmptyRosterPreSetup />
+            <CsvImportForm />
+          </>
         ) : (
           <p className="text-sm text-muted-foreground">
             {ROSTER_CSV_ROSTER_EXISTS_ERROR}
@@ -47,7 +55,7 @@ export default async function ConfigPage() {
         )}
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section id="matrice-mots" className="flex flex-col gap-3">
         <h2 className="text-lg font-medium">Matrice mots</h2>
         <p className="text-sm text-muted-foreground">
           Définissez le nombre de mots par dictée et par niveau couleur pour
