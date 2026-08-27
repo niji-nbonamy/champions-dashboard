@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { canCreateDictation } from "@/lib/domain/dictation-readiness";
+import {
+  canCreateDictation,
+  getCreateDictationBlockedMessage,
+} from "@/lib/domain/dictation-readiness";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getYearStartWizardStatus } from "@/lib/services/get-year-start-wizard-status";
 import {
@@ -42,7 +45,7 @@ export async function createDictationAction(
 
   const wizardStatus = await getYearStartWizardStatus(teacherClass.id);
   if (!canCreateDictation(wizardStatus)) {
-    return { error: CREATE_DICTATION_GENERIC_ERROR };
+    return { error: getCreateDictationBlockedMessage(wizardStatus) };
   }
 
   try {

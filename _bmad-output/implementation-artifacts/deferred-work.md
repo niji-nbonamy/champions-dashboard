@@ -108,3 +108,10 @@
 - **Action:** migrate `lib/db/index.ts` from `neon-http` to `neon-serverless` per `spike-neon-serverless-transactions.md`
 - **Sprint item:** `epic-2-retro-item-11-evaluate-neon-serverless-driver-migratio` (currently `in-progress` — spike doc done, migration pending)
 - **Why:** dictation save (3-4) writes multiple rows in one transaction; `neon-http` batch TX is weaker than WebSocket TX
+
+## Deferred from: code review of spec-3-1-create-dictation.md (2026-08-27)
+
+- Gate `wizardStatus.completed` avant création dictée — product decision: prérequis métier (nivelés + matrice) suffisent ; epic-3-context wording stricter than implemented intent
+- Placeholder détail minimal (« Saisie grille — prochaine étape ») — story 3.2 owns grid UI on `/dictations/[id]`
+- Pas de `generateMetadata` sur routes dictées — pattern projet non uniformisé sur les routes dashboard
+- `isCompleteMatrixRow` sans tests unitaires dédiés — couverture indirecte via wizard et create-dictation tests suffisante pour 3.1

@@ -48,7 +48,7 @@ context:
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |----------|--------------|---------------------------|----------------|
 | Happy create | Valid matrix label + date | `dictations` row inserted; appears in history; redirect `/dictations/{id}` | N/A |
-| Default date | Label only, date omitted | Server uses today's UTC date | N/A |
+| Default date | Label only, date omitted | Server uses today's class-local calendar day (`Europe/Paris`) | N/A |
 | No leveled students | Active roster but all unassigned | « Nouvelle dictée » disabled; link to Élèves for level assignment | N/A |
 | Empty roster | `activeStudentCount === 0` | Existing empty-roster pre-setup UI; button disabled | N/A |
 | No matrix rows | `matrixRowCount === 0` | Button disabled; link to Config matrix | N/A |
@@ -174,3 +174,33 @@ Matrix label `<select>` options come from `listWordCountMatrixRows(classId)` usi
 
 - Page tests cover blocking states and history ordering
   [`page.test.tsx:48`](../../champions-app/app/(dashboard)/dictations/page.test.tsx#L48)
+
+### Review Findings
+
+**Decision needed** (resolved 2026-08-27)
+
+- [x] [Review][Decision] Politique de date dictée — **Décision : jour calendaire local classe (`Europe/Paris`)** aligné client + serveur ; matrice I/O UTC à mettre à jour.
+- [x] [Review][Decision] Gate wizard annuel — **Décision : garder gate actuel** (élèves nivelés + matrice complète) ; `wizardStatus.completed` non requis pour création dictée.
+
+**Patch**
+
+- [x] [Review][Patch] Dates dictée en jour calendaire local (`Europe/Paris`) — défaut serveur, parsing et affichage [`dictation.ts:32`]
+- [x] [Review][Patch] Messages explicites si création forcée hors état prêt [`actions.ts:44`]
+- [x] [Review][Patch] Message de blocage absent quand l'historique existe [`page.tsx:75`]
+- [x] [Review][Patch] Lien matrice masqué si élèves non nivelés ET matrice vide [`page.tsx:97`]
+- [x] [Review][Patch] Bouton « Nouvelle dictée » désactivé sans `title` / alternative accessible [`page.tsx:89`]
+- [x] [Review][Patch] Erreurs de date sans `aria-invalid` sur le champ date [`create-dictation-dialog.tsx:120`]
+- [x] [Review][Patch] `<dialog>` sans `aria-labelledby` [`create-dictation-dialog.tsx:81`]
+- [x] [Review][Patch] Liens historique sans `aria-label` composite [`page.tsx:128`]
+- [x] [Review][Patch] UUID invalide sur `/dictations/[id]` peut provoquer 500 au lieu de 404 [`[id]/page.tsx:30`]
+- [x] [Review][Patch] Tests `listDictations` — tri date desc + label asc [`list-dictations.ts:25`]
+- [x] [Review][Patch] Tests page détail — auth, 404, scope classe [`[id]/page.tsx`]
+- [x] [Review][Patch] Test page — lignes matrice incomplètes exclues du `<select>` [`page.test.tsx`]
+- [x] [Review][Patch] Test tri secondaire label à date identique [`page.test.tsx` / `list-dictations.ts`]
+- [x] [Review][Patch] Tests action — label vide, trop long, date invalide [`actions.test.ts`]
+
+**Deferred**
+
+- [x] [Review][Defer] Placeholder détail minimal (« Saisie grille — prochaine étape ») [`[id]/page.tsx:53`] — deferred, story 3.2 owns grid UI
+- [x] [Review][Defer] Pas de `generateMetadata` sur routes dictées — deferred, pattern projet non uniformisé
+- [x] [Review][Defer] `isCompleteMatrixRow` sans tests unitaires dédiés — deferred, couverture indirecte suffisante pour 3.1

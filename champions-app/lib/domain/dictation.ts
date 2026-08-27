@@ -10,7 +10,12 @@ export const DICTATION_MATRIX_ROW_MISSING_ERROR =
 
 export const DICTATION_DATE_INVALID_ERROR = "Date de dictée invalide.";
 
+export const CLASS_CALENDAR_TIMEZONE = "Europe/Paris";
+
 const DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+const UUID_V4_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type ValidatedDictationLabel = {
   label: string;
@@ -29,8 +34,27 @@ export type MatrixLabelRow = {
   dictationLabelKey: string;
 };
 
-export function getTodayUtcDateString(referenceDate = new Date()): string {
-  return referenceDate.toISOString().slice(0, 10);
+export function isValidUuidV4(value: string): boolean {
+  return UUID_V4_PATTERN.test(value);
+}
+
+export function getClassLocalDateString(referenceDate = new Date()): string {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: CLASS_CALENDAR_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = formatter.formatToParts(referenceDate);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    return referenceDate.toISOString().slice(0, 10);
+  }
+
+  return `${year}-${month}-${day}`;
 }
 
 export function validateDictationLabel(
@@ -61,7 +85,7 @@ export function parseDictationDate(
 ): ParseDictationDateResult {
   const trimmed = (rawDate ?? "").trim();
   const dateValue =
-    trimmed.length === 0 ? getTodayUtcDateString(referenceDate) : trimmed;
+    trimmed.length === 0 ? getClassLocalDateString(referenceDate) : trimmed;
 
   if (!DATE_INPUT_PATTERN.test(dateValue)) {
     return { ok: false, error: DICTATION_DATE_INVALID_ERROR };
@@ -104,6 +128,6 @@ export function formatDictationDateForDisplay(dateValue: string): string {
     day: "numeric",
     month: "long",
     year: "numeric",
-    timeZone: "UTC",
+    timeZone: CLASS_CALENDAR_TIMEZONE,
   });
 }

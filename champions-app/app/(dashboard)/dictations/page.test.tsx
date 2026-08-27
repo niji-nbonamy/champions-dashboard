@@ -136,8 +136,8 @@ describe("DictationsPage", () => {
     expect(html).toContain("Dictées");
     expect(html).toContain("Nouvelle dictée");
     expect(html).toContain("disabled=\"\"");
-    expect(html).toContain("Configurez votre année scolaire pour préparer les dictées.");
-    expect(html).toContain("Configurez la matrice sur Config");
+    expect(html).toContain("Configurez la matrice sur Config pour créer une dictée.");
+    expect(html).toContain("Configurer la matrice");
     expect(html).toContain('href="/config#matrice-mots"');
     expect(html).not.toContain("Importez votre liste d&#x27;élèves pour commencer.");
   });
@@ -195,8 +195,88 @@ describe("DictationsPage", () => {
     const html = renderToStaticMarkup(await DictationsPage());
 
     expect(html).toContain("disabled=\"\"");
-    expect(html).toContain("Configurez la matrice sur Config");
+    expect(html).toContain("Configurer la matrice");
     expect(html).toContain('href="/config#matrice-mots"');
+  });
+
+  it("shows both level and matrix guidance when students are unassigned and matrix is missing", async () => {
+    mockAuthenticatedClass();
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 2,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 0,
+      unassignedCount: 2,
+      matrixRowCount: 0,
+    });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(html).toContain("Attribuer les niveaux");
+    expect(html).toContain('href="/students"');
+    expect(html).toContain("Configurer la matrice");
+    expect(html).toContain('href="/config#matrice-mots"');
+  });
+
+  it("keeps blocking guidance visible when history exists but creation is blocked", async () => {
+    mockAuthenticatedClass({
+      dictations: [
+        {
+          id: "880e8400-e29b-41d4-a716-446655440003",
+          label: "Dictée 1",
+          dictationLabelKey: "dictée 1",
+          dictationDate: "2026-08-27",
+        },
+      ],
+    });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: true,
+      step: 2,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 0,
+      unassignedCount: 2,
+      matrixRowCount: 1,
+    });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(html).toContain("Historique");
+    expect(html).toContain("Attribuez un niveau à vos élèves pour créer une dictée.");
+    expect(html).toContain("disabled=\"\"");
+  });
+
+  it("excludes incomplete matrix rows from the create dialog options", async () => {
+    mockAuthenticatedClass({
+      matrixRows: [
+        {
+          dictationLabelKey: "Dictée complète",
+          wordsYellow: 10,
+          wordsGreen: 12,
+          wordsViolet: 14,
+          wordsGold: 16,
+        },
+        {
+          dictationLabelKey: "Dictée partielle",
+          wordsYellow: 10,
+          wordsGreen: 0,
+          wordsViolet: 14,
+          wordsGold: 16,
+        },
+      ],
+    });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: true,
+      step: 3,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 2,
+      unassignedCount: 0,
+      matrixRowCount: 1,
+    });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(html).toContain("Dictée complète");
+    expect(html).not.toContain("Dictée partielle");
   });
 
   it("renders an enabled create button when leveled students and matrix are ready", async () => {
@@ -275,6 +355,50 @@ describe("DictationsPage", () => {
       html.indexOf('href="/dictations/880e8400-e29b-41d4-a716-446655440003"')
     ).toBeLessThan(
       html.indexOf('href="/dictations/770e8400-e29b-41d4-a716-446655440002"')
+    );
+  });
+
+  it("renders same-date history entries in label order from the service", async () => {
+    mockAuthenticatedClass({
+      dictations: [
+        {
+          id: "770e8400-e29b-41d4-a716-446655440002",
+          label: "Dictée A",
+          dictationLabelKey: "dictée a",
+          dictationDate: "2026-08-27",
+        },
+        {
+          id: "880e8400-e29b-41d4-a716-446655440003",
+          label: "Dictée B",
+          dictationLabelKey: "dictée b",
+          dictationDate: "2026-08-27",
+        },
+      ],
+      matrixRows: [
+        {
+          dictationLabelKey: "Dictée A",
+          wordsYellow: 10,
+          wordsGreen: 12,
+          wordsViolet: 14,
+          wordsGold: 16,
+        },
+      ],
+    });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: true,
+      step: 3,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 2,
+      unassignedCount: 0,
+      matrixRowCount: 1,
+    });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(
+      html.indexOf('href="/dictations/770e8400-e29b-41d4-a716-446655440002"')
+    ).toBeLessThan(
+      html.indexOf('href="/dictations/880e8400-e29b-41d4-a716-446655440003"')
     );
   });
 });

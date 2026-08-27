@@ -8,6 +8,8 @@ import { formatDictationDateForDisplay } from "@/lib/domain/dictation";
 import { isCompleteMatrixRow } from "@/lib/domain/word-count-matrix";
 import {
   canCreateDictation,
+  getDisabledCreateDictationTitle,
+  MATRIX_MISSING_CTA_LABEL,
   UNLEVELED_STUDENTS_CTA_LABEL,
   UNLEVELED_STUDENTS_MESSAGE,
 } from "@/lib/domain/dictation-readiness";
@@ -51,6 +53,8 @@ export default async function DictationsPage() {
       label: row.dictationLabelKey,
     }));
 
+  const matrixMissing = wizardStatus.matrixRowCount === 0;
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
       {isEmptyRoster ? (
@@ -62,6 +66,7 @@ export default async function DictationsPage() {
               type="button"
               disabled={!canCreate}
               aria-disabled={!canCreate}
+              title={!canCreate ? getDisabledCreateDictationTitle(wizardStatus) : undefined}
             >
               Nouvelle dictée
             </Button>
@@ -72,13 +77,15 @@ export default async function DictationsPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-1">
               <h1 className="text-2xl font-semibold tracking-tight">Dictées</h1>
-              {dictations.length === 0 ? (
+              {!canCreate || dictations.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   {canCreate
                     ? "Créez votre première dictée pour commencer la saisie."
                     : hasUnleveledStudents
                       ? UNLEVELED_STUDENTS_MESSAGE
-                      : "Configurez votre année scolaire pour préparer les dictées."}
+                      : matrixMissing
+                        ? "Configurez la matrice sur Config pour créer une dictée."
+                        : "Configurez votre année scolaire pour préparer les dictées."}
                 </p>
               ) : null}
             </div>
@@ -90,6 +97,7 @@ export default async function DictationsPage() {
                   type="button"
                   disabled
                   aria-disabled
+                  title={getDisabledCreateDictationTitle(wizardStatus)}
                 >
                   Nouvelle dictée
                 </Button>
@@ -105,15 +113,15 @@ export default async function DictationsPage() {
                   sur la page Élèves.
                 </p>
               ) : null}
-              {!canCreate && !hasUnleveledStudents ? (
+              {!canCreate && matrixMissing ? (
                 <p className="text-sm text-muted-foreground">
                   <Link
                     href="/config#matrice-mots"
                     className="underline underline-offset-4"
                   >
-                    Configurez la matrice sur Config
+                    {MATRIX_MISSING_CTA_LABEL}
                   </Link>{" "}
-                  pour créer une dictée.
+                  sur la page Config pour créer une dictée.
                 </p>
               ) : null}
             </div>
@@ -128,6 +136,7 @@ export default async function DictationsPage() {
                     <Link
                       href={`/dictations/${dictation.id}`}
                       className="flex items-center justify-between gap-4 px-4 py-3 text-sm hover:bg-muted/50"
+                      aria-label={`${dictation.label}, ${formatDictationDateForDisplay(dictation.dictationDate)}`}
                     >
                       <span className="font-medium">{dictation.label}</span>
                       <span className="text-muted-foreground">

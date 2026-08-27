@@ -4,6 +4,7 @@ import { useActionState, useEffect, useId, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
+import { DICTATION_DATE_INVALID_ERROR } from "@/lib/domain/dictation";
 
 import {
   createDictationAction,
@@ -34,11 +35,14 @@ export function CreateDictationDialog({
   defaultDate = getLocalDateInputValue(),
 }: CreateDictationDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   const labelErrorId = useId();
+  const dateErrorId = useId();
   const [state, formAction, pending] = useActionState(
     createDictationAction,
     initialState
   );
+  const isDateError = state.error === DICTATION_DATE_INVALID_ERROR;
 
   useEffect(() => {
     if (state.error && dialogRef.current && !dialogRef.current.open) {
@@ -80,13 +84,16 @@ export function CreateDictationDialog({
 
       <dialog
         ref={dialogRef}
+        aria-labelledby={titleId}
         onClick={handleDialogClick}
         onCancel={handleDialogCancel}
         className="fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-background p-0 shadow-lg backdrop:bg-black/50 open:flex"
       >
         <form action={formAction} className="flex w-full flex-col gap-4 p-6">
           <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-medium">Nouvelle dictée</h2>
+            <h2 id={titleId} className="text-lg font-medium">
+              Nouvelle dictée
+            </h2>
             <p className="text-sm text-muted-foreground">
               Choisissez une dictée de la matrice et sa date.
             </p>
@@ -101,8 +108,10 @@ export function CreateDictationDialog({
               name="label"
               required
               defaultValue={matrixLabelOptions[0]?.value ?? ""}
-              aria-invalid={state.error ? true : undefined}
-              aria-errormessage={state.error ? labelErrorId : undefined}
+              aria-invalid={state.error && !isDateError ? true : undefined}
+              aria-errormessage={
+                state.error && !isDateError ? labelErrorId : undefined
+              }
               className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               {matrixLabelOptions.map((option) => (
@@ -123,13 +132,15 @@ export function CreateDictationDialog({
               type="date"
               required
               defaultValue={defaultDate}
+              aria-invalid={isDateError ? true : undefined}
+              aria-errormessage={isDateError ? dateErrorId : undefined}
               className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             />
           </div>
 
           {state.error ? (
             <p
-              id={labelErrorId}
+              id={isDateError ? dateErrorId : labelErrorId}
               className="text-sm text-destructive"
               role="alert"
             >

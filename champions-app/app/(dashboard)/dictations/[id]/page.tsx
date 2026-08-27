@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { formatDictationDateForDisplay } from "@/lib/domain/dictation";
+import { formatDictationDateForDisplay, isValidUuidV4 } from "@/lib/domain/dictation";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getDictationById } from "@/lib/services/list-dictations";
 
@@ -28,6 +28,11 @@ export default async function DictationDetailPage({
   }
 
   const { id } = await params;
+
+  if (!isValidUuidV4(id)) {
+    notFound();
+  }
+
   const dictation = await getDictationById(teacherClass.id, id);
 
   if (!dictation) {

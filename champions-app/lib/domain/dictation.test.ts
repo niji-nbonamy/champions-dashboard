@@ -5,7 +5,8 @@ import {
   DICTATION_MATRIX_ROW_MISSING_ERROR,
   findMatchingMatrixRow,
   formatDictationDateForDisplay,
-  getTodayUtcDateString,
+  getClassLocalDateString,
+  isValidUuidV4,
   parseDictationDate,
   validateDictationLabel,
 } from "./dictation";
@@ -45,7 +46,7 @@ describe("validateDictationLabel", () => {
 describe("parseDictationDate", () => {
   const referenceDate = new Date("2026-08-27T15:30:00.000Z");
 
-  it("defaults to today's UTC date when omitted", () => {
+  it("defaults to today's class-local date when omitted", () => {
     expect(parseDictationDate(undefined, referenceDate)).toEqual({
       ok: true,
       date: "2026-08-27",
@@ -102,11 +103,24 @@ describe("formatDictationDateForDisplay", () => {
   });
 });
 
-describe("getTodayUtcDateString", () => {
-  it("returns the UTC calendar day", () => {
-    expect(getTodayUtcDateString(new Date("2026-08-27T23:30:00.000Z"))).toBe(
+describe("getClassLocalDateString", () => {
+  it("returns the Europe/Paris calendar day", () => {
+    expect(getClassLocalDateString(new Date("2026-08-27T23:30:00.000Z"))).toBe(
+      "2026-08-28"
+    );
+    expect(getClassLocalDateString(new Date("2026-08-27T10:00:00.000Z"))).toBe(
       "2026-08-27"
     );
+  });
+});
+
+describe("isValidUuidV4", () => {
+  it("accepts valid UUID v4 values", () => {
+    expect(isValidUuidV4("880e8400-e29b-41d4-a716-446655440003")).toBe(true);
+  });
+
+  it("rejects malformed ids", () => {
+    expect(isValidUuidV4("not-a-uuid")).toBe(false);
   });
 });
 

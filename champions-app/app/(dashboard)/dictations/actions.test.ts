@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import {
+  DICTATION_DATE_INVALID_ERROR,
+} from "@/lib/domain/dictation";
+import {
+  DICTATION_LABEL_REQUIRED_ERROR,
+  DICTATION_LABEL_TOO_LONG_ERROR,
+} from "@/lib/domain/word-count-matrix";
+import { UNLEVELED_STUDENTS_MESSAGE } from "@/lib/domain/dictation-readiness";
+
 const {
   redirect,
   revalidatePath,
@@ -167,9 +176,89 @@ describe("createDictationAction", () => {
       makeFormData({ label: "Dictée 1", dictation_date: "2026-08-27" })
     );
 
-    expect(result.error).toBe("Création impossible. Réessayez.");
+    expect(result.error).toBe(UNLEVELED_STUDENTS_MESSAGE);
     expect(mockCreateDictation).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("returns a matrix message when the class has no matrix rows", async () => {
+    mockAuth.mockResolvedValueOnce({
+      user: { id: teacherId, email: "t@example.com" },
+    });
+    mockGetTeacherClass.mockResolvedValueOnce({
+      id: classId,
+      teacherId,
+      schoolYearLabel: "2025-2026",
+    });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 3,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 2,
+      unassignedCount: 0,
+      matrixRowCount: 0,
+    });
+
+    const { createDictationAction } = await import("./actions");
+
+    const result = await createDictationAction(
+      { error: null },
+      makeFormData({ label: "Dictée 1", dictation_date: "2026-08-27" })
+    );
+
+    expect(result.error).toContain("matrice");
+    expect(mockCreateDictation).not.toHaveBeenCalled();
+  });
+
+  it("returns label validation errors from the service", async () => {
+    mockAuthenticatedSession();
+    const { CreateDictationError } = await import("@/lib/services/create-dictation");
+    mockCreateDictation.mockRejectedValueOnce(
+      new CreateDictationError(DICTATION_LABEL_REQUIRED_ERROR)
+    );
+
+    const { createDictationAction } = await import("./actions");
+
+    const result = await createDictationAction(
+      { error: null },
+      makeFormData({ label: "   ", dictation_date: "2026-08-27" })
+    );
+
+    expect(result.error).toBe(DICTATION_LABEL_REQUIRED_ERROR);
+  });
+
+  it("returns label length validation errors from the service", async () => {
+    mockAuthenticatedSession();
+    const { CreateDictationError } = await import("@/lib/services/create-dictation");
+    mockCreateDictation.mockRejectedValueOnce(
+      new CreateDictationError(DICTATION_LABEL_TOO_LONG_ERROR)
+    );
+
+    const { createDictationAction } = await import("./actions");
+
+    const result = await createDictationAction(
+      { error: null },
+      makeFormData({ label: "a".repeat(81), dictation_date: "2026-08-27" })
+    );
+
+    expect(result.error).toBe(DICTATION_LABEL_TOO_LONG_ERROR);
+  });
+
+  it("returns date validation errors from the service", async () => {
+    mockAuthenticatedSession();
+    const { CreateDictationError } = await import("@/lib/services/create-dictation");
+    mockCreateDictation.mockRejectedValueOnce(
+      new CreateDictationError(DICTATION_DATE_INVALID_ERROR)
+    );
+
+    const { createDictationAction } = await import("./actions");
+
+    const result = await createDictationAction(
+      { error: null },
+      makeFormData({ label: "Dictée 1", dictation_date: "2026-13-01" })
+    );
+
+    expect(result.error).toBe(DICTATION_DATE_INVALID_ERROR);
   });
 
   it("returns validation errors from the service", async () => {
