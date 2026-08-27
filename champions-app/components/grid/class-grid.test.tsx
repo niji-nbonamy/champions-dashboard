@@ -78,8 +78,8 @@ describe("ClassGrid", () => {
   it("shows an empty-state message when no leveled students exist", () => {
     renderGrid([]);
 
-    expect(container.textContent).toContain("Aucun élève actif nivelé");
-    expect(container.textContent).toContain("Assigner des niveaux sur Élèves");
+    expect(container.textContent).toContain("Aucun élève nivelé");
+    expect(container.textContent).toContain("Élèves");
     expect(container.querySelector("table")).toBeNull();
   });
 
@@ -139,6 +139,34 @@ describe("ClassGrid", () => {
     act(() => {
       firstInput?.focus();
       setInputValue(firstInput!, "3");
+    });
+
+    expect(firstInput?.value).toBe("3");
+    expect(firstInput?.getAttribute("aria-label")).toBe(
+      "Marie, Conjugaison, 3 erreurs"
+    );
+  });
+
+  it("replaces the existing value when a digit key is pressed", () => {
+    renderGrid();
+
+    const firstInput = getCellInputs()[0];
+    expect(firstInput).toBeDefined();
+
+    act(() => {
+      firstInput?.focus();
+      firstInput?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "5", bubbles: true })
+      );
+    });
+
+    expect(firstInput?.value).toBe("5");
+
+    act(() => {
+      firstInput?.focus();
+      firstInput?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "3", bubbles: true })
+      );
     });
 
     expect(firstInput?.value).toBe("3");
@@ -256,6 +284,94 @@ describe("ClassGrid", () => {
     expect(firstInput?.value).toBe("0");
   });
 
+  it("ignores negative values in cell input", () => {
+    renderGrid();
+
+    const firstInput = getCellInputs()[0];
+    expect(firstInput).toBeDefined();
+
+    act(() => {
+      firstInput?.focus();
+      setInputValue(firstInput!, "-1");
+    });
+
+    expect(firstInput?.value).toBe("0");
+  });
+
+  it("ignores decimal values in cell input", () => {
+    renderGrid();
+
+    const firstInput = getCellInputs()[0];
+    expect(firstInput).toBeDefined();
+
+    act(() => {
+      firstInput?.focus();
+      setInputValue(firstInput!, "1.5");
+    });
+
+    expect(firstInput?.value).toBe("0");
+  });
+
+  it("applies minimum cell dimension classes to inputs", () => {
+    renderGrid();
+
+    const firstInput = getCellInputs()[0];
+    expect(firstInput?.className).toContain(
+      "min-w-[var(--spacing-grid-cell-min)]"
+    );
+    expect(firstInput?.className).toContain(
+      "min-h-[var(--spacing-grid-row-height)]"
+    );
+  });
+
+  it("keeps focus on the first column when ArrowLeft is pressed", () => {
+    renderGrid();
+
+    const inputs = getCellInputs();
+    const firstInput = inputs[0];
+
+    act(() => {
+      firstInput?.focus();
+      firstInput?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true })
+      );
+    });
+
+    expect(document.activeElement).toBe(firstInput);
+  });
+
+  it("keeps focus on the first row when ArrowUp is pressed", () => {
+    renderGrid();
+
+    const inputs = getCellInputs();
+    const firstInput = inputs[0];
+
+    act(() => {
+      firstInput?.focus();
+      firstInput?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })
+      );
+    });
+
+    expect(document.activeElement).toBe(firstInput);
+  });
+
+  it("keeps focus on the last row when ArrowDown is pressed", () => {
+    renderGrid();
+
+    const inputs = getCellInputs();
+    const lastInput = inputs[inputs.length - 1];
+
+    act(() => {
+      lastInput?.focus();
+      lastInput?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })
+      );
+    });
+
+    expect(document.activeElement).toBe(lastInput);
+  });
+
   it("renders a horizontally scrollable grid container", () => {
     renderGrid();
 
@@ -264,22 +380,60 @@ describe("ClassGrid", () => {
     expect(scrollContainer?.querySelector("table")).toBeTruthy();
   });
 
-  it("toggles a category definition popover on header click and closes on Escape", () => {
+  it("renders category headers with official colors and hover tooltips", () => {
     renderGrid();
 
-    const headerButton = container.querySelector(
-      'thead button[aria-label*="Conjugaison"]'
-    ) as HTMLButtonElement | null;
+    const conjugationHeader = container.querySelector(
+      'th[data-category-letter="C"]'
+    ) as HTMLTableCellElement | null;
 
-    expect(headerButton).toBeTruthy();
-
-    act(() => {
-      headerButton?.click();
-    });
-
-    expect(container.textContent).toContain(
+    expect(conjugationHeader).toBeTruthy();
+    expect(conjugationHeader?.style.backgroundColor).toBe("#E70A16");
+    expect(conjugationHeader?.getAttribute("aria-label")).toContain(
+      "Conjugaison"
+    );
+    expect(conjugationHeader?.getAttribute("title")).toContain("Conjugaison");
+    expect(conjugationHeader?.textContent).toContain(
       "Les verbes sont-ils correctement conjugués ?"
     );
+    expect(container.querySelectorAll('[role="tooltip"]')).toHaveLength(9);
+  });
+
+  it("shows category tooltip on header tap", () => {
+    renderGrid();
+
+    const conjugationHeader = container.querySelector(
+      'th[data-category-letter="C"]'
+    ) as HTMLTableCellElement | null;
+    const tooltip = conjugationHeader?.querySelector(
+      '[role="tooltip"]'
+    ) as HTMLDivElement | null;
+
+    expect(tooltip?.className).toContain("opacity-0");
+
+    act(() => {
+      conjugationHeader?.click();
+    });
+
+    expect(tooltip?.className).toContain("opacity-100");
+    expect(conjugationHeader?.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("dismisses category tooltip on Escape", () => {
+    renderGrid();
+
+    const conjugationHeader = container.querySelector(
+      'th[data-category-letter="C"]'
+    ) as HTMLTableCellElement | null;
+    const tooltip = conjugationHeader?.querySelector(
+      '[role="tooltip"]'
+    ) as HTMLDivElement | null;
+
+    act(() => {
+      conjugationHeader?.click();
+    });
+
+    expect(tooltip?.className).toContain("opacity-100");
 
     act(() => {
       document.dispatchEvent(
@@ -287,9 +441,17 @@ describe("ClassGrid", () => {
       );
     });
 
-    expect(container.textContent).not.toContain(
-      "Les verbes sont-ils correctement conjugués ?"
-    );
-    expect(headerButton?.getAttribute("aria-expanded")).toBe("false");
+    expect(tooltip?.className).toContain("opacity-0");
+    expect(conjugationHeader?.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("shows category tooltip on header hover", () => {
+    renderGrid();
+
+    const tooltip = container.querySelector(
+      'th[data-category-letter="C"] [role="tooltip"]'
+    ) as HTMLDivElement | null;
+
+    expect(tooltip?.className).toContain("group-hover:opacity-100");
   });
 });

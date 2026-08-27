@@ -42,8 +42,6 @@ export function ClassGrid({ students }: ClassGridProps) {
   const [counts, setCounts] = useState<GridCounts>(() =>
     createInitialGridCounts(students)
   );
-  const [openCategory, setOpenCategory] =
-    useState<ChampionsErrorCategoryLetter | null>(null);
   const inputRefs = useRef<Array<Array<HTMLInputElement | null>>>([]);
 
   const studentMeta = useMemo(
@@ -128,14 +126,13 @@ export function ClassGrid({ students }: ClassGridProps) {
   if (students.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Aucun élève actif nivelé (non archivé) pour cette dictée.{" "}
+        Aucun élève nivelé.{" "}
         <Link
           href="/students"
           className="underline underline-offset-4"
         >
-          Assigner des niveaux sur Élèves
+          Élèves
         </Link>
-        .
       </p>
     );
   }
@@ -155,17 +152,7 @@ export function ClassGrid({ students }: ClassGridProps) {
               Élève
             </th>
             {CHAMPIONS_ERROR_CATEGORIES.map((category) => (
-              <CategoryHeader
-                key={category.letter}
-                category={category}
-                open={openCategory === category.letter}
-                onToggle={() =>
-                  setOpenCategory((current) =>
-                    current === category.letter ? null : category.letter
-                  )
-                }
-                onClose={() => setOpenCategory(null)}
-              />
+              <CategoryHeader key={category.letter} category={category} />
             ))}
           </tr>
         </thead>
@@ -176,11 +163,18 @@ export function ClassGrid({ students }: ClassGridProps) {
                 scope="row"
                 className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-normal"
               >
-                <span className="flex items-center gap-2">
-                  <span>{student.displayName}</span>
-                  {student.level ? (
-                    <LevelBadge level={student.level} className="px-1.5 py-0" />
-                  ) : null}
+                <span className="flex w-full items-center gap-2">
+                  <span className="min-w-0 flex-1 break-words">
+                    {student.displayName}
+                  </span>
+                  <span className="flex w-[4.5rem] shrink-0 justify-end">
+                    {student.level ? (
+                      <LevelBadge
+                        level={student.level}
+                        className="px-1.5 py-0"
+                      />
+                    ) : null}
+                  </span>
                 </span>
               </th>
               {CHAMPIONS_ERROR_CATEGORIES.map((category, categoryIndex) => (

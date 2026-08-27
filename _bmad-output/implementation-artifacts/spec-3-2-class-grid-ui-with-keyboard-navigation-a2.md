@@ -104,6 +104,22 @@ context:
 - Given a narrow viewport, when the grid renders, then cells respect min 44×40px and the table scrolls horizontally (UX-DR4, UX-DR10, UX-DR14).
 - Given any grid cell, when inspected, then its `aria-label` matches « {prénom}, {catégorie}, {valeur} erreurs » (UX-DR25).
 
+### Review Findings
+
+- [x] [Review][Decision] Per-category header background colors — **resolved: keep official CHAMPIONS colors** (1A). DESIGN.md tension accepted; method colors take precedence for grid headers.
+- [x] [Review][Decision] Grid cell typography — **resolved: keep `.text-data-md`** (2A). 24px bold mono retained for grid legibility.
+- [x] [Review][Patch] FR15 digit keys must replace, not append [`grid-cell.tsx:70`]
+- [x] [Review][Patch] FR16 tap/click tooltip with `title`, toggle popover, Escape dismiss [`category-header.tsx:11`]
+- [x] [Review][Patch] Empty roster message should match spec I/O matrix [`class-grid.tsx:128`]
+- [x] [Review][Patch] Select cell value on focus (mouse click) to support digit replace [`grid-cell.tsx:111`]
+- [x] [Review][Patch] Add keyboard digit replacement test (not setInputValue) [`class-grid.test.tsx`]
+- [x] [Review][Patch] Add tests rejecting `-1` and `1.5` in cells [`class-grid.test.tsx`]
+- [x] [Review][Patch] Add tooltip hover visibility test (opacity after mouseenter) [`class-grid.test.tsx`]
+- [x] [Review][Patch] Assert min cell dimension classes on GridCell inputs [`class-grid.test.tsx`]
+- [x] [Review][Patch] Add arrow boundary tests (ArrowLeft/Up/Down at grid edges) [`class-grid.test.tsx`]
+- [x] [Review][Defer] Grid counts not resynced when `students` prop changes [`class-grid.tsx:42`] — deferred, pre-existing pattern; page is server-rendered with static student list for now
+- [x] [Review][Defer] Missing `headers` attribute linking inputs to row/column `<th>` [`grid-cell.tsx:111`] — deferred, aria-label sufficient for MVP
+
 ## Spec Change Log
 
 ## Design Notes

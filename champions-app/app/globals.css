@@ -214,4 +214,12 @@
     line-height: 1;
     letter-spacing: -0.02em;
   }
+
+  .text-data-md {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
 }

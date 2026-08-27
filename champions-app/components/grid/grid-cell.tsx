@@ -67,7 +67,17 @@ export function GridCell({
     onValueChange(studentId, categoryLetter, parsed);
   }
 
+  function handleFocus(event: React.FocusEvent<HTMLInputElement>) {
+    event.target.select();
+  }
+
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (/^[0-9]$/.test(event.key)) {
+      event.preventDefault();
+      onValueChange(studentId, categoryLetter, Number(event.key));
+      return;
+    }
+
     if (event.key === "Tab") {
       if (!event.shiftKey && isLastCell) {
         event.preventDefault();
@@ -113,12 +123,14 @@ export function GridCell({
         type="text"
         inputMode="numeric"
         pattern="[0-9]*"
+        maxLength={1}
         value={String(value)}
         aria-label={formatGridCellAriaLabel(firstName, categoryName, value)}
         onChange={handleChange}
+        onFocus={handleFocus}
         onKeyDown={handleKeyDown}
         className={cn(
-          "text-data-lg box-border min-h-[var(--spacing-grid-row-height)] min-w-[var(--spacing-grid-cell-min)] w-full border-0 bg-transparent px-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          "text-data-md box-border min-h-[var(--spacing-grid-row-height)] min-w-[var(--spacing-grid-cell-min)] w-full border-0 bg-transparent px-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         )}
       />
     </td>

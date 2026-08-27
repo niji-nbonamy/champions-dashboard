@@ -110,6 +110,11 @@
 - **Sprint item:** `epic-2-retro-item-11-evaluate-neon-serverless-driver-migratio` → **done**
 - **Still open:** manual verify year reset + matrix save on dev Neon; DB integration test for `resetClassYear` rollback (see spec 2-8 deferrals above)
 
+## Deferred from: code review of spec-3-2-class-grid-ui-with-keyboard-navigation-a2.md (2026-08-27)
+
+- Grid `counts` state not resynced when `students` prop changes after mount — server-rendered page with static roster today; revisit if client-side roster refresh is added (`class-grid.tsx:42`)
+- Missing `headers` attribute on grid cell inputs linking to row/column `<th>` — `aria-label` covers MVP a11y; enhance if screen-reader testing flags gaps (`grid-cell.tsx:111`)
+
 ## Deferred from: code review of spec-3-1-create-dictation.md (2026-08-27)
 
 - Gate `wizardStatus.completed` avant création dictée — product decision: prérequis métier (nivelés + matrice) suffisent ; epic-3-context wording stricter than implemented intent

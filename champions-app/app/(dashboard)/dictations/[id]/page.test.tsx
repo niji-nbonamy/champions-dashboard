@@ -146,7 +146,7 @@ describe("DictationDetailPage", () => {
       await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
     );
 
-    expect(html).toContain("Aucun élève actif nivelé");
+    expect(html).toContain("Aucun élève nivelé");
     expect(html).toContain('href="/students"');
   });
 });

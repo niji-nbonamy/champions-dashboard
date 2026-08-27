@@ -23,10 +23,17 @@ describe("CHAMPIONS_ERROR_CATEGORIES", () => {
     ]);
   });
 
-  it("maps known letters to French names", () => {
-    expect(getChampionsErrorCategory("C").name).toBe("Conjugaison");
-    expect(getChampionsErrorCategory("H").name).toBe("Homophones");
-    expect(getChampionsErrorCategory("S").name).toBe("Son");
+  it("maps known letters to French names and official header colors", () => {
+    expect(getChampionsErrorCategory("C")).toMatchObject({
+      name: "Conjugaison",
+      headerBackground: "#E70A16",
+      headerForeground: "#FFFFFF",
+    });
+    expect(getChampionsErrorCategory("A").headerBackground).toBe("#F98801");
+    expect(getChampionsErrorCategory("S")).toMatchObject({
+      name: "Son",
+      headerBackground: "#7E44AC",
+    });
   });
 });
 
