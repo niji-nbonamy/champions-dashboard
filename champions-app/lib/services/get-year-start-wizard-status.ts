@@ -3,12 +3,12 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { classes } from "@/lib/db/schema";
 
+import { isCompleteMatrixRow } from "@/lib/domain/word-count-matrix";
+
 import { countActiveStudents } from "./count-active-students";
+import { countLeveledActiveStudents } from "./count-leveled-active-students";
 import { countUnassignedActiveStudents } from "./count-unassigned-active-students";
-import {
-  listWordCountMatrixRows,
-  type WordCountMatrixRowRecord,
-} from "./list-word-count-matrix-rows";
+import { listWordCountMatrixRows } from "./list-word-count-matrix-rows";
 
 export type YearStartWizardStep = 1 | 2 | 3;
 
@@ -16,18 +16,10 @@ export type YearStartWizardStatus = {
   completed: boolean;
   step: YearStartWizardStep;
   activeStudentCount: number;
+  leveledActiveStudentCount: number;
   unassignedCount: number;
   matrixRowCount: number;
 };
-
-function isCompleteMatrixRow(row: WordCountMatrixRowRecord): boolean {
-  return (
-    row.wordsYellow > 0 &&
-    row.wordsGreen > 0 &&
-    row.wordsViolet > 0 &&
-    row.wordsGold > 0
-  );
-}
 
 export function resolveEarliestIncompleteWizardStep(
   activeStudentCount: number,
@@ -69,6 +61,7 @@ export async function getYearStartWizardStatus(
     .limit(1);
 
   const activeStudentCount = await countActiveStudents(classId);
+  const leveledActiveStudentCount = await countLeveledActiveStudents(classId);
   const unassignedCount = await countUnassignedActiveStudents(classId);
   const matrixRows = await listWordCountMatrixRows(classId);
   const matrixRowCount = matrixRows.filter(isCompleteMatrixRow).length;
@@ -85,6 +78,7 @@ export async function getYearStartWizardStatus(
     completed,
     step,
     activeStudentCount,
+    leveledActiveStudentCount,
     unassignedCount,
     matrixRowCount,
   };

@@ -44,6 +44,24 @@ export type ValidatedWordCountMatrixRow = {
   wordsGold: number;
 };
 
+export type WordCountMatrixLevelCounts = {
+  wordsYellow: number;
+  wordsGreen: number;
+  wordsViolet: number;
+  wordsGold: number;
+};
+
+export function isCompleteMatrixRow(
+  row: WordCountMatrixLevelCounts
+): boolean {
+  return (
+    row.wordsYellow > 0 &&
+    row.wordsGreen > 0 &&
+    row.wordsViolet > 0 &&
+    row.wordsGold > 0
+  );
+}
+
 export type ValidateWordCountMatrixSuccess = {
   ok: true;
   rows: ValidatedWordCountMatrixRow[];

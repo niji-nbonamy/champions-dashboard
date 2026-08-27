@@ -6,6 +6,7 @@ const {
   mockFrom,
   mockSelect,
   mockCountActiveStudents,
+  mockCountLeveledActiveStudents,
   mockCountUnassignedActiveStudents,
   mockListWordCountMatrixRows,
 } = vi.hoisted(() => {
@@ -20,6 +21,7 @@ const {
     mockFrom,
     mockSelect,
     mockCountActiveStudents: vi.fn(),
+    mockCountLeveledActiveStudents: vi.fn(),
     mockCountUnassignedActiveStudents: vi.fn(),
     mockListWordCountMatrixRows: vi.fn(),
   };
@@ -31,6 +33,10 @@ vi.mock("@/lib/db/index", () => ({
 
 vi.mock("./count-active-students", () => ({
   countActiveStudents: mockCountActiveStudents,
+}));
+
+vi.mock("./count-leveled-active-students", () => ({
+  countLeveledActiveStudents: mockCountLeveledActiveStudents,
 }));
 
 vi.mock("./count-unassigned-active-students", () => ({
@@ -86,6 +92,7 @@ describe("getYearStartWizardStatus", () => {
       },
     ]);
     mockCountActiveStudents.mockResolvedValueOnce(3);
+    mockCountLeveledActiveStudents.mockResolvedValueOnce(3);
     mockCountUnassignedActiveStudents.mockResolvedValueOnce(0);
     mockListWordCountMatrixRows.mockResolvedValueOnce([
       {
@@ -102,6 +109,7 @@ describe("getYearStartWizardStatus", () => {
     expect(status.completed).toBe(true);
     expect(status.step).toBe(3);
     expect(status.activeStudentCount).toBe(3);
+    expect(status.leveledActiveStudentCount).toBe(3);
     expect(status.unassignedCount).toBe(0);
     expect(status.matrixRowCount).toBe(1);
   });
@@ -114,6 +122,7 @@ describe("getYearStartWizardStatus", () => {
       },
     ]);
     mockCountActiveStudents.mockResolvedValueOnce(2);
+    mockCountLeveledActiveStudents.mockResolvedValueOnce(2);
     mockCountUnassignedActiveStudents.mockResolvedValueOnce(0);
     mockListWordCountMatrixRows.mockResolvedValueOnce([
       {
@@ -147,6 +156,7 @@ describe("getYearStartWizardStatus", () => {
       },
     ]);
     mockCountActiveStudents.mockResolvedValueOnce(2);
+    mockCountLeveledActiveStudents.mockResolvedValueOnce(1);
     mockCountUnassignedActiveStudents.mockResolvedValueOnce(2);
     mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 

@@ -1,5 +1,6 @@
 import {
   boolean,
+  date,
   integer,
   pgTable,
   text,
@@ -80,3 +81,16 @@ export const wordCountMatrixRows = pgTable(
     ),
   ]
 );
+
+export const dictations = pgTable("dictations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  classId: uuid("class_id")
+    .notNull()
+    .references(() => classes.id),
+  label: text("label").notNull(),
+  dictationLabelKey: text("dictation_label_key").notNull(),
+  dictationDate: date("dictation_date").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

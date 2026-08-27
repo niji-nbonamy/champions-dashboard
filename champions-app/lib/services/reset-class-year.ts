@@ -3,6 +3,7 @@ import { eq, inArray } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   classes,
+  dictations,
   levelHistoryEntries,
   students,
   wordCountMatrixRows,
@@ -31,8 +32,8 @@ export type ResetClassYearResult = {
 
 /**
  * Wipes all class-scoped data for a new school year inside one transaction.
- * Extension point (Epic 3): add deletes for `dictations`, `dictation_entries`,
- * and `pending_promotions` here when those tables exist.
+ * Extension point (Epic 3): add deletes for `dictation_entries` and
+ * `pending_promotions` here when those tables exist.
  */
 export async function resetClassYear(
   classId: string,
@@ -68,6 +69,10 @@ export async function resetClassYear(
     }
 
     await tx.delete(students).where(eq(students.classId, classId));
+
+    await tx
+      .delete(dictations)
+      .where(eq(dictations.classId, classId));
 
     await tx
       .delete(wordCountMatrixRows)
