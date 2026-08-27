@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
+import type { ClassStudentFilter } from "@/lib/services/list-class-students";
 
 import {
   archiveStudentAction,
@@ -17,7 +18,7 @@ const initialState: ArchiveStudentActionState = {
 type ArchiveStudentButtonProps = {
   studentId: string;
   displayName: string;
-  filter: "active" | "archived" | "all";
+  filter: ClassStudentFilter;
 };
 
 export function ArchiveStudentButton({

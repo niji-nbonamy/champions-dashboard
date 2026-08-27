@@ -174,3 +174,12 @@ Archive vs wizard removal: `removeActiveStudent` hard-deletes only during incomp
 
 - Page wizard gate and filter param coverage
   [`page.test.tsx:113`](../../champions-app/app/(dashboard)/students/page.test.tsx#L113)
+
+### Review Findings
+
+- [x] [Review][Patch] Missing `revalidatePath("/students", "layout")` after archive — nav unassigned badge may stay stale when archiving an unassigned student (same pattern as `assignStudentLevelAction`) [`actions.ts:174`]
+- [x] [Review][Patch] `ArchiveStudentButton` error display untested — removing `{state.error ? …}` would ship undetected; action tests cover return value only, not UI [`archive-student-button.tsx:51`]
+- [x] [Review][Patch] Archive confirmation flow untested — `window.confirm` guard on submit has no test; accidental archive without confirm would not fail CI [`archive-student-button.tsx:37`]
+- [x] [Review][Patch] `RosterFilter` URL navigation untested — `page.test.tsx` mocks the component; broken `router.push` / `notice` cleanup would not fail CI [`roster-filter.tsx:22`]
+- [x] [Review][Patch] `actions.test.ts` uses hardcoded `"Élève introuvable."` instead of `STUDENT_ARCHIVE_NOT_FOUND_ERROR` in service not-found test [`actions.test.ts:504`]
+- [x] [Review][Patch] `ArchiveStudentButton` redefines `"active" | "archived" | "all"` inline instead of importing `ClassStudentFilter` [`archive-student-button.tsx:20`]

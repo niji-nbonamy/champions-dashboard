@@ -171,6 +171,7 @@ export async function archiveStudentAction(
 
   try {
     await archiveStudent(teacherClass.id, studentId);
+    revalidatePath("/students", "layout");
     revalidatePath("/students");
     revalidatePath("/dictations");
     revalidatePath("/config");

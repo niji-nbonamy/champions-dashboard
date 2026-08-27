@@ -439,6 +439,7 @@ describe("archiveStudentAction", () => {
     ).rejects.toThrow("NEXT_REDIRECT:/students?notice=archived");
 
     expect(mockArchiveStudent).toHaveBeenCalledWith(classId, studentId);
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/students");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
     expect(revalidatePath).toHaveBeenCalledWith("/config");
@@ -501,7 +502,7 @@ describe("archiveStudentAction", () => {
 
     const result = await archiveStudentAction({ error: null }, formData);
 
-    expect(result.error).toBe("Élève introuvable.");
+    expect(result.error).toBe(STUDENT_ARCHIVE_NOT_FOUND_ERROR);
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
