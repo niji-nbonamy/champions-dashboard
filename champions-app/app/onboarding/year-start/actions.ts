@@ -1,7 +1,6 @@
 "use server";
 
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
@@ -12,23 +11,11 @@ import {
 import { confirmYearStartRoster } from "@/lib/services/confirm-year-start-roster";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getYearStartWizardStatus } from "@/lib/services/get-year-start-wizard-status";
+import { revalidateWizardAffectedPaths } from "@/lib/revalidation/wizard-affected-paths";
 import {
   removeActiveStudent,
   RemoveActiveStudentError,
 } from "@/lib/services/remove-active-student";
-
-const WIZARD_AFFECTED_PATHS = [
-  "/onboarding/year-start",
-  "/dictations",
-  "/students",
-  "/config",
-] as const;
-
-function revalidateWizardAffectedPaths() {
-  for (const path of WIZARD_AFFECTED_PATHS) {
-    revalidatePath(path);
-  }
-}
 
 export type RemoveStudentFromWizardActionState = {
   error: string | null;

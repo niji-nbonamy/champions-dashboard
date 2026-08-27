@@ -3,7 +3,6 @@ title: '2-8 Annual Year Reset'
 type: 'feature'
 created: '2026-08-27'
 status: 'done'
-review_loop_iteration: 1
 baseline_commit: 'f90027711f5fdd9751c5a81c7d2463f7cc533045'
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-2-context.md'
@@ -154,3 +153,14 @@ Post-reset redirect matches CSV import success path.
 
 - Action auth, validation, redirect, and error surfaces
   [`actions.test.ts:521`](../../champions-app/app/(dashboard)/config/actions.test.ts#L521)
+
+### Review Findings
+
+- [x] [Review][Patch] Block Escape from closing modal during pending reset [`year-reset-section.tsx:68`]
+- [x] [Review][Patch] Add `aria-invalid` / `aria-errormessage` on school year label input when validation fails [`year-reset-section.tsx:94`]
+- [x] [Review][Patch] Add modal interaction tests: pending blocks close, backdrop cancel, form submit with label [`year-reset-section.test.tsx`]
+- [x] [Review][Patch] Assert `#reset-annuel` absent when `getTeacherClass` returns null [`page.test.tsx`]
+- [x] [Review][Patch] Reuse shared `WIZARD_AFFECTED_PATHS` for `revalidatePath` calls instead of hardcoded list [`actions.ts:189`]
+- [x] [Review][Defer] No DB integration test for real `neon-http` transaction atomicity on `resetClassYear` — deferred, spec « Ask First » decision point
+- [x] [Review][Defer] No `inArray` batching for very large student rosters — deferred, speculative scale edge case
+- [x] [Review][Defer] `auth()` / `getTeacherClass()` throws outside try/catch — deferred, pre-existing pattern across config actions

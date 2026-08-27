@@ -95,3 +95,9 @@
 ## Deferred from: code review of spec-2-7-empty-roster-pre-setup-states.md (2026-08-27)
 
 - No E2E test for `/config#liste-eleves` and `/config#matrice-mots` hash navigation from Dictées CTAs — epic-1 retro E2E smoke scope; unit tests cover href presence only
+
+## Deferred from: code review of spec-2-8-annual-year-reset.md (2026-08-27)
+
+- No DB integration test for real `neon-http` transaction atomicity on `resetClassYear` — spec « Ask First » decision point; mock-based unit tests pass
+- No `inArray` batching for very large student rosters in `reset-class-year.ts` — speculative scale edge case; typical class sizes unlikely to hit parameter limits
+- `auth()` / `getTeacherClass()` throws outside try/catch in `resetClassYearAction` — pre-existing pattern across all config server actions

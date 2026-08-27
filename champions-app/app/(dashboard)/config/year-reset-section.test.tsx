@@ -79,7 +79,115 @@ describe("YearResetSection", () => {
     );
 
     expect(html).toContain('role="alert"');
+    expect(html).toContain('aria-invalid="true"');
     expect(html).toMatch(/Indiquez l.*année scolaire/);
+  });
+
+  it("does not close the dialog when cancel is clicked while reset is pending", async () => {
+    mockUseActionState.mockReturnValue([{ error: null }, vi.fn(), true]);
+
+    await act(async () => {
+      root.render(
+        <YearResetSection currentSchoolYearLabel={currentSchoolYearLabel} />
+      );
+    });
+
+    const cancelButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Annuler"
+    ) as HTMLButtonElement;
+    expect(cancelButton).not.toBeNull();
+    expect(cancelButton.disabled).toBe(true);
+
+    await act(async () => {
+      cancelButton.click();
+    });
+
+    expect(mockClose).not.toHaveBeenCalled();
+  });
+
+  it("does not close the dialog when the backdrop is clicked while reset is pending", async () => {
+    mockUseActionState.mockReturnValue([{ error: null }, vi.fn(), true]);
+
+    await act(async () => {
+      root.render(
+        <YearResetSection currentSchoolYearLabel={currentSchoolYearLabel} />
+      );
+    });
+
+    const dialog = container.querySelector("dialog") as HTMLDialogElement;
+    expect(dialog).not.toBeNull();
+
+    await act(async () => {
+      dialog.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+    });
+
+    expect(mockClose).not.toHaveBeenCalled();
+  });
+
+  it("closes the dialog when the backdrop is clicked", async () => {
+    await act(async () => {
+      root.render(
+        <YearResetSection currentSchoolYearLabel={currentSchoolYearLabel} />
+      );
+    });
+
+    const dialog = container.querySelector("dialog") as HTMLDialogElement;
+    expect(dialog).not.toBeNull();
+
+    await act(async () => {
+      dialog.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+    });
+
+    expect(mockClose).toHaveBeenCalled();
+  });
+
+  it("prevents escape from closing the dialog while reset is pending", async () => {
+    mockUseActionState.mockReturnValue([{ error: null }, vi.fn(), true]);
+
+    await act(async () => {
+      root.render(
+        <YearResetSection currentSchoolYearLabel={currentSchoolYearLabel} />
+      );
+    });
+
+    const dialog = container.querySelector("dialog") as HTMLDialogElement;
+    const cancelEvent = new Event("cancel", { cancelable: true });
+    dialog.dispatchEvent(cancelEvent);
+
+    expect(cancelEvent.defaultPrevented).toBe(true);
+    expect(mockClose).not.toHaveBeenCalled();
+  });
+
+  it("submits the form with the optional school year label", async () => {
+    const mockFormAction = vi.fn();
+    mockUseActionState.mockReturnValue([{ error: null }, mockFormAction, false]);
+
+    await act(async () => {
+      root.render(
+        <YearResetSection currentSchoolYearLabel={currentSchoolYearLabel} />
+      );
+    });
+
+    const input = container.querySelector(
+      "#reset_school_year_label"
+    ) as HTMLInputElement;
+    expect(input).not.toBeNull();
+    input.value = "2026-2027";
+
+    const form = container.querySelector("form") as HTMLFormElement;
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form.requestSubmit();
+    });
+
+    expect(mockFormAction).toHaveBeenCalledTimes(1);
+    const submittedFormData = mockFormAction.mock.calls[0][0] as FormData;
+    expect(submittedFormData.get("school_year_label")).toBe("2026-2027");
   });
 
   it("opens the dialog when the reset button is clicked", async () => {

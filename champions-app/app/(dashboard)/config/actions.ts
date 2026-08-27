@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { revalidateWizardAffectedPaths } from "@/lib/revalidation/wizard-affected-paths";
 import {
   getSchoolYearLabelValidationError,
   validateSchoolYearLabel,
@@ -186,10 +187,7 @@ export async function resetClassYearAction(
 
   try {
     await resetClassYear(teacherClass.id, newSchoolYearLabel);
-    revalidatePath("/config");
-    revalidatePath("/onboarding/year-start");
-    revalidatePath("/dictations");
-    revalidatePath("/students");
+    revalidateWizardAffectedPaths();
     redirect("/onboarding/year-start?step=1");
   } catch (error) {
     if (isRedirectError(error)) {

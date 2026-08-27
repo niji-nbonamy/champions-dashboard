@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useId, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
 import { MAX_SCHOOL_YEAR_LABEL_LENGTH } from "@/lib/domain/class";
@@ -24,6 +24,7 @@ export function YearResetSection({
   currentSchoolYearLabel,
 }: YearResetSectionProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const labelErrorId = useId();
   const [state, formAction, pending] = useActionState(
     resetClassYearAction,
     initialState
@@ -55,6 +56,12 @@ export function YearResetSection({
     }
   }
 
+  function handleDialogCancel(event: React.SyntheticEvent<HTMLDialogElement>) {
+    if (pending) {
+      event.preventDefault();
+    }
+  }
+
   return (
     <section id="reset-annuel" className="flex flex-col gap-3">
       <h2 className="text-lg font-medium">Nouvelle année scolaire</h2>
@@ -68,6 +75,7 @@ export function YearResetSection({
       <dialog
         ref={dialogRef}
         onClick={handleDialogClick}
+        onCancel={handleDialogCancel}
         className="fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-background p-0 shadow-lg backdrop:bg-black/50 open:flex"
       >
         <form action={formAction} className="flex w-full flex-col gap-4 p-6">
@@ -99,12 +107,18 @@ export function YearResetSection({
               autoComplete="off"
               maxLength={MAX_SCHOOL_YEAR_LABEL_LENGTH}
               aria-describedby="reset_school_year_label_help"
+              aria-invalid={state.error ? true : undefined}
+              aria-errormessage={state.error ? labelErrorId : undefined}
               className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             />
           </div>
 
           {state.error ? (
-            <p className="text-sm text-destructive" role="alert">
+            <p
+              id={labelErrorId}
+              className="text-sm text-destructive"
+              role="alert"
+            >
               {state.error}
             </p>
           ) : null}

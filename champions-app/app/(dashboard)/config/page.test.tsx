@@ -157,4 +157,21 @@ describe("config page", () => {
     expect(html).toContain("Matrice mots");
     expect(html).toContain("Remettre à zéro pour la nouvelle année");
   });
+
+  it("does not render the year reset section when the teacher has no class", async () => {
+    vi.clearAllMocks();
+    auth.mockResolvedValueOnce({
+      user: { id: teacherId, email: "t@example.com" },
+    });
+    mockGetTeacherClass.mockResolvedValueOnce(null);
+
+    const html = renderToStaticMarkup(
+      await ConfigPage()
+    );
+
+    expect(html).not.toContain("data-testid=\"year-reset-section\"");
+    expect(html).not.toContain('id="reset-annuel"');
+    expect(mockCountActiveStudents).not.toHaveBeenCalled();
+    expect(mockListWordCountMatrixRows).not.toHaveBeenCalled();
+  });
 });
