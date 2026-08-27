@@ -219,7 +219,7 @@ describe("importRosterCsvAction", () => {
     const formData = new FormData();
     formData.set(
       "csv_file",
-      new File(["NOM + prénom\nDUPONT Marie"], "roster.csv", {
+      new File(["DUPONT Marie"], "roster.csv", {
         type: "text/csv",
       })
     );

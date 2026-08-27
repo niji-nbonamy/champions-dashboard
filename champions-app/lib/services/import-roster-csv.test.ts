@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   ROSTER_CSV_ENCODING_ERROR,
-  ROSTER_CSV_HEADER,
   ROSTER_CSV_ROSTER_EXISTS_ERROR,
 } from "@/lib/domain/roster-import";
 
@@ -34,7 +33,7 @@ describe("importRosterFromCsv", () => {
     mockCountActiveStudents.mockResolvedValueOnce(0);
     mockValues.mockResolvedValueOnce(undefined);
 
-    const csv = `${ROSTER_CSV_HEADER}\nDUPONT Marie\nMARTIN Lucas`;
+    const csv = "DUPONT Marie\nMARTIN Lucas";
     const bytes = new TextEncoder().encode(csv);
 
     const { importRosterFromCsv } = await import("./import-roster-csv");
@@ -62,7 +61,7 @@ describe("importRosterFromCsv", () => {
     mockCountActiveStudents.mockResolvedValueOnce(0);
     mockValues.mockResolvedValueOnce(undefined);
 
-    const csv = `${ROSTER_CSV_HEADER}\nDUPONT Marie`;
+    const csv = "DUPONT Marie";
     const bytes = new TextEncoder().encode(csv);
 
     const { importRosterFromCsv } = await import("./import-roster-csv");
@@ -74,7 +73,7 @@ describe("importRosterFromCsv", () => {
   it("rejects duplicate names in the CSV without inserting", async () => {
     mockCountActiveStudents.mockResolvedValueOnce(0);
 
-    const csv = `${ROSTER_CSV_HEADER}\nDUPONT Marie\ndupont marie`;
+    const csv = "DUPONT Marie\ndupont marie";
     const bytes = new TextEncoder().encode(csv);
 
     const { importRosterFromCsv, RosterImportError } = await import(
@@ -91,7 +90,7 @@ describe("importRosterFromCsv", () => {
   it("rejects import when the roster is not empty", async () => {
     mockCountActiveStudents.mockResolvedValueOnce(3);
 
-    const csv = `${ROSTER_CSV_HEADER}\nDUPONT Marie`;
+    const csv = "DUPONT Marie";
     const bytes = new TextEncoder().encode(csv);
 
     const { importRosterFromCsv, RosterNotEmptyError } = await import(

@@ -35,18 +35,23 @@ export function LevelDotPicker({ studentId }: LevelDotPickerProps) {
     initialState
   );
 
+  function assignLevel(level: ChampionsLevel) {
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", level);
+    formAction(formData);
+  }
+
   return (
-    <form action={formAction} className="flex flex-col items-end gap-1">
-      <input type="hidden" name="student_id" value={studentId} />
+    <div className="flex flex-col items-end gap-1">
       <div className="flex flex-wrap items-center justify-end gap-2">
         {CHAMPIONS_LEVELS.map((level) => (
           <button
             key={level}
-            type="submit"
-            name="level"
-            value={level}
+            type="button"
             disabled={pending}
             aria-label={`Assigner le niveau ${getChampionsLevelFrenchLabel(level)}`}
+            onClick={() => assignLevel(level)}
             className={cn(
               "inline-flex min-h-8 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50",
               DOT_BUTTON_CLASSES[level]
@@ -65,6 +70,6 @@ export function LevelDotPicker({ studentId }: LevelDotPickerProps) {
           {state.error}
         </p>
       ) : null}
-    </form>
+    </div>
   );
 }

@@ -4,13 +4,13 @@ import {
   STUDENT_DISPLAY_NAME_MAX_LENGTH,
 } from "./student-display-name";
 
-export const ROSTER_CSV_HEADER = "NOM + prénom";
+export const ROSTER_CSV_LEGACY_HEADER = "NOM + prénom";
 
 export const ROSTER_CSV_ENCODING_ERROR =
   "Fichier non UTF-8. Réexportez depuis votre logiciel.";
 
 export const ROSTER_CSV_FORMAT_ERROR =
-  "Format CSV invalide. Une seule colonne avec l'en-tête « NOM + prénom » est requise.";
+  "Format CSV invalide. Une seule colonne avec un nom d'élève par ligne est requise.";
 
 export const ROSTER_CSV_EMPTY_ROSTER_ERROR =
   "Aucun élève valide dans le fichier.";
@@ -100,6 +100,10 @@ function parseCsvRow(line: string): string[] {
   return fields;
 }
 
+function isLegacyRosterHeader(displayName: string): boolean {
+  return displayName === ROSTER_CSV_LEGACY_HEADER;
+}
+
 export function parseRosterCsv(bytes: Uint8Array): RosterCsvParseResult {
   if (!isValidUtf8(bytes)) {
     return { ok: false, error: ROSTER_CSV_ENCODING_ERROR };
@@ -109,24 +113,11 @@ export function parseRosterCsv(bytes: Uint8Array): RosterCsvParseResult {
   const normalizedText = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   const lines = normalizedText.split("\n");
 
-  if (lines.length === 0) {
-    return { ok: false, error: ROSTER_CSV_FORMAT_ERROR };
-  }
-
-  const headerFields = parseCsvRow(lines[0].trim());
-  if (
-    headerFields.length !== 1 ||
-    normalizeDisplayName(headerFields[0]) !== ROSTER_CSV_HEADER
-  ) {
-    return { ok: false, error: ROSTER_CSV_FORMAT_ERROR };
-  }
-
   const names: string[] = [];
   const namesByKey = new Map<string, string[]>();
   const duplicateKeys = new Set<string>();
 
-  for (let lineIndex = 1; lineIndex < lines.length; lineIndex += 1) {
-    const rawLine = lines[lineIndex];
+  for (const rawLine of lines) {
     if (rawLine.trim() === "") {
       continue;
     }
@@ -138,6 +129,10 @@ export function parseRosterCsv(bytes: Uint8Array): RosterCsvParseResult {
 
     const displayName = normalizeDisplayName(fields[0]);
     if (!displayName) {
+      continue;
+    }
+
+    if (isLegacyRosterHeader(displayName)) {
       continue;
     }
 

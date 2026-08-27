@@ -33,7 +33,7 @@ export function CsvImportForm() {
           id="csv_file_help"
           className="text-sm text-muted-foreground"
         >
-          Une colonne avec l&apos;en-tête « NOM + prénom », encodage UTF-8.
+          Un nom d&apos;élève par ligne, une seule colonne, encodage UTF-8.
         </p>
         <input
           id="csv_file"
