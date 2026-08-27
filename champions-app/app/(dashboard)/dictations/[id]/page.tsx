@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { ClassGrid } from "@/components/grid/class-grid";
 import { formatDictationDateForDisplay, isValidUuidV4 } from "@/lib/domain/dictation";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getDictationById } from "@/lib/services/list-dictations";
+import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
 
 type DictationDetailPageProps = {
   params: Promise<{
@@ -39,6 +41,8 @@ export default async function DictationDetailPage({
     notFound();
   }
 
+  const students = await listLeveledActiveStudents(teacherClass.id);
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
       <div className="flex flex-col gap-1">
@@ -55,9 +59,11 @@ export default async function DictationDetailPage({
           {formatDictationDateForDisplay(dictation.dictationDate)}
         </p>
       </div>
+      <h2 className="text-lg font-medium">Saisie des erreurs</h2>
       <p className="text-sm text-muted-foreground">
-        Saisie grille — prochaine étape
+        Les comptages ne sont pas encore enregistrés.
       </p>
+      <ClassGrid students={students} />
     </main>
   );
 }

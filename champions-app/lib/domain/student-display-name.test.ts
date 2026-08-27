@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatStudentDuplicateError,
+  getStudentFirstName,
   normalizeDisplayName,
   normalizeDuplicateKey,
   STUDENT_DISPLAY_NAME_EMPTY_ERROR,
@@ -45,6 +46,17 @@ describe("validateDisplayName", () => {
       ok: false,
       error: STUDENT_DISPLAY_NAME_TOO_LONG_ERROR,
     });
+  });
+});
+
+describe("getStudentFirstName", () => {
+  it("returns the substring after the last whitespace", () => {
+    expect(getStudentFirstName("DUPONT Marie")).toBe("Marie");
+    expect(getStudentFirstName("  MARTIN Jean-Pierre  ")).toBe("Jean-Pierre");
+  });
+
+  it("returns the full name when no whitespace is present", () => {
+    expect(getStudentFirstName("Mononym")).toBe("Mononym");
   });
 });
 

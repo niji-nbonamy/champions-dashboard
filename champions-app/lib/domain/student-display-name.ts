@@ -41,6 +41,17 @@ export function formatStudentDuplicateError(existingName: string): string {
   return `Un élève avec ce nom existe déjà : ${existingName}.`;
 }
 
+export function getStudentFirstName(displayName: string): string {
+  const trimmed = normalizeDisplayName(displayName);
+  const lastSpaceIndex = trimmed.lastIndexOf(" ");
+
+  if (lastSpaceIndex === -1) {
+    return trimmed;
+  }
+
+  return trimmed.slice(lastSpaceIndex + 1);
+}
+
 export function validateDisplayName(
   rawName: string
 ): ValidateDisplayNameResult {
