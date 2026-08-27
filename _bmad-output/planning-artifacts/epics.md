@@ -305,6 +305,36 @@ So that I can reach Dictées, Élèves, Config, and Alertes from any screen.
 **And** on viewports 768–1023px, tabs persist with responsive layout (UX-DR26)
 **And** all UI microcopy is in French (NFR14)
 
+### Story 1.7: Auth Form UX & Registration Security
+
+As a primary teacher,
+I want clearer and safer registration and login forms,
+So that I can create my account confidently and sign in without friction.
+
+**Acceptance Criteria:**
+
+**Given** I am on the registration page
+**When** I interact with the password fields
+**Then** each password field displays a visibility toggle (œil) to show or hide typed characters
+**And** a « Confirmation du mot de passe » field is required; submit is blocked if passwords do not match
+**And** a bordered requirements inset displays « Saisissez un mot de passe comportant au moins : » with real-time satisfied/unsatisfied state for:
+  • 8 caractères
+  • 1 chiffre
+  • 1 minuscule
+  • 1 majuscule
+  • 1 caractère spécial
+  • Correspondance des deux mots de passe
+**And** a Google reCAPTCHA v2 checkbox (« Je ne suis pas un robot ») is required before submit; the server verifies the token
+**And** server-side validation enforces the same password rules (not only client-side)
+**And** all registration labels, requirement text, and error messages are in French
+**And** existing NFR9 is preserved: generic error on failure, no email-exists leak
+
+**Given** I am on the login page
+**When** I interact with the password field
+**Then** the password field displays a visibility toggle (œil) to show or hide typed characters
+**And** all login labels and error messages are in French
+**And** no captcha is shown on login
+
 ## Epic 2: Year Setup & Roster Management
 
 Teacher can configure the school year: import roster via CSV, assign color levels, configure word-count matrix, manage mid-year roster changes, and reset for a new year.

@@ -130,6 +130,12 @@ flowchart TB
 - **Prevents:** Hard-coded school grade (CE2, CM1, etc.) in schema, UI labels, or business rules — blocking use across the two target grade levels
 - **Rule:** The app never references or stores a school **grade level** (niveau scolaire). `Class` means a teacher's classroom group for a school year — not a curriculum cycle. No `grade_level` field, enum, or UI copy naming CE2 or any other cycle. CHAMPIONS **color levels** (yellow → gold) are student proficiency bands and remain in scope. Two teachers at different grade levels use the same app instance and feature set.
 
+### AD-12 — Registration password policy & bot protection
+
+- **Binds:** FR-AUTH-1..6, NFR-AUTH-1..3 (SPEC)
+- **Prevents:** Weak passwords, bot registrations, client-only validation bypass
+- **Rule:** Registration enforces server-side password policy: min 8 chars, ≥1 digit, ≥1 lowercase, ≥1 uppercase, ≥1 special character. Password confirmation must match. Google reCAPTCHA v2 token verified server-side via `lib/services/recaptcha-verify.ts` before `registerTeacher()` proceeds. In non-production, reCAPTCHA may be bypassed when `RECAPTCHA_SECRET_KEY` is absent (dev/CI only). Login has no captcha; password visibility toggle is client-side only.
+
 ```mermaid
 flowchart LR
   subgraph clients["Clients"]
@@ -164,7 +170,7 @@ flowchart LR
 | Error categories | Enum array of 9 codes matching `error-categories.md` (C→S order) |
 | Auth errors | Generic message on login failure; no email-exists leak on registration |
 | Logging | Server-side only; never log student names in production info logs |
-| Config | Secrets via Vercel env vars; `DATABASE_URL`, `AUTH_SECRET` required |
+| Config | Secrets via Vercel env vars; `DATABASE_URL`, `AUTH_SECRET` required; `RECAPTCHA_SITE_KEY` + `RECAPTCHA_SECRET_KEY` required in production |
 
 ## Stack
 
@@ -291,7 +297,7 @@ CI: GitHub → Vercel auto-deploy. Migrations via `drizzle-kit push` or migrate 
 | CAP-5 Level tracking & promotion | `lib/domain/promotion`, `lib/services/level`, promotion UI surfaces | AD-4, AD-5, AD-6 |
 | CAP-6 Parent-meeting presentation | `app/(dashboard)/students/[id]/present/` | AD-1, AD-4, AD-9, AD-11 |
 | CAP-7 Mobile per-student entry | `app/(dashboard)/dictations/[id]/mobile/` | AD-1, AD-3, AD-7, AD-9 |
-| Auth & registration | `app/(auth)/`, Auth.js config | AD-2 |
+| Auth & registration | `app/(auth)/`, `components/auth/`, `lib/domain/registration.ts`, `lib/services/recaptcha-verify.ts`, Auth.js config | AD-2, AD-12 |
 | Data persistence | Neon Postgres via Drizzle | AD-8 |
 
 ## Deferred
@@ -307,5 +313,6 @@ CI: GitHub → Vercel auto-deploy. Migrations via `drizzle-kit push` or migrate 
 | Word-count matrix CSV import (F3) | Deferred in `mvp-scope.md` |
 | Full mobile class grid | Deferred in `mvp-scope.md` |
 | Email verification on signup | Optional hardening; not blocking 2 known teachers |
+| Rate limiting on register/login | Deferred — reCAPTCHA v2 on register addresses bot risk for MVP; rate limiting remains a future hardening story (retro Epic 1 item #7) |
 | Commercial hosting tier | Vercel Hobby non-commercial clause; revisit if school formally adopts |
 | Automated GDPR data-export / erasure flows | Manual process acceptable at pilot scale; document in ops when live |

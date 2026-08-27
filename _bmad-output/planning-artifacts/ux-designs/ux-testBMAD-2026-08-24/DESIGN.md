@@ -177,6 +177,41 @@ Brand-layer:
 - **Grid cell** — Centered integer, `{spacing.grid-cell-min}`. Destructive border when Σ > word total.
 - **Promotion + (D3+)** — Circular `{colors.promotion-ready}`, row end.
 - **Presentation highlight** — `{typography.data-lg}` for three factual highlights.
+- **Password field** — shadcn Input + trailing eye toggle (`aria-label` « Afficher le mot de passe » / « Masquer le mot de passe »).
+- **Password requirements** — bordered inset with live checklist (satisfied items use `{colors.primary}`).
+- **reCAPTCHA field** — reCAPTCHA v2 widget wrapper for registration only.
+
+## Auth Forms
+
+Registration and login live at `app/(auth)/`. All copy in French (NFR14). Forms use shadcn input styling with `{rounded.sm}` borders.
+
+### Registration (`/register`)
+
+Layout (top → bottom):
+
+1. **Email** — label « Email », required asterisk
+2. **Mot de passe** — label « MOT DE PASSE », required; input with visibility toggle (œil) at trailing end
+3. **Confirmation du mot de passe** — label « Confirmation du mot de passe », required; same toggle pattern
+4. **Password requirements inset** — bordered box (`border border-border`, `{rounded.md}`, padding 12px):
+   - Header: « Saisissez un mot de passe comportant au moins : »
+   - Bulleted list, each item toggles satisfied/unsatisfied state in real time as user types:
+     • 8 caractères · 1 chiffre · 1 minuscule · 1 majuscule · 1 caractère spécial · Correspondance des deux mots de passe
+   - Satisfied: bullet/text shifts to `{colors.primary}` (mint); unsatisfied: muted foreground
+5. **reCAPTCHA v2** — Google checkbox widget « Je ne suis pas un robot »; centered below inset
+6. **Submit** — primary button « Créer mon compte »
+
+### Login (`/login`)
+
+1. **Email** — label « Email »
+2. **Mot de passe** — label « MOT DE PASSE »; visibility toggle (œil)
+3. **Submit** — primary button « Se connecter »
+4. No captcha, no requirements inset
+
+### Password visibility toggle
+
+- Icon button inside input (trailing), `aria-label` « Afficher le mot de passe » / « Masquer le mot de passe »
+- Toggles `type="password"` ↔ `type="text"`; does not affect form submission
+- Min touch target 44×44px (mobile-friendly)
 
 ## Do's and Don'ts
 

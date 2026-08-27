@@ -63,6 +63,18 @@ sources:
 - Per-student word denominator is snapshotted at dictation save; dictation total word count is pre-filled from year config (see `scoring-model.md`, `dictation-lifecycle.md`).
 - **Grade-level agnostic** — the app never references or stores a school grade (CE2, CM1, etc.); teachers at different grade levels use the same feature set. CHAMPIONS **color levels** (yellow → gold) are student proficiency bands, not curriculum cycles (see `ARCHITECTURE-SPINE.md` AD-11).
 
+## Auth & Registration
+
+- **FR-AUTH-1:** Registration form displays password visibility toggle on password and confirmation fields.
+- **FR-AUTH-2:** Registration requires password confirmation; mismatch blocks submit with inline feedback.
+- **FR-AUTH-3:** Registration displays real-time password requirement checklist in French: « Saisissez un mot de passe comportant au moins : » + 8 caractères, 1 chiffre, 1 minuscule, 1 majuscule, 1 caractère spécial, correspondance des deux mots de passe.
+- **FR-AUTH-4:** Registration requires Google reCAPTCHA v2 (« Je ne suis pas un robot »); server verifies token before account creation.
+- **FR-AUTH-5:** Login form displays password visibility toggle.
+- **FR-AUTH-6:** All auth form labels, requirement text, and error messages in French.
+- **NFR-AUTH-1:** Password policy enforced server-side: min 8 chars, ≥1 digit, ≥1 lowercase, ≥1 uppercase, ≥1 special character.
+- **NFR-AUTH-2:** reCAPTCHA bypass allowed only in non-production when `RECAPTCHA_SECRET_KEY` is absent (dev/CI convenience).
+- **NFR-AUTH-3:** Existing NFR9 preserved — generic errors, no email-exists leak on registration.
+
 ## Non-goals
 
 - Per-category percentages and per-category progression curves (error counts per category remain visible in the dictation table).

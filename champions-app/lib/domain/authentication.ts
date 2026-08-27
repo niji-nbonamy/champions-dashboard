@@ -5,7 +5,7 @@ import {
 } from "@/lib/domain/registration";
 
 export const LOGIN_ERROR_MESSAGE =
-  "Unable to sign in. Please check your credentials and try again.";
+  "Connexion impossible. Vérifiez vos identifiants et réessayez.";
 
 export type LoginInput = {
   email: string;

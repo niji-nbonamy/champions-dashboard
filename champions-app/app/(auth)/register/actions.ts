@@ -3,8 +3,12 @@
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 
-import { REGISTRATION_ERROR_MESSAGE } from "@/lib/domain/registration";
+import {
+  passwordsMatch,
+  REGISTRATION_ERROR_MESSAGE,
+} from "@/lib/domain/registration";
 import { registerTeacher } from "@/lib/services/register-teacher";
+import { verifyRecaptchaToken } from "@/lib/services/recaptcha-verify";
 
 export type RegisterActionState = {
   error: string | null;
@@ -16,6 +20,20 @@ export async function registerAction(
 ): Promise<RegisterActionState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  const recaptchaToken = String(formData.get("recaptchaToken") ?? "");
+
+  if (!passwordsMatch(password, confirmPassword)) {
+    return { error: REGISTRATION_ERROR_MESSAGE };
+  }
+
+  const recaptchaValid = await verifyRecaptchaToken(
+    recaptchaToken.length > 0 ? recaptchaToken : null
+  );
+
+  if (!recaptchaValid) {
+    return { error: REGISTRATION_ERROR_MESSAGE };
+  }
 
   try {
     await registerTeacher(email, password);

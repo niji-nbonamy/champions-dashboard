@@ -17,6 +17,10 @@ vi.mock("next/navigation", () => ({
   redirect,
 }));
 
+vi.mock("next/script", () => ({
+  default: () => null,
+}));
+
 vi.mock("./login/actions", () => ({
   loginAction: vi.fn(),
 }));
@@ -28,9 +32,11 @@ describe("auth pages", () => {
   it("renders the registration page with the create-account form", () => {
     const html = renderToStaticMarkup(<RegisterPage />);
 
-    expect(html).toContain("Create account");
+    expect(html).toContain("Créer un compte");
     expect(html).toContain('name="email"');
     expect(html).toContain('name="password"');
+    expect(html).toContain('name="confirmPassword"');
+    expect(html).toContain("Saisissez un mot de passe comportant au moins :");
   });
 
   it("shows registration success message on login when registered=1", async () => {
@@ -38,7 +44,9 @@ describe("auth pages", () => {
       await LoginPage({ searchParams: Promise.resolve({ registered: "1" }) })
     );
 
-    expect(html).toContain("Account created successfully");
+    expect(html).toContain(
+      "Compte créé avec succès. Vous pouvez vous connecter."
+    );
   });
 
   it("shows registration success when registered is provided as an array", async () => {
@@ -48,7 +56,9 @@ describe("auth pages", () => {
       })
     );
 
-    expect(html).toContain("Account created successfully");
+    expect(html).toContain(
+      "Compte créé avec succès. Vous pouvez vous connecter."
+    );
   });
 
   it("does not show registration success without query param", async () => {
@@ -56,7 +66,9 @@ describe("auth pages", () => {
       await LoginPage({ searchParams: Promise.resolve({}) })
     );
 
-    expect(html).not.toContain("Account created successfully");
+    expect(html).not.toContain(
+      "Compte créé avec succès. Vous pouvez vous connecter."
+    );
   });
 
   it("renders the login page with the sign-in form", async () => {
@@ -64,12 +76,13 @@ describe("auth pages", () => {
       await LoginPage({ searchParams: Promise.resolve({}) })
     );
 
-    expect(html).toContain("Sign in");
+    expect(html).toContain("Connexion");
     expect(html).toContain("text-display");
     expect(html).toContain('name="email"');
     expect(html).toContain('name="password"');
     expect(html).toContain('type="password"');
-    expect(html).toContain("Create one");
+    expect(html).toContain("Créer un compte");
+    expect(html).toContain("Afficher le mot de passe");
   });
 
   it("redirects authenticated users away from login", async () => {

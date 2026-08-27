@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { PasswordField } from "@/components/auth/password-field";
 
 import type { LoginActionState } from "./actions";
 
@@ -33,18 +34,11 @@ export function LoginFormFields({
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-sm font-medium">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        />
-      </div>
+      <PasswordField
+        name="password"
+        label="Mot de passe"
+        autoComplete="current-password"
+      />
 
       {state.error ? (
         <p className="text-sm text-destructive" role="alert">
@@ -53,7 +47,7 @@ export function LoginFormFields({
       ) : null}
 
       <Button type="submit" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? "Connexion…" : "Se connecter"}
       </Button>
     </form>
   );

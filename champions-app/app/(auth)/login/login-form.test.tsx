@@ -31,4 +31,17 @@ describe("LoginFormFields", () => {
     expect(html).not.toContain(LOGIN_ERROR_MESSAGE);
     expect(html).not.toContain('role="alert"');
   });
+
+  it("renders French labels and password visibility toggle", () => {
+    const html = renderToStaticMarkup(
+      <LoginFormFields
+        state={{ error: null }}
+        formAction={vi.fn()}
+        pending={false}
+      />
+    );
+
+    expect(html).toContain("Afficher le mot de passe");
+    expect(html).toContain("Se connecter");
+  });
 });

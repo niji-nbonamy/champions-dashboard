@@ -36,7 +36,7 @@ describe("authentication domain", () => {
 
   it("uses a single generic login error message", () => {
     expect(LOGIN_ERROR_MESSAGE).toBe(
-      "Unable to sign in. Please check your credentials and try again."
+      "Connexion impossible. Vérifiez vos identifiants et réessayez."
     );
     expect(LOGIN_ERROR_MESSAGE.toLowerCase()).not.toContain("password");
     expect(LOGIN_ERROR_MESSAGE.toLowerCase()).not.toContain("email");

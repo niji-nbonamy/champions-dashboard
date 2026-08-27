@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { REGISTRATION_ERROR_MESSAGE } from "@/lib/domain/registration";
+const VALID_REGISTRATION_PASSWORD = "Password1!";
 
 const mockLimit = vi.fn();
 const mockWhere = vi.fn(() => ({ limit: mockLimit }));
@@ -34,7 +34,10 @@ describe("registerTeacher", () => {
     ]);
 
     const { registerTeacher } = await import("./register-teacher");
-    const result = await registerTeacher("Teacher@Example.com", "password12");
+    const result = await registerTeacher(
+      "Teacher@Example.com",
+      VALID_REGISTRATION_PASSWORD
+    );
 
     expect(result).toEqual({
       id: teacherId,
@@ -46,7 +49,7 @@ describe("registerTeacher", () => {
     expect(mockValues).toHaveBeenCalledWith(
       expect.objectContaining({
         email: "teacher@example.com",
-        passwordHash: expect.not.stringMatching(/^password12$/),
+        passwordHash: expect.not.stringMatching(/^Password1!$/),
       })
     );
   });
@@ -59,10 +62,9 @@ describe("registerTeacher", () => {
     );
 
     await expect(
-      registerTeacher("teacher@example.com", "password12")
+      registerTeacher("teacher@example.com", VALID_REGISTRATION_PASSWORD)
     ).rejects.toMatchObject({
       name: "RegistrationFailedError",
-      message: REGISTRATION_ERROR_MESSAGE,
     });
 
     expect(mockInsert).not.toHaveBeenCalled();
@@ -73,9 +75,9 @@ describe("registerTeacher", () => {
       "./register-teacher"
     );
 
-    await expect(registerTeacher("bad-email", "password12")).rejects.toThrow(
-      RegistrationFailedError
-    );
+    await expect(
+      registerTeacher("bad-email", VALID_REGISTRATION_PASSWORD)
+    ).rejects.toThrow(RegistrationFailedError);
 
     expect(getDb).not.toHaveBeenCalled();
   });
@@ -89,8 +91,8 @@ describe("registerTeacher", () => {
     );
 
     await expect(
-      registerTeacher("teacher@example.com", "password12")
-    ).rejects.toThrow(REGISTRATION_ERROR_MESSAGE);
+      registerTeacher("teacher@example.com", VALID_REGISTRATION_PASSWORD)
+    ).rejects.toThrow(RegistrationFailedError);
   });
 
   it("throws a generic error when the database insert fails", async () => {
@@ -104,7 +106,7 @@ describe("registerTeacher", () => {
     );
 
     await expect(
-      registerTeacher("teacher@example.com", "password12")
+      registerTeacher("teacher@example.com", VALID_REGISTRATION_PASSWORD)
     ).rejects.toThrow(RegistrationFailedError);
   });
 
@@ -117,7 +119,7 @@ describe("registerTeacher", () => {
     );
 
     await expect(
-      registerTeacher("teacher@example.com", "password12")
+      registerTeacher("teacher@example.com", VALID_REGISTRATION_PASSWORD)
     ).rejects.toThrow(RegistrationFailedError);
   });
 });

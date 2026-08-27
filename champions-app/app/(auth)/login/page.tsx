@@ -21,9 +21,9 @@ export default async function LoginPage({
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
       <div className="flex w-full max-w-sm flex-col gap-2 text-center">
-        <h1 className="text-display">Sign in</h1>
+        <h1 className="text-display">Connexion</h1>
         <p className="text-sm text-muted-foreground">
-          Sign in with your teacher account.
+          Connectez-vous avec votre compte enseignant.
         </p>
       </div>
 
@@ -32,19 +32,19 @@ export default async function LoginPage({
           className="w-full max-w-sm rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-foreground"
           role="status"
         >
-          Account created successfully. You can sign in now.
+          Compte créé avec succès. Vous pouvez vous connecter.
         </p>
       ) : null}
 
       <LoginForm />
 
       <p className="text-sm text-muted-foreground">
-        Need an account?{" "}
+        Besoin d&apos;un compte ?{" "}
         <Link
           href="/register"
           className="text-primary underline-offset-4 hover:underline"
         >
-          Create one
+          Créer un compte
         </Link>
       </p>
 
@@ -52,7 +52,7 @@ export default async function LoginPage({
         href="/"
         className="text-sm text-muted-foreground underline-offset-4 hover:underline"
       >
-        Back to home
+        Retour à l&apos;accueil
       </Link>
     </main>
   );
