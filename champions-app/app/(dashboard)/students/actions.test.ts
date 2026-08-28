@@ -547,8 +547,25 @@ describe("overrideStudentLevelAction", () => {
       "green"
     );
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
-    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+  });
+
+  it("returns not-found when student_id is missing", async () => {
+    mockAuthenticatedSession();
+
+    const { overrideStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("level", "green");
+
+    const result = await overrideStudentLevelAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result).toEqual({ error: "Élève introuvable.", changed: false });
+    expect(mockOverrideStudentLevel).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("skips revalidation when the level is unchanged", async () => {
@@ -828,7 +845,7 @@ describe("validateDossierPromotionAction", () => {
     expect(result).toEqual({ error: null });
     expect(mockValidateStudentPromotion).toHaveBeenCalledWith(classId, studentId);
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
-    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
   });
 
@@ -846,7 +863,7 @@ describe("validateDossierPromotionAction", () => {
 
     expect(result).toEqual({ error: null });
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
-    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
   });
 
@@ -919,7 +936,7 @@ describe("refuseDossierPromotionAction", () => {
     expect(result).toEqual({ error: null });
     expect(mockRefuseStudentPromotion).toHaveBeenCalledWith(classId, studentId);
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
-    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
   });
 
@@ -937,7 +954,7 @@ describe("refuseDossierPromotionAction", () => {
 
     expect(result).toEqual({ error: null });
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
-    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
   });
 

@@ -43,6 +43,7 @@ describe("LevelHistoryList", () => {
     expect(html).toContain("Refusé");
     expect(html).toContain("vert");
     expect(html).toContain("jaune");
+    expect(html).toContain("28 août 2026");
   });
 
   it("renders an empty state when there are no entries", () => {

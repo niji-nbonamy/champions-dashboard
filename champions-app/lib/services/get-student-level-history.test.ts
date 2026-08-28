@@ -78,6 +78,7 @@ describe("getStudentLevelHistory", () => {
     expect(mockEq).toHaveBeenCalledWith(students.id, studentId);
     expect(mockEq).toHaveBeenCalledWith(students.classId, classId);
     expect(mockDesc).toHaveBeenCalledWith(levelHistoryEntries.occurredAt);
+    expect(mockDesc).toHaveBeenCalledWith(levelHistoryEntries.id);
   });
 
   it("returns an empty array when no history exists", async () => {

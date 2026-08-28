@@ -1,4 +1,8 @@
 import { LevelBadge } from "@/components/ui/level-badge";
+import {
+  CLASS_CALENDAR_TIMEZONE,
+  formatDictationDateForDisplay,
+} from "@/lib/domain/dictation";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import type { StudentLevelHistoryEntry } from "@/lib/services/get-student-level-history";
 
@@ -14,12 +18,14 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 function formatLevelHistoryDate(occurredAt: Date): string {
-  return occurredAt.toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
+  const calendarDate = occurredAt.toLocaleDateString("en-CA", {
     year: "numeric",
-    timeZone: "Europe/Paris",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: CLASS_CALENDAR_TIMEZONE,
   });
+
+  return formatDictationDateForDisplay(calendarDate);
 }
 
 function getActionLabel(action: string): string {

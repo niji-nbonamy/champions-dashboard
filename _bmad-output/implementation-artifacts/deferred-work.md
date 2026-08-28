@@ -1,5 +1,11 @@
 # Deferred Work
 
+## Deferred from: code review of spec-4-4-manual-level-override-level-history.md (2026-08-28)
+
+- Pas de pagination sur l'historique des niveaux — volume attendu faible pour une classe CE2 ; à traiter si perf observée (`get-student-level-history.ts`)
+- Groupe sémantique accessibilité (`fieldset`/`role="group"`) sur le picker de niveau — amélioration a11y hors AC story 4-4 (`level-dot-picker.tsx`)
+- Mode `assign` sans toast/`router.refresh()` après succès — comportement E1 pré-existant, hors périmètre override (`level-dot-picker.tsx`)
+
 ## Deferred from: code review of spec-1-1-project-scaffold-development-environment.md (2026-08-25)
 
 - Singleton race on concurrent `getDb()` cold start — acceptable for scaffold; revisit if connection leaks observed in production (`index.ts:21-27`)

@@ -68,7 +68,7 @@ type RosterFilterParam = "active" | "archived" | "all";
 
 function revalidateDossierPromotionPaths(studentId: string) {
   revalidatePath(`/students/${studentId}`);
-  revalidatePath("/students");
+  revalidatePath("/students", "layout");
   revalidatePath("/dictations");
 }
 

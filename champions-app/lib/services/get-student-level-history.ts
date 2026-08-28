@@ -28,7 +28,10 @@ export async function getStudentLevelHistory(
     .where(
       and(eq(students.id, studentId), eq(students.classId, classId))
     )
-    .orderBy(desc(levelHistoryEntries.occurredAt));
+    .orderBy(
+      desc(levelHistoryEntries.occurredAt),
+      desc(levelHistoryEntries.id)
+    );
 
   return rows;
 }

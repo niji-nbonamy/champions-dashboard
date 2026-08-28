@@ -121,6 +121,26 @@ Level history section placement: below dictation history (or empty-state block),
 - [x] [Review][Patch] Assertions `mode`/`currentLevel` roster et dossier [`roster-list.test.tsx:143`, `page.test.tsx:508`]
 - [x] [Review][Patch] Libellés Promu/Refusé dans test historique [`level-history-list.test.tsx:30`]
 
+### Review Findings (2026-08-28)
+
+- [x] [Review][Decision] Historique vide : masquer toute la section ou afficher le titre + état vide ? — Résolu : garder titre + état vide (option 1).
+- [x] [Review][Patch] Erreurs override affichées en double (toast + alerte inline) [`level-dot-picker.tsx:157`]
+- [x] [Review][Patch] Import mort `isRedirectError` [`level-dot-picker.tsx:3`]
+- [x] [Review][Patch] Formatage de date non aligné sur `formatDictationDateForDisplay` [`level-history-list.tsx:16`]
+- [x] [Review][Patch] Section historique des niveaux hors conteneur `max-w-4xl` [`page.tsx:119`]
+- [x] [Review][Patch] Vérification élève hors transaction dans `overrideStudentLevel` [`override-student-level.ts:57`]
+- [x] [Review][Patch] Échec `getStudentLevelHistory` peut faire planter la page dossier [`page.tsx:60`]
+- [x] [Review][Patch] `revalidatePath("/students")` sans type `"layout"` pour l'override [`actions.ts:71`]
+- [x] [Review][Patch] Tests manquants : toast + `router.refresh()` après override [`level-dot-picker.test.tsx:86`]
+- [x] [Review][Patch] Tests manquants : câblage `overrideStudentLevelAction` en mode override [`level-dot-picker.test.tsx:25`]
+- [x] [Review][Patch] Tests manquants : assertion sur le format de date dans l'historique [`level-history-list.test.tsx:48`]
+- [x] [Review][Patch] Test override : assertion du filtre `pendingPromotions.studentId` sur le delete [`override-student-level.test.ts`]
+- [x] [Review][Patch] Test action override : cas `student_id` vide [`actions.test.ts:211`]
+- [x] [Review][Patch] Tri historique instable si `occurredAt` identique — ajouter `orderBy` secondaire sur `id` [`get-student-level-history.ts:31`]
+- [x] [Review][Defer] Pas de pagination sur l'historique des niveaux [`get-student-level-history.ts:13`] — deferred, pre-existing
+- [x] [Review][Defer] Groupe sémantique accessibilité (`fieldset`/`role="group"`) sur le picker [`level-dot-picker.tsx:146`] — deferred, pre-existing
+- [x] [Review][Defer] Mode `assign` sans toast/`router.refresh()` après succès [`level-dot-picker.tsx:130`] — deferred, pre-existing
+
 ## Suggested Review Order
 
 **Override mutation pipeline**

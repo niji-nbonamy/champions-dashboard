@@ -57,7 +57,14 @@ export default async function StudentDossierPage({
   }
 
   const history = await getStudentDictationHistory(teacherClass.id, id);
-  const levelHistory = await getStudentLevelHistory(teacherClass.id, id);
+  let levelHistory: Awaited<ReturnType<typeof getStudentLevelHistory>> = [];
+
+  try {
+    levelHistory = await getStudentLevelHistory(teacherClass.id, id);
+  } catch {
+    levelHistory = [];
+  }
+
   const hasHistory = history.length > 0;
   const curvePoints = toCurvePoints(history);
   const pendingPromotions = student.archived
@@ -114,12 +121,12 @@ export default async function StudentDossierPage({
             </p>
           </>
         )}
-      </div>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Historique des niveaux</h2>
-        <LevelHistoryList entries={levelHistory} />
-      </section>
+        <section className="mt-6 flex flex-col gap-3">
+          <h2 className="text-lg font-medium">Historique des niveaux</h2>
+          <LevelHistoryList entries={levelHistory} />
+        </section>
+      </div>
     </main>
   );
 }

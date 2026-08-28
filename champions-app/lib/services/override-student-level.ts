@@ -53,35 +53,37 @@ export async function overrideStudentLevel(
   }
 
   const db = getDb();
-
-  const [student] = await db
-    .select({
-      id: students.id,
-      level: students.level,
-    })
-    .from(students)
-    .where(
-      and(
-        eq(students.id, studentId),
-        eq(students.classId, classId),
-        eq(students.archived, false)
-      )
-    )
-    .limit(1);
-
-  if (!student) {
-    throw new StudentNotFoundForOverrideError();
-  }
-
-  if (!student.level || !isChampionsLevel(student.level)) {
-    throw new StudentNotLeveledForOverrideError();
-  }
-
-  if (student.level === level) {
-    return { studentId, level, changed: false };
-  }
+  let result: OverrideStudentLevelResult | null = null;
 
   await db.transaction(async (tx) => {
+    const [student] = await tx
+      .select({
+        id: students.id,
+        level: students.level,
+      })
+      .from(students)
+      .where(
+        and(
+          eq(students.id, studentId),
+          eq(students.classId, classId),
+          eq(students.archived, false)
+        )
+      )
+      .limit(1);
+
+    if (!student) {
+      throw new StudentNotFoundForOverrideError();
+    }
+
+    if (!student.level || !isChampionsLevel(student.level)) {
+      throw new StudentNotLeveledForOverrideError();
+    }
+
+    if (student.level === level) {
+      result = { studentId, level, changed: false };
+      return;
+    }
+
     const [updatedStudent] = await tx
       .update(students)
       .set({ level })
@@ -107,7 +109,13 @@ export async function overrideStudentLevel(
       level,
       action: "manual",
     });
+
+    result = { studentId, level, changed: true };
   });
 
-  return { studentId, level, changed: true };
+  if (!result) {
+    throw new OverrideStudentLevelError(OVERRIDE_STUDENT_LEVEL_GENERIC_ERROR);
+  }
+
+  return result;
 }

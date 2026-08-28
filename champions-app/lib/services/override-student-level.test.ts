@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { students } from "@/lib/db/schema";
+import { levelHistoryEntries, pendingPromotions, students } from "@/lib/db/schema";
 
 const mockLimit = vi.fn();
 const mockWhereSelect = vi.fn(() => ({ limit: mockLimit }));
@@ -20,11 +20,13 @@ const mockInsert = vi.fn(() => ({ values: mockValues }));
 
 const mockTransaction = vi.fn(
   async (callback: (tx: {
+    select: typeof mockSelect;
     update: typeof mockUpdate;
     delete: typeof mockDelete;
     insert: typeof mockInsert;
   }) => Promise<unknown>) =>
     callback({
+      select: mockSelect,
       update: mockUpdate,
       delete: mockDelete,
       insert: mockInsert,
@@ -80,6 +82,7 @@ describe("overrideStudentLevel", () => {
     expect(mockTransaction).toHaveBeenCalledOnce();
     expect(mockSet).toHaveBeenCalledWith({ level: "green" });
     expect(mockDelete).toHaveBeenCalledOnce();
+    expect(mockEq).toHaveBeenCalledWith(pendingPromotions.studentId, studentId);
     expect(mockValues).toHaveBeenCalledWith({
       studentId,
       level: "green",
@@ -98,7 +101,8 @@ describe("overrideStudentLevel", () => {
       level: "yellow",
       changed: false,
     });
-    expect(mockTransaction).not.toHaveBeenCalled();
+    expect(mockTransaction).toHaveBeenCalledOnce();
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 
   it("rejects invalid levels", async () => {
@@ -123,7 +127,8 @@ describe("overrideStudentLevel", () => {
       overrideStudentLevel(classId, studentId, "green")
     ).rejects.toBeInstanceOf(StudentNotFoundForOverrideError);
 
-    expect(mockTransaction).not.toHaveBeenCalled();
+    expect(mockTransaction).toHaveBeenCalledOnce();
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 
   it("filters archived students out of the override query", async () => {
@@ -149,6 +154,7 @@ describe("overrideStudentLevel", () => {
       overrideStudentLevel(classId, studentId, "green")
     ).rejects.toBeInstanceOf(StudentNotLeveledForOverrideError);
 
-    expect(mockTransaction).not.toHaveBeenCalled();
+    expect(mockTransaction).toHaveBeenCalledOnce();
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 });

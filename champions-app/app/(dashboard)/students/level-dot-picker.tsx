@@ -1,6 +1,5 @@
 "use client";
 
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
@@ -154,7 +153,7 @@ export function LevelDotPicker(props: LevelDotPickerProps) {
           />
         ))}
       </div>
-      {state.error ? (
+      {state.error && mode !== "override" ? (
         <p className="text-xs text-destructive" role="alert">
           {state.error}
         </p>
