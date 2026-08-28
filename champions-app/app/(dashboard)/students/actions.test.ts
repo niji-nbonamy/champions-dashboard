@@ -21,6 +21,8 @@ const {
   mockGetTeacherClass,
   mockCountActiveStudents,
   mockGetYearStartWizardStatus,
+  mockValidateStudentPromotion,
+  mockRefuseStudentPromotion,
 } = vi.hoisted(() => ({
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
@@ -33,6 +35,8 @@ const {
   mockGetTeacherClass: vi.fn(),
   mockCountActiveStudents: vi.fn(),
   mockGetYearStartWizardStatus: vi.fn(),
+  mockValidateStudentPromotion: vi.fn(),
+  mockRefuseStudentPromotion: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -137,6 +141,34 @@ vi.mock("@/lib/services/archive-student", () => {
     StudentNotFoundError,
   };
 });
+
+vi.mock("@/lib/services/validate-student-promotion", () => {
+  class StudentPromotionError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "StudentPromotionError";
+    }
+  }
+
+  class PendingPromotionNotFoundError extends StudentPromotionError {
+    constructor() {
+      super("Aucune promotion en attente.");
+      this.name = "PendingPromotionNotFoundError";
+    }
+  }
+
+  return {
+    validateStudentPromotion: mockValidateStudentPromotion,
+    StudentPromotionError,
+    PendingPromotionNotFoundError,
+    PROMOTION_VALIDATE_GENERIC_ERROR: "Validation impossible. Réessayez.",
+  };
+});
+
+vi.mock("@/lib/services/refuse-student-promotion", () => ({
+  refuseStudentPromotion: mockRefuseStudentPromotion,
+  PROMOTION_REFUSE_GENERIC_ERROR: "Refus impossible. Réessayez.",
+}));
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
 const classId = "660e8400-e29b-41d4-a716-446655440001";
@@ -559,5 +591,143 @@ describe("archiveStudentAction", () => {
 
     expect(result.error).toBe(STUDENT_ARCHIVE_GENERIC_ERROR);
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("validateDossierPromotionAction", () => {
+  const studentId = "770e8400-e29b-41d4-a716-446655440002";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { validateDossierPromotionAction } = await import("./actions");
+
+    await expect(validateDossierPromotionAction(studentId)).rejects.toThrow(
+      "NEXT_REDIRECT:/login"
+    );
+  });
+
+  it("validates promotion and revalidates dossier routes", async () => {
+    mockAuthenticatedSession();
+    mockValidateStudentPromotion.mockResolvedValueOnce({
+      studentId,
+      level: "green",
+    });
+
+    const { validateDossierPromotionAction } = await import("./actions");
+    const result = await validateDossierPromotionAction(studentId);
+
+    expect(result).toEqual({ error: null });
+    expect(mockValidateStudentPromotion).toHaveBeenCalledWith(classId, studentId);
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+  });
+
+  it("treats a missing pending promotion as idempotent success", async () => {
+    mockAuthenticatedSession();
+    const { PendingPromotionNotFoundError } = await import(
+      "@/lib/services/validate-student-promotion"
+    );
+    mockValidateStudentPromotion.mockRejectedValueOnce(
+      new PendingPromotionNotFoundError()
+    );
+
+    const { validateDossierPromotionAction } = await import("./actions");
+    const result = await validateDossierPromotionAction(studentId);
+
+    expect(result).toEqual({ error: null });
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+  });
+
+  it("returns a generic error for blank student ids", async () => {
+    mockAuthenticatedSession();
+    const { PROMOTION_VALIDATE_GENERIC_ERROR } = await import(
+      "@/lib/services/validate-student-promotion"
+    );
+
+    const { validateDossierPromotionAction } = await import("./actions");
+    const result = await validateDossierPromotionAction("   ");
+
+    expect(result.error).toBe(PROMOTION_VALIDATE_GENERIC_ERROR);
+    expect(mockValidateStudentPromotion).not.toHaveBeenCalled();
+  });
+
+  it("returns a generic error for other promotion failures", async () => {
+    mockAuthenticatedSession();
+    const { StudentPromotionError, PROMOTION_VALIDATE_GENERIC_ERROR } =
+      await import("@/lib/services/validate-student-promotion");
+    mockValidateStudentPromotion.mockRejectedValueOnce(
+      new StudentPromotionError("Élève introuvable.")
+    );
+
+    const { validateDossierPromotionAction } = await import("./actions");
+    const result = await validateDossierPromotionAction(studentId);
+
+    expect(result.error).toBe(PROMOTION_VALIDATE_GENERIC_ERROR);
+  });
+});
+
+describe("refuseDossierPromotionAction", () => {
+  const studentId = "770e8400-e29b-41d4-a716-446655440002";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("refuses promotion and revalidates dossier routes", async () => {
+    mockAuthenticatedSession();
+    mockRefuseStudentPromotion.mockResolvedValueOnce({ studentId });
+
+    const { refuseDossierPromotionAction } = await import("./actions");
+    const result = await refuseDossierPromotionAction(studentId);
+
+    expect(result).toEqual({ error: null });
+    expect(mockRefuseStudentPromotion).toHaveBeenCalledWith(classId, studentId);
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+  });
+
+  it("treats a missing pending promotion as idempotent success", async () => {
+    mockAuthenticatedSession();
+    const { PendingPromotionNotFoundError } = await import(
+      "@/lib/services/validate-student-promotion"
+    );
+    mockRefuseStudentPromotion.mockRejectedValueOnce(
+      new PendingPromotionNotFoundError()
+    );
+
+    const { refuseDossierPromotionAction } = await import("./actions");
+    const result = await refuseDossierPromotionAction(studentId);
+
+    expect(result).toEqual({ error: null });
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+  });
+
+  it("returns a generic error for other promotion failures", async () => {
+    mockAuthenticatedSession();
+    const { StudentPromotionError } = await import(
+      "@/lib/services/validate-student-promotion"
+    );
+    const { PROMOTION_REFUSE_GENERIC_ERROR } = await import(
+      "@/lib/services/refuse-student-promotion"
+    );
+    mockRefuseStudentPromotion.mockRejectedValueOnce(
+      new StudentPromotionError("Élève introuvable.")
+    );
+
+    const { refuseDossierPromotionAction } = await import("./actions");
+    const result = await refuseDossierPromotionAction(studentId);
+
+    expect(result.error).toBe(PROMOTION_REFUSE_GENERIC_ERROR);
   });
 });

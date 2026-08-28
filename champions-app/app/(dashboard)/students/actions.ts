@@ -26,6 +26,16 @@ import {
   AssignStudentLevelError,
 } from "@/lib/services/assign-student-level";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
+import {
+  refuseStudentPromotion,
+  PROMOTION_REFUSE_GENERIC_ERROR,
+} from "@/lib/services/refuse-student-promotion";
+import {
+  validateStudentPromotion,
+  StudentPromotionError,
+  PendingPromotionNotFoundError,
+  PROMOTION_VALIDATE_GENERIC_ERROR,
+} from "@/lib/services/validate-student-promotion";
 
 export type AddStudentActionState = {
   error: string | null;
@@ -40,7 +50,17 @@ export type ArchiveStudentActionState = {
   error: string | null;
 };
 
+export type DossierPromotionActionResult = {
+  error: string | null;
+};
+
 type RosterFilterParam = "active" | "archived" | "all";
+
+function revalidateDossierPromotionPaths(studentId: string) {
+  revalidatePath(`/students/${studentId}`);
+  revalidatePath("/students");
+  revalidatePath("/dictations");
+}
 
 function parseArchiveFilterParam(
   rawFilter: FormDataEntryValue | null
@@ -201,5 +221,81 @@ export async function archiveStudentAction(
     }
 
     return { error: STUDENT_ARCHIVE_GENERIC_ERROR };
+  }
+}
+
+export async function validateDossierPromotionAction(
+  studentId: string
+): Promise<DossierPromotionActionResult> {
+  const normalizedStudentId = studentId?.trim() ?? "";
+  if (!normalizedStudentId) {
+    return { error: PROMOTION_VALIDATE_GENERIC_ERROR };
+  }
+
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  try {
+    await validateStudentPromotion(teacherClass.id, normalizedStudentId);
+    revalidateDossierPromotionPaths(normalizedStudentId);
+    return { error: null };
+  } catch (error) {
+    if (error instanceof PendingPromotionNotFoundError) {
+      revalidateDossierPromotionPaths(normalizedStudentId);
+      return { error: null };
+    }
+
+    if (error instanceof StudentPromotionError) {
+      return { error: PROMOTION_VALIDATE_GENERIC_ERROR };
+    }
+
+    return { error: PROMOTION_VALIDATE_GENERIC_ERROR };
+  }
+}
+
+export async function refuseDossierPromotionAction(
+  studentId: string
+): Promise<DossierPromotionActionResult> {
+  const normalizedStudentId = studentId?.trim() ?? "";
+  if (!normalizedStudentId) {
+    return { error: PROMOTION_REFUSE_GENERIC_ERROR };
+  }
+
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  try {
+    await refuseStudentPromotion(teacherClass.id, normalizedStudentId);
+    revalidateDossierPromotionPaths(normalizedStudentId);
+    return { error: null };
+  } catch (error) {
+    if (error instanceof PendingPromotionNotFoundError) {
+      revalidateDossierPromotionPaths(normalizedStudentId);
+      return { error: null };
+    }
+
+    if (error instanceof StudentPromotionError) {
+      return { error: PROMOTION_REFUSE_GENERIC_ERROR };
+    }
+
+    return { error: PROMOTION_REFUSE_GENERIC_ERROR };
   }
 }

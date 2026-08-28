@@ -8,6 +8,7 @@ const {
   mockGetTeacherClass,
   mockGetClassStudent,
   mockGetStudentDictationHistory,
+  mockListPendingPromotionsForStudents,
 } = vi.hoisted(() => ({
   auth: vi.fn(),
   redirect: vi.fn((url: string): never => {
@@ -19,6 +20,7 @@ const {
   mockGetTeacherClass: vi.fn(),
   mockGetClassStudent: vi.fn(),
   mockGetStudentDictationHistory: vi.fn(),
+  mockListPendingPromotionsForStudents: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
@@ -40,6 +42,27 @@ vi.mock("@/lib/services/get-class-student", () => ({
 
 vi.mock("@/lib/services/get-student-dictation-history", () => ({
   getStudentDictationHistory: mockGetStudentDictationHistory,
+}));
+
+vi.mock("@/lib/services/list-pending-promotions", () => ({
+  listPendingPromotionsForStudents: mockListPendingPromotionsForStudents,
+}));
+
+vi.mock("@/components/promotion/promotion-banner", () => ({
+  PromotionBanner: ({
+    targetLevel,
+  }: {
+    studentId: string;
+    targetLevel: string;
+  }) => (
+    <div
+      data-testid="promotion-banner"
+      role="alert"
+      className="bg-promotion-ready text-promotion-ready-foreground"
+    >
+      Prêt à monter → {targetLevel === "green" ? "vert" : targetLevel}
+    </div>
+  ),
 }));
 
 import StudentDossierPage from "./page";
@@ -64,6 +87,7 @@ describe("StudentDossierPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetStudentDictationHistory.mockResolvedValue([]);
+    mockListPendingPromotionsForStudents.mockResolvedValue({});
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -312,5 +336,89 @@ describe("StudentDossierPage", () => {
     expect(html).toContain("Archivé");
     expect(html).toContain("Dictée B");
     expect(html).not.toContain("level-dot-picker");
+  });
+
+  it("renders the promotion banner when a pending promotion exists", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
+    });
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({
+      [studentId]: { targetLevel: "green" },
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(mockListPendingPromotionsForStudents).toHaveBeenCalledWith(
+      classId,
+      [studentId]
+    );
+    expect(html).toContain('data-testid="promotion-banner"');
+    expect(html).toContain('role="alert"');
+    expect(html).toContain("bg-promotion-ready");
+    expect(html).toContain("Prêt à monter → vert");
+  });
+
+  it("does not render the promotion banner without a pending promotion", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
+    });
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({});
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).not.toContain('data-testid="promotion-banner"');
+  });
+
+  it("does not render the promotion banner for archived students", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "BERNARD Paul",
+      level: "green",
+      archived: true,
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(mockListPendingPromotionsForStudents).not.toHaveBeenCalled();
+    expect(html).not.toContain('data-testid="promotion-banner"');
+  });
+
+  it("renders the promotion banner above the empty state when pending exists", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
+    });
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({
+      [studentId]: { targetLevel: "green" },
+    });
+    mockGetStudentDictationHistory.mockResolvedValueOnce([]);
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    const bannerIndex = html.indexOf('data-testid="promotion-banner"');
+    const emptyStateIndex = html.indexOf("Aucune dictée enregistrée.");
+    expect(bannerIndex).toBeGreaterThan(-1);
+    expect(emptyStateIndex).toBeGreaterThan(-1);
+    expect(bannerIndex).toBeLessThan(emptyStateIndex);
   });
 });

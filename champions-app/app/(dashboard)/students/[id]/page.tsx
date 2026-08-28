@@ -10,11 +10,13 @@ import {
 } from "@/components/dossier/dossier-layout";
 import { GlobalSuccessCurve } from "@/components/dossier/global-success-curve";
 import { LevelBadge } from "@/components/ui/level-badge";
+import { PromotionBanner } from "@/components/promotion/promotion-banner";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
 import { toCurvePoints } from "@/lib/domain/dossier-curve";
 import { getClassStudent } from "@/lib/services/get-class-student";
 import { getStudentDictationHistory } from "@/lib/services/get-student-dictation-history";
+import { listPendingPromotionsForStudents } from "@/lib/services/list-pending-promotions";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 
 type StudentDossierPageProps = {
@@ -53,6 +55,10 @@ export default async function StudentDossierPage({
   const history = await getStudentDictationHistory(teacherClass.id, id);
   const hasHistory = history.length > 0;
   const curvePoints = toCurvePoints(history);
+  const pendingPromotions = student.archived
+    ? {}
+    : await listPendingPromotionsForStudents(teacherClass.id, [id]);
+  const pendingPromotion = pendingPromotions[id] ?? null;
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -73,6 +79,10 @@ export default async function StudentDossierPage({
           ) : null}
         </div>
       </div>
+
+      {pendingPromotion ? (
+        <PromotionBanner studentId={id} targetLevel={pendingPromotion.targetLevel} />
+      ) : null}
 
       <div className={DOSSIER_CONTENT_CONTAINER_CLASS}>
         {hasHistory ? (
