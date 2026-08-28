@@ -3,10 +3,12 @@ import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
-import { DictationHistoryList } from "@/components/dossier/dictation-history-list";
+import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
+import { GlobalSuccessCurve } from "@/components/dossier/global-success-curve";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
+import { toCurvePoints } from "@/lib/domain/dossier-curve";
 import { getClassStudent } from "@/lib/services/get-class-student";
 import { getStudentDictationHistory } from "@/lib/services/get-student-dictation-history";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
@@ -46,6 +48,7 @@ export default async function StudentDossierPage({
 
   const history = await getStudentDictationHistory(teacherClass.id, id);
   const hasHistory = history.length > 0;
+  const curvePoints = toCurvePoints(history);
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -67,18 +70,26 @@ export default async function StudentDossierPage({
         </div>
       </div>
 
-      <CurvePlaceholder />
-
-      {!hasHistory ? (
-        <p className="text-sm text-muted-foreground" role="status">
-          Aucune dictée enregistrée.
-        </p>
-      ) : (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-lg font-medium">Historique des dictées</h2>
-          <DictationHistoryList entries={history} />
-        </section>
-      )}
+      <div className="mx-auto w-full max-w-4xl">
+        {hasHistory ? (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <section aria-label="Courbe de réussite globale">
+              <GlobalSuccessCurve points={curvePoints} />
+            </section>
+            <section className="flex flex-col gap-3">
+              <h2 className="text-lg font-medium">Historique des dictées</h2>
+              <DictationHistoryTable entries={history} />
+            </section>
+          </div>
+        ) : (
+          <>
+            <CurvePlaceholder />
+            <p className="mt-6 text-sm text-muted-foreground" role="status">
+              Aucune dictée enregistrée.
+            </p>
+          </>
+        )}
+      </div>
     </main>
   );
 }

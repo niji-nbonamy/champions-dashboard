@@ -2,6 +2,10 @@ import { and, asc, desc, eq } from "drizzle-orm";
 
 import { getDb } from "@/lib/db";
 import { dictationEntries, dictations } from "@/lib/db/schema";
+import {
+  dbColumnsToCategoryErrors,
+  type ChampionsErrorCategoryLetter,
+} from "@/lib/domain/error-categories";
 
 export type StudentDictationHistoryEntry = {
   entryId: string;
@@ -11,6 +15,7 @@ export type StudentDictationHistoryEntry = {
   levelAtSave: string;
   globalPercent: number;
   wordDenominator: number;
+  categoryErrors: Record<ChampionsErrorCategoryLetter, number>;
 };
 
 export async function getStudentDictationHistory(
@@ -28,6 +33,15 @@ export async function getStudentDictationHistory(
       levelAtSave: dictationEntries.levelAtSave,
       globalPercent: dictationEntries.globalPercent,
       wordDenominator: dictationEntries.wordDenominator,
+      errorsC: dictationEntries.errorsC,
+      errorsH: dictationEntries.errorsH,
+      errorsA: dictationEntries.errorsA,
+      errorsM: dictationEntries.errorsM,
+      errorsP: dictationEntries.errorsP,
+      errorsI: dictationEntries.errorsI,
+      errorsO: dictationEntries.errorsO,
+      errorsN: dictationEntries.errorsN,
+      errorsS: dictationEntries.errorsS,
     })
     .from(dictationEntries)
     .innerJoin(dictations, eq(dictationEntries.dictationId, dictations.id))
@@ -36,8 +50,34 @@ export async function getStudentDictationHistory(
     )
     .orderBy(desc(dictations.dictationDate), asc(dictations.label));
 
-  return rows.map((row) => ({
-    ...row,
-    dictationDate: String(row.dictationDate),
-  }));
+  return rows.map((row) => {
+    const {
+      errorsC,
+      errorsH,
+      errorsA,
+      errorsM,
+      errorsP,
+      errorsI,
+      errorsO,
+      errorsN,
+      errorsS,
+      ...entry
+    } = row;
+
+    return {
+      ...entry,
+      dictationDate: String(entry.dictationDate),
+      categoryErrors: dbColumnsToCategoryErrors({
+        errorsC,
+        errorsH,
+        errorsA,
+        errorsM,
+        errorsP,
+        errorsI,
+        errorsO,
+        errorsN,
+        errorsS,
+      }),
+    };
+  });
 }

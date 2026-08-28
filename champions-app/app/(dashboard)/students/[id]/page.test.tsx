@@ -130,14 +130,16 @@ describe("StudentDossierPage", () => {
     expect(html).toContain("Aucune dictée enregistrée.");
     expect(html).toContain('role="status"');
     expect(html).toContain('data-testid="curve-placeholder"');
+    expect(html).toContain("max-w-4xl");
     expect(html).not.toContain("Historique des dictées");
+    expect(html).not.toContain('data-testid="global-success-curve"');
     expect(mockGetStudentDictationHistory).toHaveBeenCalledWith(
       classId,
       studentId
     );
   });
 
-  it("renders the dossier history list when dictations exist", async () => {
+  it("renders the dossier curve and collapsed history table when dictations exist", async () => {
     mockAuthenticatedClass();
     mockGetClassStudent.mockResolvedValueOnce({
       id: studentId,
@@ -154,6 +156,17 @@ describe("StudentDossierPage", () => {
         levelAtSave: "yellow",
         globalPercent: 92,
         wordDenominator: 40,
+        categoryErrors: {
+          C: 1,
+          H: 0,
+          A: 0,
+          M: 0,
+          P: 0,
+          I: 0,
+          O: 0,
+          N: 0,
+          S: 0,
+        },
       },
     ]);
 
@@ -166,9 +179,77 @@ describe("StudentDossierPage", () => {
     expect(html).toContain("27 août 2026");
     expect(html).toContain("92 %");
     expect(html).toContain("jaune");
-    expect(html).toContain('data-testid="curve-placeholder"');
+    expect(html).toContain('data-testid="global-success-curve"');
+    expect(html).toContain('data-testid="dictation-history-table"');
+    expect(html).toContain("<details");
+    expect(html).toContain("max-w-4xl");
+    expect(html).toContain("lg:grid-cols-2");
+    expect(html).not.toContain('data-testid="curve-placeholder"');
     expect(html).not.toContain('href="/dictations/');
     expect(html).not.toContain("Aucune dictée enregistrée.");
+  });
+
+  it("renders the hero curve in chronological order for multiple dictations", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
+    });
+    mockGetStudentDictationHistory.mockResolvedValueOnce([
+      {
+        entryId: "bb0e8400-e29b-41d4-a716-446655440011",
+        dictationId: "880e8400-e29b-41d4-a716-446655440003",
+        label: "Dictée récente",
+        dictationDate: "2026-08-27",
+        levelAtSave: "yellow",
+        globalPercent: 92,
+        wordDenominator: 40,
+        categoryErrors: {
+          C: 0,
+          H: 0,
+          A: 0,
+          M: 0,
+          P: 0,
+          I: 0,
+          O: 0,
+          N: 0,
+          S: 0,
+        },
+      },
+      {
+        entryId: "aa0e8400-e29b-41d4-a716-446655440010",
+        dictationId: "770e8400-e29b-41d4-a716-446655440002",
+        label: "Dictée ancienne",
+        dictationDate: "2026-08-13",
+        levelAtSave: "yellow",
+        globalPercent: 75,
+        wordDenominator: 40,
+        categoryErrors: {
+          C: 0,
+          H: 0,
+          A: 0,
+          M: 0,
+          P: 0,
+          I: 0,
+          O: 0,
+          N: 0,
+          S: 0,
+        },
+      },
+    ]);
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).toContain('aria-label="Courbe de réussite globale, 2 dictées"');
+    const olderTitleIndex = html.indexOf("Dictée ancienne : 75 %");
+    const newerTitleIndex = html.indexOf("Dictée récente : 92 %");
+    expect(olderTitleIndex).toBeGreaterThan(-1);
+    expect(newerTitleIndex).toBeGreaterThan(-1);
+    expect(olderTitleIndex).toBeLessThan(newerTitleIndex);
   });
 
   it("renders archived students with empty history and an Archivé label", async () => {
@@ -209,6 +290,17 @@ describe("StudentDossierPage", () => {
         levelAtSave: "green",
         globalPercent: 90,
         wordDenominator: 40,
+        categoryErrors: {
+          C: 0,
+          H: 0,
+          A: 0,
+          M: 0,
+          P: 0,
+          I: 0,
+          O: 0,
+          N: 0,
+          S: 0,
+        },
       },
     ]);
 
