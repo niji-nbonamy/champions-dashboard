@@ -50,6 +50,7 @@ vi.mock("@/lib/services/list-pending-promotions", () => ({
 
 vi.mock("@/components/promotion/promotion-banner", () => ({
   PromotionBanner: ({
+    studentId,
     targetLevel,
   }: {
     studentId: string;
@@ -57,6 +58,7 @@ vi.mock("@/components/promotion/promotion-banner", () => ({
   }) => (
     <div
       data-testid="promotion-banner"
+      data-student-id={studentId}
       role="alert"
       className="bg-promotion-ready text-promotion-ready-foreground"
     >
@@ -359,6 +361,7 @@ describe("StudentDossierPage", () => {
       [studentId]
     );
     expect(html).toContain('data-testid="promotion-banner"');
+    expect(html).toContain(`data-student-id="${studentId}"`);
     expect(html).toContain('role="alert"');
     expect(html).toContain("bg-promotion-ready");
     expect(html).toContain("Prêt à monter → vert");
@@ -420,5 +423,50 @@ describe("StudentDossierPage", () => {
     expect(bannerIndex).toBeGreaterThan(-1);
     expect(emptyStateIndex).toBeGreaterThan(-1);
     expect(bannerIndex).toBeLessThan(emptyStateIndex);
+  });
+
+  it("renders the promotion banner above the curve when history exists", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
+    });
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({
+      [studentId]: { targetLevel: "green" },
+    });
+    mockGetStudentDictationHistory.mockResolvedValueOnce([
+      {
+        entryId: "aa0e8400-e29b-41d4-a716-446655440010",
+        dictationId: "880e8400-e29b-41d4-a716-446655440003",
+        label: "Dictée B",
+        dictationDate: "2026-08-27",
+        levelAtSave: "yellow",
+        globalPercent: 92,
+        wordDenominator: 40,
+        categoryErrors: {
+          C: 1,
+          H: 0,
+          A: 0,
+          M: 0,
+          P: 0,
+          I: 0,
+          O: 0,
+          N: 0,
+          S: 0,
+        },
+      },
+    ]);
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    const bannerIndex = html.indexOf('data-testid="promotion-banner"');
+    const curveIndex = html.indexOf('data-testid="global-success-curve"');
+    expect(bannerIndex).toBeGreaterThan(-1);
+    expect(curveIndex).toBeGreaterThan(-1);
+    expect(bannerIndex).toBeLessThan(curveIndex);
   });
 });

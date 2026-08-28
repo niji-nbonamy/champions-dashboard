@@ -37,7 +37,28 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("next/dist/client/components/redirect-error", () => ({
+  isRedirectError: (error: unknown) =>
+    error instanceof Error && error.message.startsWith("NEXT_REDIRECT:"),
+}));
+
 import { PromotionBanner } from "./promotion-banner";
+import { PROMOTION_REFUSE_GENERIC_ERROR } from "@/lib/services/refuse-student-promotion";
+import { PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/services/validate-student-promotion";
+
+function getPromotionButtons(container: HTMLDivElement) {
+  const buttons = Array.from(container.querySelectorAll("button"));
+  return {
+    validate: buttons.find((button) =>
+      button.textContent?.startsWith("Valid")
+    ),
+    refuse: buttons.find((button) => button.textContent?.startsWith("Refus")),
+  };
+}
+
+async function flushPromises() {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
 
 describe("PromotionBanner", () => {
   let container: HTMLDivElement;
@@ -74,6 +95,10 @@ describe("PromotionBanner", () => {
     expect(banner?.className).toContain("bg-promotion-ready");
     expect(banner?.className).toContain("text-promotion-ready-foreground");
     expect(container.textContent).toContain("Prêt à monter → vert");
+
+    const refuseButton = getPromotionButtons(container).refuse;
+    expect(refuseButton?.className).toContain("text-promotion-ready-foreground");
+    expect(refuseButton?.className).toContain("bg-transparent");
   });
 
   it("calls validate action and refreshes on Valider", async () => {
@@ -141,7 +166,7 @@ describe("PromotionBanner", () => {
     expect(mockToastError).toHaveBeenCalledWith(
       "Validation impossible. Réessayez."
     );
-    expect(mockRefresh).not.toHaveBeenCalled();
+    expect(mockRefresh).toHaveBeenCalled();
   });
 
   it("shows an error toast when refuse fails", async () => {
@@ -165,7 +190,77 @@ describe("PromotionBanner", () => {
     });
 
     expect(mockToastError).toHaveBeenCalledWith("Refus impossible. Réessayez.");
+    expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  it("does not show a generic toast when validate rejects with a redirect error", async () => {
+    mockValidateDossierPromotionAction.mockRejectedValueOnce(
+      new Error("NEXT_REDIRECT:/login")
+    );
+
+    act(() => {
+      root.render(
+        <PromotionBanner studentId={studentId} targetLevel="green" />
+      );
+    });
+
+    const { validate: validateButton } = getPromotionButtons(container);
+
+    try {
+      await act(async () => {
+        validateButton?.click();
+        await flushPromises();
+      });
+    } catch {
+      // startTransition may surface redirect errors outside the banner handler.
+    }
+
+    expect(mockToastError).not.toHaveBeenCalled();
     expect(mockRefresh).not.toHaveBeenCalled();
+  });
+
+  it("shows a generic error toast and refreshes when validate throws unexpectedly", async () => {
+    mockValidateDossierPromotionAction.mockRejectedValueOnce(
+      new Error("unexpected failure")
+    );
+
+    act(() => {
+      root.render(
+        <PromotionBanner studentId={studentId} targetLevel="green" />
+      );
+    });
+
+    const { validate: validateButton } = getPromotionButtons(container);
+
+    await act(async () => {
+      validateButton?.click();
+      await flushPromises();
+    });
+
+    expect(mockToastError).toHaveBeenCalledWith(PROMOTION_VALIDATE_GENERIC_ERROR);
+    expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  it("shows a generic error toast and refreshes when refuse throws unexpectedly", async () => {
+    mockRefuseDossierPromotionAction.mockRejectedValueOnce(
+      new Error("unexpected failure")
+    );
+
+    act(() => {
+      root.render(
+        <PromotionBanner studentId={studentId} targetLevel="green" />
+      );
+    });
+
+    const { refuse: refuseButton } = getPromotionButtons(container);
+
+    await act(async () => {
+      refuseButton?.click();
+      await flushPromises();
+    });
+
+    expect(mockToastError).toHaveBeenCalledWith(PROMOTION_REFUSE_GENERIC_ERROR);
+    expect(mockRefresh).toHaveBeenCalled();
   });
 
   it("disables both buttons while a promotion action is pending", async () => {
@@ -183,25 +278,56 @@ describe("PromotionBanner", () => {
       );
     });
 
-    const validateButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Valider"
-    );
-    const refuseButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Refuser"
-    );
+    const { validate: validateButton } = getPromotionButtons(container);
 
     await act(async () => {
       validateButton?.click();
-      await Promise.resolve();
+      await flushPromises();
     });
 
-    expect(validateButton?.disabled).toBe(true);
-    expect(refuseButton?.disabled).toBe(true);
-    expect(validateButton?.textContent).toBe("Validation…");
+    const pendingButtons = getPromotionButtons(container);
+    expect(pendingButtons.validate?.disabled).toBe(true);
+    expect(pendingButtons.refuse?.disabled).toBe(true);
+    expect(pendingButtons.validate?.textContent).toBe("Validation…");
+    expect(pendingButtons.refuse?.textContent).toBe("Refuser");
 
     await act(async () => {
       resolveValidate?.({ error: null });
-      await Promise.resolve();
+      await flushPromises();
+    });
+  });
+
+  it("shows Refus… only on the refuse button while refusing", async () => {
+    let resolveRefuse: ((value: { error: string | null }) => void) | undefined;
+    mockRefuseDossierPromotionAction.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRefuse = resolve;
+        })
+    );
+
+    act(() => {
+      root.render(
+        <PromotionBanner studentId={studentId} targetLevel="green" />
+      );
+    });
+
+    const { refuse: refuseButton } = getPromotionButtons(container);
+
+    await act(async () => {
+      refuseButton?.click();
+      await flushPromises();
+    });
+
+    const pendingButtons = getPromotionButtons(container);
+    expect(pendingButtons.validate?.disabled).toBe(true);
+    expect(pendingButtons.refuse?.disabled).toBe(true);
+    expect(pendingButtons.validate?.textContent).toBe("Valider");
+    expect(pendingButtons.refuse?.textContent).toBe("Refus…");
+
+    await act(async () => {
+      resolveRefuse?.({ error: null });
+      await flushPromises();
     });
   });
 });

@@ -3,7 +3,6 @@ title: '4-3 Promotion Banner on Dossier (D1)'
 type: 'feature'
 created: '2026-08-28'
 status: 'done'
-review_loop_iteration: 0
 baseline_commit: 'ecb9aefe944b1f8eb6ded939c94f4ea9e3bb6b92'
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-4-context.md'
@@ -117,6 +116,17 @@ Layout sketch:
 - [x] [Review][Patch] Propager `isRedirectError` dans les catch du banner [`promotion-banner.tsx:49`]
 - [x] [Review][Patch] Tests toast erreur Refuser + boutons disabled pending [`promotion-banner.test.tsx:147`]
 - [x] [Review][Patch] Assertions revalidate complètes sur chemins idempotents [`actions.test.ts:643`]
+- [x] [Review][Patch] Séparer l'état pending par action (Valider/Refuser) pour éviter le mauvais libellé de chargement sur le bouton frère [`promotion-banner.tsx:30`]
+- [x] [Review][Patch] Appeler `router.refresh()` sur le chemin `result.error` pour aligner avec `class-grid.tsx` [`promotion-banner.tsx:42`]
+- [x] [Review][Patch] Compléter les tests `refuseDossierPromotionAction` (redirect login, ID blank) [`actions.test.ts:677`]
+- [x] [Review][Patch] Tester `studentId.trim()` avec UUID paddé sur validate et refuse [`actions.test.ts:649`]
+- [x] [Review][Patch] Tester la propagation `isRedirectError` dans `PromotionBanner` [`promotion-banner.test.tsx`]
+- [x] [Review][Patch] Vérifier le câblage `studentId` page → bannière dans `page.test.tsx` [`page.test.tsx:51`]
+- [x] [Review][Patch] Tester le placement bannière au-dessus de la courbe quand l'historique est non vide [`page.test.tsx:340`]
+- [x] [Review][Patch] Tester le chemin catch (exception inattendue) dans `PromotionBanner` [`promotion-banner.test.tsx:121`]
+- [x] [Review][Defer] Actions grille ne revalident pas `/students/[id]` — pré-existant, hors scope 4-3 [`dictations/actions.ts:152`]
+- [x] [Review][Defer] `targetLevel` invalide en base masque silencieusement la bannière — comportement service existant [`list-pending-promotions.ts:38`]
+- [x] [Review][Defer] Fetches séquentiels sur la page dossier — optimisation hors scope [`page.tsx:55`]
 
 ## Suggested Review Order
 

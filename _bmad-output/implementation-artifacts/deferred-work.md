@@ -215,3 +215,9 @@
 ## Deferred from: code review of spec-4-2-hero-curve-collapsed-dictation-table-c1.md (2026-08-28)
 
 - Test navigation clavier `<details>` — comportement natif du navigateur ; focus ring CSS déjà présent sur `summary` (`dictation-history-table.tsx:28`)
+
+## Deferred from: code review of spec-4-3-promotion-banner-on-dossier-d1.md (2026-08-28)
+
+- Actions grille (`validatePromotionAction` / `refusePromotionAction`) ne revalident pas `/students/[id]` — dossier ouvert peut afficher une bannière obsolète après mutation depuis la grille jusqu'à rechargement manuel ; pré-existant, hors scope story 4-3 (`dictations/actions.ts:152`)
+- `targetLevel` invalide en base masque silencieusement la bannière — `listPendingPromotionsForStudents` ignore les lignes non parsables ; comportement service existant, intégrité données hors scope (`list-pending-promotions.ts:38`)
+- Fetches séquentiels `getStudentDictationHistory` puis `listPendingPromotionsForStudents` — micro-optimisation latence hors scope story 4-3 (`page.tsx:55`)

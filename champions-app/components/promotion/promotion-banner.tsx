@@ -2,7 +2,7 @@
 
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { useRouter } from "next/navigation";
-import { useCallback, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -22,25 +22,31 @@ type PromotionBannerProps = {
   targetLevel: ChampionsLevel;
 };
 
+type PendingPromotionAction = "validate" | "refuse";
+
 export function PromotionBanner({
   studentId,
   targetLevel,
 }: PromotionBannerProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] =
+    useState<PendingPromotionAction | null>(null);
+  const [, startTransition] = useTransition();
   const targetLevelLabel = getChampionsLevelFrenchLabel(targetLevel);
 
   const handleValidate = useCallback(() => {
-    if (isPending) {
+    if (pendingAction) {
       return;
     }
 
+    setPendingAction("validate");
     startTransition(async () => {
       try {
         const result = await validateDossierPromotionAction(studentId);
 
         if (result.error) {
           toast.error(result.error);
+          router.refresh();
           return;
         }
 
@@ -53,21 +59,25 @@ export function PromotionBanner({
 
         toast.error(PROMOTION_VALIDATE_GENERIC_ERROR);
         router.refresh();
+      } finally {
+        setPendingAction(null);
       }
     });
-  }, [isPending, router, studentId]);
+  }, [pendingAction, router, studentId]);
 
   const handleRefuse = useCallback(() => {
-    if (isPending) {
+    if (pendingAction) {
       return;
     }
 
+    setPendingAction("refuse");
     startTransition(async () => {
       try {
         const result = await refuseDossierPromotionAction(studentId);
 
         if (result.error) {
           toast.error(result.error);
+          router.refresh();
           return;
         }
 
@@ -80,9 +90,11 @@ export function PromotionBanner({
 
         toast.error(PROMOTION_REFUSE_GENERIC_ERROR);
         router.refresh();
+      } finally {
+        setPendingAction(null);
       }
     });
-  }, [isPending, router, studentId]);
+  }, [pendingAction, router, studentId]);
 
   return (
     <div
@@ -92,16 +104,21 @@ export function PromotionBanner({
     >
       <p className="font-medium">Prêt à monter → {targetLevelLabel}</p>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" disabled={isPending} onClick={handleValidate}>
-          {isPending ? "Validation…" : "Valider"}
+        <Button
+          type="button"
+          disabled={pendingAction !== null}
+          onClick={handleValidate}
+        >
+          {pendingAction === "validate" ? "Validation…" : "Valider"}
         </Button>
         <Button
           type="button"
           variant="outline"
-          disabled={isPending}
+          disabled={pendingAction !== null}
           onClick={handleRefuse}
+          className="border-promotion-ready-foreground/70 bg-transparent text-promotion-ready-foreground hover:bg-promotion-ready-foreground/15 hover:text-promotion-ready-foreground"
         >
-          {isPending ? "Refus…" : "Refuser"}
+          {pendingAction === "refuse" ? "Refus…" : "Refuser"}
         </Button>
       </div>
     </div>

@@ -597,8 +597,8 @@ describe("archiveStudentAction", () => {
 describe("validateDossierPromotionAction", () => {
   const studentId = "770e8400-e29b-41d4-a716-446655440002";
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  beforeEach(() => {
+    vi.resetAllMocks();
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -659,6 +659,20 @@ describe("validateDossierPromotionAction", () => {
     expect(mockValidateStudentPromotion).not.toHaveBeenCalled();
   });
 
+  it("trims padded student ids before validating", async () => {
+    mockAuthenticatedSession();
+    mockValidateStudentPromotion.mockResolvedValueOnce({
+      studentId,
+      level: "green",
+    });
+
+    const { validateDossierPromotionAction } = await import("./actions");
+    const result = await validateDossierPromotionAction(`  ${studentId}  `);
+
+    expect(result).toEqual({ error: null });
+    expect(mockValidateStudentPromotion).toHaveBeenCalledWith(classId, studentId);
+  });
+
   it("returns a generic error for other promotion failures", async () => {
     mockAuthenticatedSession();
     const { StudentPromotionError, PROMOTION_VALIDATE_GENERIC_ERROR } =
@@ -677,8 +691,18 @@ describe("validateDossierPromotionAction", () => {
 describe("refuseDossierPromotionAction", () => {
   const studentId = "770e8400-e29b-41d4-a716-446655440002";
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { refuseDossierPromotionAction } = await import("./actions");
+
+    await expect(refuseDossierPromotionAction(studentId)).rejects.toThrow(
+      "NEXT_REDIRECT:/login"
+    );
   });
 
   it("refuses promotion and revalidates dossier routes", async () => {
@@ -711,6 +735,30 @@ describe("refuseDossierPromotionAction", () => {
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
     expect(revalidatePath).toHaveBeenCalledWith("/students");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+  });
+
+  it("returns a generic error for blank student ids", async () => {
+    mockAuthenticatedSession();
+    const { PROMOTION_REFUSE_GENERIC_ERROR } = await import(
+      "@/lib/services/refuse-student-promotion"
+    );
+
+    const { refuseDossierPromotionAction } = await import("./actions");
+    const result = await refuseDossierPromotionAction("   ");
+
+    expect(result.error).toBe(PROMOTION_REFUSE_GENERIC_ERROR);
+    expect(mockRefuseStudentPromotion).not.toHaveBeenCalled();
+  });
+
+  it("trims padded student ids before refusing", async () => {
+    mockAuthenticatedSession();
+    mockRefuseStudentPromotion.mockResolvedValueOnce({ studentId });
+
+    const { refuseDossierPromotionAction } = await import("./actions");
+    const result = await refuseDossierPromotionAction(`  ${studentId}  `);
+
+    expect(result).toEqual({ error: null });
+    expect(mockRefuseStudentPromotion).toHaveBeenCalledWith(classId, studentId);
   });
 
   it("returns a generic error for other promotion failures", async () => {
