@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
+
+import { saveDictationAction } from "@/app/(dashboard)/dictations/actions";
+import { DICTATION_SAVE_SUCCESS_MESSAGE } from "@/lib/domain/dictation-save-messages";
 
 import { Button } from "@/components/ui/button";
 import { LevelBadge } from "@/components/ui/level-badge";
@@ -40,18 +45,22 @@ function createInitialGridCounts(students: LeveledActiveStudent[]): GridCounts {
 }
 
 type ClassGridProps = {
+  dictationId: string;
   students: LeveledActiveStudent[];
   wordTotalsByStudentId: Record<string, number>;
 };
 
 export function ClassGrid({
+  dictationId,
   students,
   wordTotalsByStudentId,
 }: ClassGridProps) {
   const [counts, setCounts] = useState<GridCounts>(() =>
     createInitialGridCounts(students)
   );
+  const [isPending, startTransition] = useTransition();
   const inputRefs = useRef<Array<Array<HTMLInputElement | null>>>([]);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
 
   const studentMeta = useMemo(
     () =>
@@ -168,6 +177,40 @@ export function ClassGrid({
     []
   );
 
+  const handleSave = useCallback(() => {
+    if (!allRowsValid || isPending) {
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await saveDictationAction(dictationId, counts);
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success(DICTATION_SAVE_SUCCESS_MESSAGE);
+    });
+  }, [allRowsValid, counts, dictationId, isPending]);
+
+  const handleContainerKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key !== "Enter" || !allRowsValid || isPending) {
+        return;
+      }
+
+      const target = event.target;
+      if (target instanceof HTMLInputElement) {
+        return;
+      }
+
+      event.preventDefault();
+      handleSave();
+    },
+    [allRowsValid, handleSave, isPending]
+  );
+
   if (students.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -184,7 +227,12 @@ export function ClassGrid({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div
+        ref={gridContainerRef}
+        tabIndex={-1}
+        onKeyDown={handleContainerKeyDown}
+        className="overflow-x-auto rounded-lg border border-border outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
         <table className="min-w-full border-collapse text-sm">
           <caption className="sr-only">
             Grille de saisie des erreurs CHAMPIONS par élève
@@ -251,6 +299,7 @@ export function ClassGrid({
                         categoryIndex === lastCategoryIndex
                       }
                       hasValidationError={rowInvalid}
+                      disabled={isPending}
                       inputRef={(element) => {
                         if (!inputRefs.current[studentIndex]) {
                           inputRefs.current[studentIndex] = [];
@@ -269,8 +318,22 @@ export function ClassGrid({
           </tbody>
         </table>
       </div>
-      <Button type="button" disabled={!allRowsValid}>
-        Enregistrer
+      <Button
+        type="button"
+        disabled={!allRowsValid || isPending}
+        onClick={handleSave}
+      >
+        {isPending ? (
+          <>
+            <Loader2
+              className="mr-2 size-4 animate-spin"
+              aria-hidden="true"
+            />
+            Enregistrement…
+          </>
+        ) : (
+          "Enregistrer"
+        )}
       </Button>
     </div>
   );

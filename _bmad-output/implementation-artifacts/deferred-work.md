@@ -126,3 +126,9 @@
 
 - No try/catch around `listWordCountMatrixRows` on dictation detail page — same pattern as Config page and other dashboard routes (`page.tsx:52`)
 - Accessibility: grid cells not linked to inline Σ alert via `aria-describedby` — `aria-invalid` present; screen-reader association deferred to a11y pass (`class-grid.tsx:669-676`)
+
+## Deferred from: code review of spec-3-4-scoring-engine-dictation-save.md (2026-08-28)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-4-scoring-engine-dictation-save.md`
+  summary: Add integration test for full `saveDictation` DB transaction including promotion inserts.
+  evidence: Only `prepareDictationEntries` is unit-tested; transaction rollback and already-saved guard lack automated coverage.

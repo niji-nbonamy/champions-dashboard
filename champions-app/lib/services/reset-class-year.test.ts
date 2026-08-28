@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   classes,
+  dictationEntries,
   dictations,
   levelHistoryEntries,
+  pendingPromotions,
   students,
   wordCountMatrixRows,
 } from "@/lib/db/schema";
@@ -23,6 +25,18 @@ const mockDeleteLevelWhere = vi.fn();
 const mockDeleteLevel = vi.fn(() => {
   callOrder.push("delete-level-history");
   return { where: mockDeleteLevelWhere };
+});
+
+const mockDeleteDictationEntriesWhere = vi.fn();
+const mockDeleteDictationEntries = vi.fn(() => {
+  callOrder.push("delete-dictation-entries");
+  return { where: mockDeleteDictationEntriesWhere };
+});
+
+const mockDeletePendingPromotionsWhere = vi.fn();
+const mockDeletePendingPromotions = vi.fn(() => {
+  callOrder.push("delete-pending-promotions");
+  return { where: mockDeletePendingPromotionsWhere };
 });
 
 const mockDeleteStudentsWhere = vi.fn();
@@ -58,6 +72,12 @@ const mockTransaction = vi.fn(
     update: typeof mockUpdate;
   }) => Promise<unknown>) => {
     const txDelete = vi.fn((table: unknown) => {
+      if (table === dictationEntries) {
+        return mockDeleteDictationEntries();
+      }
+      if (table === pendingPromotions) {
+        return mockDeletePendingPromotions();
+      }
       if (table === levelHistoryEntries) {
         return mockDeleteLevel();
       }
@@ -126,8 +146,10 @@ describe("resetClassYear", () => {
     callOrder.length = 0;
   });
 
-  it("deletes level history before students inside one transaction", async () => {
+  it("deletes dictation data before students inside one transaction", async () => {
     mockClassSelectLimit.mockResolvedValueOnce([{ id: classId }]);
+    mockDeleteDictationEntriesWhere.mockResolvedValueOnce(undefined);
+    mockDeletePendingPromotionsWhere.mockResolvedValueOnce(undefined);
     mockDeleteLevelWhere.mockResolvedValueOnce(undefined);
     mockDeleteStudentsWhere.mockResolvedValueOnce(undefined);
     mockDeleteDictationsWhere.mockResolvedValueOnce(undefined);
@@ -140,12 +162,22 @@ describe("resetClassYear", () => {
     expect(mockTransaction).toHaveBeenCalled();
     expect(callOrder).toEqual([
       "select-students",
+      "delete-dictation-entries",
+      "delete-pending-promotions",
+      "delete-dictations",
       "delete-level-history",
       "delete-students",
-      "delete-dictations",
       "delete-matrix",
       "update-class",
     ]);
+    expect(mockInArray).toHaveBeenCalledWith(
+      dictationEntries.studentId,
+      [studentId]
+    );
+    expect(mockInArray).toHaveBeenCalledWith(
+      pendingPromotions.studentId,
+      [studentId]
+    );
     expect(mockInArray).toHaveBeenCalledWith(
       levelHistoryEntries.studentId,
       [studentId]
@@ -158,6 +190,8 @@ describe("resetClassYear", () => {
 
   it("updates the school year label when a new label is provided", async () => {
     mockClassSelectLimit.mockResolvedValueOnce([{ id: classId }]);
+    mockDeleteDictationEntriesWhere.mockResolvedValueOnce(undefined);
+    mockDeletePendingPromotionsWhere.mockResolvedValueOnce(undefined);
     mockDeleteLevelWhere.mockResolvedValueOnce(undefined);
     mockDeleteStudentsWhere.mockResolvedValueOnce(undefined);
     mockDeleteDictationsWhere.mockResolvedValueOnce(undefined);
@@ -176,6 +210,8 @@ describe("resetClassYear", () => {
 
   it("keeps the existing school year label when no new label is provided", async () => {
     mockClassSelectLimit.mockResolvedValueOnce([{ id: classId }]);
+    mockDeleteDictationEntriesWhere.mockResolvedValueOnce(undefined);
+    mockDeletePendingPromotionsWhere.mockResolvedValueOnce(undefined);
     mockDeleteLevelWhere.mockResolvedValueOnce(undefined);
     mockDeleteStudentsWhere.mockResolvedValueOnce(undefined);
     mockDeleteDictationsWhere.mockResolvedValueOnce(undefined);
@@ -220,6 +256,8 @@ describe("resetClassYear", () => {
 
   it("throws ClassNotFoundError when the class row disappears during update", async () => {
     mockClassSelectLimit.mockResolvedValueOnce([{ id: classId }]);
+    mockDeleteDictationEntriesWhere.mockResolvedValueOnce(undefined);
+    mockDeletePendingPromotionsWhere.mockResolvedValueOnce(undefined);
     mockDeleteLevelWhere.mockResolvedValueOnce(undefined);
     mockDeleteStudentsWhere.mockResolvedValueOnce(undefined);
     mockDeleteDictationsWhere.mockResolvedValueOnce(undefined);
@@ -244,11 +282,11 @@ describe("resetClassYear", () => {
         update: typeof mockUpdate;
       }) => Promise<unknown>) => {
         const txDelete = vi.fn((table: unknown) => {
-          if (table === students) {
-            return mockDeleteStudents();
-          }
           if (table === dictations) {
             return mockDeleteDictations();
+          }
+          if (table === students) {
+            return mockDeleteStudents();
           }
           if (table === wordCountMatrixRows) {
             return mockDeleteMatrix();
@@ -278,11 +316,13 @@ describe("resetClassYear", () => {
 
     expect(callOrder).toEqual([
       "select-students",
-      "delete-students",
       "delete-dictations",
+      "delete-students",
       "delete-matrix",
       "update-class",
     ]);
+    expect(mockDeleteDictationEntries).not.toHaveBeenCalled();
+    expect(mockDeletePendingPromotions).not.toHaveBeenCalled();
     expect(mockDeleteLevel).not.toHaveBeenCalled();
     expect(mockUpdate).toHaveBeenCalledWith(classes);
     expect(mockEq).toHaveBeenCalledWith(classes.id, classId);

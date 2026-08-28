@@ -15,12 +15,27 @@ import {
   createDictation,
   CreateDictationError,
 } from "@/lib/services/create-dictation";
+import {
+  saveDictation,
+  DictationSaveError,
+  DICTATION_SAVE_GENERIC_ERROR,
+} from "@/lib/services/dictation-save";
+import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
 
 export type CreateDictationActionState = {
   error: string | null;
 };
 
 const CREATE_DICTATION_GENERIC_ERROR = "Création impossible. Réessayez.";
+
+export type SaveDictationActionResult = {
+  error: string | null;
+};
+
+export type SaveDictationCounts = Record<
+  string,
+  Record<ChampionsErrorCategoryLetter, number>
+>;
 
 export async function createDictationAction(
   _prevState: CreateDictationActionState,
@@ -65,5 +80,35 @@ export async function createDictationAction(
     }
 
     return { error: CREATE_DICTATION_GENERIC_ERROR };
+  }
+}
+
+export async function saveDictationAction(
+  dictationId: string,
+  counts: SaveDictationCounts
+): Promise<SaveDictationActionResult> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  try {
+    await saveDictation(teacherClass.id, dictationId, counts);
+    revalidatePath(`/dictations/${dictationId}`);
+    revalidatePath("/dictations");
+    return { error: null };
+  } catch (error) {
+    if (error instanceof DictationSaveError) {
+      return { error: error.message };
+    }
+
+    return { error: DICTATION_SAVE_GENERIC_ERROR };
   }
 }

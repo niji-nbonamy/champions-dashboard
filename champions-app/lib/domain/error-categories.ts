@@ -110,3 +110,41 @@ export function formatGridCellAriaLabel(
 ): string {
   return `${firstName}, ${categoryName}, ${value} erreurs`;
 }
+
+export type DictationEntryErrorColumns = {
+  errorsC: number;
+  errorsH: number;
+  errorsA: number;
+  errorsM: number;
+  errorsP: number;
+  errorsI: number;
+  errorsO: number;
+  errorsN: number;
+  errorsS: number;
+};
+
+const ERROR_LETTER_TO_COLUMN: Record<
+  ChampionsErrorCategoryLetter,
+  keyof DictationEntryErrorColumns
+> = {
+  C: "errorsC",
+  H: "errorsH",
+  A: "errorsA",
+  M: "errorsM",
+  P: "errorsP",
+  I: "errorsI",
+  O: "errorsO",
+  N: "errorsN",
+  S: "errorsS",
+};
+
+export function categoryErrorsToDbColumns(
+  counts: Record<ChampionsErrorCategoryLetter, number>
+): DictationEntryErrorColumns {
+  return CHAMPIONS_ERROR_CATEGORIES.reduce((columns, category) => {
+    const column = ERROR_LETTER_TO_COLUMN[category.letter];
+    const value = counts[category.letter] ?? 0;
+    columns[column] = Number.isFinite(value) ? value : 0;
+    return columns;
+  }, {} as DictationEntryErrorColumns);
+}

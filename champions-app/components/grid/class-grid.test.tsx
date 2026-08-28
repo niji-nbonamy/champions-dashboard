@@ -3,12 +3,30 @@
  */
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CHAMPIONS_ERROR_CATEGORY_LETTERS } from "@/lib/domain/error-categories";
 import type { LeveledActiveStudent } from "@/lib/services/list-leveled-active-students";
 
 import { ClassGrid } from "./class-grid";
+
+const dictationId = "880e8400-e29b-41d4-a716-446655440003";
+
+const mockSaveDictationAction = vi.fn();
+const mockToastSuccess = vi.fn();
+const mockToastError = vi.fn();
+
+vi.mock("@/app/(dashboard)/dictations/actions", () => ({
+  saveDictationAction: (...args: unknown[]) => mockSaveDictationAction(...args),
+}));
+
+
+vi.mock("sonner", () => ({
+  toast: {
+    success: (...args: unknown[]) => mockToastSuccess(...args),
+    error: (...args: unknown[]) => mockToastError(...args),
+  },
+}));
 
 const sampleStudents: LeveledActiveStudent[] = [
   {
@@ -47,6 +65,10 @@ describe("ClassGrid", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
+    mockSaveDictationAction.mockReset();
+    mockToastSuccess.mockReset();
+    mockToastError.mockReset();
+    mockSaveDictationAction.mockResolvedValue({ error: null });
   });
 
   afterEach(() => {
@@ -63,6 +85,7 @@ describe("ClassGrid", () => {
     act(() => {
       root.render(
         <ClassGrid
+          dictationId={dictationId}
           students={students}
           wordTotalsByStudentId={wordTotalsByStudentId}
         />
@@ -586,5 +609,93 @@ describe("ClassGrid", () => {
     });
 
     expect(getSaveButton()?.disabled).toBe(false);
+  });
+
+  it("calls saveDictationAction and shows a success toast on Enregistrer", async () => {
+    renderGrid();
+
+    const saveButton = getSaveButton();
+    expect(saveButton).toBeTruthy();
+
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockSaveDictationAction).toHaveBeenCalledWith(
+      dictationId,
+      expect.any(Object)
+    );
+    expect(mockToastSuccess).toHaveBeenCalledWith("Dictée enregistrée.");
+    expect(mockToastError).not.toHaveBeenCalled();
+  });
+
+  it("shows a failure toast when save returns an error", async () => {
+    mockSaveDictationAction.mockResolvedValueOnce({
+      error: "Enregistrement impossible. Réessayez.",
+    });
+    renderGrid();
+
+    const saveButton = getSaveButton();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockToastError).toHaveBeenCalledWith(
+      "Enregistrement impossible. Réessayez."
+    );
+    expect(mockToastSuccess).not.toHaveBeenCalled();
+  });
+
+  it("locks cells and shows a spinner while save is pending", async () => {
+    let resolveSave: ((value: { error: string | null }) => void) | undefined;
+    mockSaveDictationAction.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSave = resolve;
+        })
+    );
+
+    renderGrid();
+
+    const saveButton = getSaveButton();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(saveButton?.textContent).toContain("Enregistrement");
+    expect(saveButton?.disabled).toBe(true);
+    getCellInputs().forEach((input) => {
+      expect(input.disabled).toBe(true);
+    });
+
+    await act(async () => {
+      resolveSave?.({ error: null });
+      await Promise.resolve();
+    });
+  });
+
+  it("triggers save on Enter when focus is on the grid container", async () => {
+    renderGrid();
+
+    const gridContainer = container.querySelector(
+      '[tabindex="-1"]'
+    ) as HTMLDivElement | null;
+    expect(gridContainer).toBeTruthy();
+
+    await act(async () => {
+      gridContainer?.focus();
+      gridContainer?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true })
+      );
+      await Promise.resolve();
+    });
+
+    expect(mockSaveDictationAction).toHaveBeenCalledWith(
+      dictationId,
+      expect.any(Object)
+    );
   });
 });

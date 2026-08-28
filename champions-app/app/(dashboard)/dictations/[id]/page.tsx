@@ -75,9 +75,6 @@ export default async function DictationDetailPage({
         </p>
       </div>
       <h2 className="text-lg font-medium">Saisie des erreurs</h2>
-      <p className="text-sm text-muted-foreground">
-        Les comptages ne sont pas encore enregistrés.
-      </p>
       {students.length > 0 && !matchingMatrixRow ? (
         <p className="text-sm text-muted-foreground">
           Aucune ligne de matrice pour cette dictée. Configurez la matrice sur{" "}
@@ -91,6 +88,7 @@ export default async function DictationDetailPage({
         </p>
       ) : (
         <ClassGrid
+          dictationId={dictation.id}
           students={students}
           wordTotalsByStudentId={wordTotalsByStudentId}
         />

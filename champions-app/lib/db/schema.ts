@@ -94,3 +94,54 @@ export const dictations = pgTable("dictations", {
     .defaultNow()
     .notNull(),
 });
+
+export const dictationEntries = pgTable(
+  "dictation_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dictationId: uuid("dictation_id")
+      .notNull()
+      .references(() => dictations.id),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id),
+    levelAtSave: text("level_at_save").notNull(),
+    wordDenominator: integer("word_denominator").notNull(),
+    globalPercent: integer("global_percent").notNull(),
+    errorsC: integer("errors_c").notNull().default(0),
+    errorsH: integer("errors_h").notNull().default(0),
+    errorsA: integer("errors_a").notNull().default(0),
+    errorsM: integer("errors_m").notNull().default(0),
+    errorsP: integer("errors_p").notNull().default(0),
+    errorsI: integer("errors_i").notNull().default(0),
+    errorsO: integer("errors_o").notNull().default(0),
+    errorsN: integer("errors_n").notNull().default(0),
+    errorsS: integer("errors_s").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("dictation_entries_dictation_student_uidx").on(
+      table.dictationId,
+      table.studentId
+    ),
+  ]
+);
+
+export const pendingPromotions = pgTable(
+  "pending_promotions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id),
+    targetLevel: text("target_level").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("pending_promotions_student_uidx").on(table.studentId),
+  ]
+);
