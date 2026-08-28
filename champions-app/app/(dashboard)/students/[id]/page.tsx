@@ -4,6 +4,10 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
 import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
+import {
+  DOSSIER_CONTENT_CONTAINER_CLASS,
+  DOSSIER_CURVE_TABLE_GRID_CLASS,
+} from "@/components/dossier/dossier-layout";
 import { GlobalSuccessCurve } from "@/components/dossier/global-success-curve";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
@@ -70,9 +74,9 @@ export default async function StudentDossierPage({
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-4xl">
+      <div className={DOSSIER_CONTENT_CONTAINER_CLASS}>
         {hasHistory ? (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className={DOSSIER_CURVE_TABLE_GRID_CLASS}>
             <section aria-label="Courbe de réussite globale">
               <GlobalSuccessCurve points={curvePoints} />
             </section>

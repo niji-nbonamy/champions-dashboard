@@ -58,6 +58,35 @@ describe("DictationHistoryTable", () => {
     expect(container.textContent).toContain("92 %");
   });
 
+  it("preserves newest-first row order from the service", () => {
+    const newerEntry: StudentDictationHistoryEntry = {
+      ...sampleEntry,
+      entryId: "bb0e8400-e29b-41d4-a716-446655440011",
+      label: "Dictée récente",
+      dictationDate: "2026-08-27",
+      globalPercent: 92,
+    };
+    const olderEntry: StudentDictationHistoryEntry = {
+      ...sampleEntry,
+      entryId: "aa0e8400-e29b-41d4-a716-446655440010",
+      label: "Dictée ancienne",
+      dictationDate: "2026-08-13",
+      globalPercent: 75,
+    };
+
+    act(() => {
+      root.render(
+        <DictationHistoryTable entries={[newerEntry, olderEntry]} />
+      );
+    });
+
+    const summaries = Array.from(container.querySelectorAll("summary"));
+    const labels = summaries.map((summary) => summary.textContent ?? "");
+
+    expect(labels[0]).toContain("Dictée récente");
+    expect(labels[1]).toContain("Dictée ancienne");
+  });
+
   it("shows per-category error counts without percentages when expanded", () => {
     act(() => {
       root.render(<DictationHistoryTable entries={[sampleEntry]} />);

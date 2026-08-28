@@ -131,6 +131,14 @@ SVG curve: simple polyline + dots at data points; Y-axis 0–100 %; no animation
 - [x] [Review][Reject] Clamp 0–100 % sur snapshots persistés — données DB déjà validées à la sauvegarde
 - [x] [Review][Reject] Sémantique liste `ul/li` — `<details>` par ligne suffit pour FR25
 
+- [x] [Review][Patch] Tie-breaker `entryId` dans `toCurvePoints` pour date + label identiques [`dossier-curve.ts:14`]
+- [x] [Review][Patch] Test ordre newest-first du tableau multi-entrées [`dictation-history-table.test.tsx`]
+- [x] [Review][Patch] Assertion colonnes `errorsC`–`errorsS` dans le SELECT du service [`get-student-dictation-history.test.ts:102`]
+- [x] [Review][Patch] Test mapping `percent` → coordonnée SVG `cy` [`global-success-curve.test.tsx:22`]
+- [x] [Review][Patch] Constante layout partagée skeleton/page [`dossier-layout.ts`, `dossier-skeleton.tsx:9`, `page.tsx:75`]
+
+- [x] [Review][Defer] Test navigation clavier `<details>` — comportement natif, focus ring CSS déjà présent
+
 ## Suggested Review Order
 
 **Dossier page orchestration**

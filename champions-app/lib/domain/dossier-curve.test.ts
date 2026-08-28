@@ -123,6 +123,38 @@ describe("toCurvePoints", () => {
     ]);
   });
 
+  it("breaks ties on identical date and label using entryId ascending", () => {
+    const history = [
+      makeEntry({
+        entryId: "bb0e8400-e29b-41d4-a716-446655440011",
+        dictationDate: "2026-08-20",
+        label: "Dictée A",
+        globalPercent: 90,
+      }),
+      makeEntry({
+        entryId: "aa0e8400-e29b-41d4-a716-446655440010",
+        dictationDate: "2026-08-20",
+        label: "Dictée A",
+        globalPercent: 85,
+      }),
+    ];
+
+    expect(toCurvePoints(history)).toEqual([
+      {
+        entryId: "aa0e8400-e29b-41d4-a716-446655440010",
+        date: "2026-08-20",
+        label: "Dictée A",
+        percent: 85,
+      },
+      {
+        entryId: "bb0e8400-e29b-41d4-a716-446655440011",
+        date: "2026-08-20",
+        label: "Dictée A",
+        percent: 90,
+      },
+    ]);
+  });
+
   it("returns an empty array when history is empty", () => {
     expect(toCurvePoints([])).toEqual([]);
   });

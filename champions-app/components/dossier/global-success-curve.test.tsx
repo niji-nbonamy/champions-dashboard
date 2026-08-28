@@ -37,6 +37,34 @@ describe("GlobalSuccessCurve", () => {
     expect(html).toContain("Dictée B : 88 %");
   });
 
+  it("maps higher success percentages to higher chart positions", () => {
+    const html = renderToStaticMarkup(
+      <GlobalSuccessCurve
+        points={[
+          {
+            entryId: "1",
+            date: "2026-08-13",
+            label: "Dictée A",
+            percent: 75,
+          },
+          {
+            entryId: "2",
+            date: "2026-08-27",
+            label: "Dictée B",
+            percent: 92,
+          },
+        ]}
+      />
+    );
+
+    const circleCoordinates = [...html.matchAll(/<circle[^>]*cy="([^"]+)"/g)].map(
+      (match) => Number(match[1])
+    );
+
+    expect(circleCoordinates).toHaveLength(2);
+    expect(circleCoordinates[1]).toBeLessThan(circleCoordinates[0]);
+  });
+
   it("renders a single point without a connecting line", () => {
     const html = renderToStaticMarkup(
       <GlobalSuccessCurve

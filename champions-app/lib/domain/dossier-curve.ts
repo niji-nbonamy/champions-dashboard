@@ -14,7 +14,8 @@ export function toCurvePoints(
     .sort(
       (a, b) =>
         a.dictationDate.localeCompare(b.dictationDate) ||
-        a.label.localeCompare(b.label)
+        a.label.localeCompare(b.label) ||
+        a.entryId.localeCompare(b.entryId)
     )
     .map((entry) => ({
       entryId: entry.entryId,

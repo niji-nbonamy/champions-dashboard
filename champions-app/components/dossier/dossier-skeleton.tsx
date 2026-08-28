@@ -1,12 +1,17 @@
+import {
+  DOSSIER_CONTENT_CONTAINER_CLASS,
+  DOSSIER_CURVE_TABLE_GRID_CLASS,
+} from "@/components/dossier/dossier-layout";
+
 export function DossierSkeleton() {
   return (
     <div
-      className="mx-auto w-full max-w-4xl"
+      className={DOSSIER_CONTENT_CONTAINER_CLASS}
       data-testid="dossier-skeleton"
       aria-busy="true"
       aria-label="Chargement du dossier"
     >
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className={DOSSIER_CURVE_TABLE_GRID_CLASS}>
         <div className="h-48 animate-pulse rounded-lg bg-muted" />
         <div className="flex flex-col gap-3">
           <div className="h-6 w-48 animate-pulse rounded bg-muted" />

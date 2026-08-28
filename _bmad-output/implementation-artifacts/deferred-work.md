@@ -211,3 +211,7 @@
 - Promise.all pour requêtes parallèles — micro-optimisation latence ; impact négligeable pour 2 requêtes (`page.tsx:41`)
 - Tests unitaires dédiés `curve-placeholder` / `dictation-history-list` — couverts indirectement par `page.test.tsx`
 - Type `ClassStudentRecord` dupliqué vs `ClassStudent` — cosmétique ; consolidation possible plus tard (`get-class-student.ts:6`)
+
+## Deferred from: code review of spec-4-2-hero-curve-collapsed-dictation-table-c1.md (2026-08-28)
+
+- Test navigation clavier `<details>` — comportement natif du navigateur ; focus ring CSS déjà présent sur `summary` (`dictation-history-table.tsx:28`)

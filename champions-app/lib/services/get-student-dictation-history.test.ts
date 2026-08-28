@@ -99,7 +99,24 @@ describe("getStudentDictationHistory", () => {
     );
     const result = await getStudentDictationHistory(classId, studentId);
 
-    expect(mockSelect).toHaveBeenCalled();
+    expect(mockSelect).toHaveBeenCalledWith({
+      entryId: dictationEntries.id,
+      dictationId: dictations.id,
+      label: dictations.label,
+      dictationDate: dictations.dictationDate,
+      levelAtSave: dictationEntries.levelAtSave,
+      globalPercent: dictationEntries.globalPercent,
+      wordDenominator: dictationEntries.wordDenominator,
+      errorsC: dictationEntries.errorsC,
+      errorsH: dictationEntries.errorsH,
+      errorsA: dictationEntries.errorsA,
+      errorsM: dictationEntries.errorsM,
+      errorsP: dictationEntries.errorsP,
+      errorsI: dictationEntries.errorsI,
+      errorsO: dictationEntries.errorsO,
+      errorsN: dictationEntries.errorsN,
+      errorsS: dictationEntries.errorsS,
+    });
     expect(mockFrom).toHaveBeenCalledWith(dictationEntries);
     expect(mockInnerJoin).toHaveBeenCalledWith(
       dictations,
