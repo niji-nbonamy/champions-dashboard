@@ -6,7 +6,10 @@ import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { saveDictationAction } from "@/app/(dashboard)/dictations/actions";
-import { DICTATION_SAVE_SUCCESS_MESSAGE } from "@/lib/domain/dictation-save-messages";
+import {
+  DICTATION_SAVE_GENERIC_ERROR,
+  DICTATION_SAVE_SUCCESS_MESSAGE,
+} from "@/lib/domain/dictation-save-messages";
 
 import { Button } from "@/components/ui/button";
 import { LevelBadge } from "@/components/ui/level-badge";
@@ -183,14 +186,18 @@ export function ClassGrid({
     }
 
     startTransition(async () => {
-      const result = await saveDictationAction(dictationId, counts);
+      try {
+        const result = await saveDictationAction(dictationId, counts);
 
-      if (result.error) {
-        toast.error(result.error);
-        return;
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+
+        toast.success(DICTATION_SAVE_SUCCESS_MESSAGE);
+      } catch {
+        toast.error(DICTATION_SAVE_GENERIC_ERROR);
       }
-
-      toast.success(DICTATION_SAVE_SUCCESS_MESSAGE);
     });
   }, [allRowsValid, counts, dictationId, isPending]);
 

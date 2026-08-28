@@ -156,4 +156,20 @@ context:
 
 - [x] [Review][Patch] Client `ClassGrid` imported toast constant from server `dictation-save.ts` — moved to `dictation-save-messages.ts`.
 
-- [ ] [Review][Defer] No integration test for full `saveDictation` DB transaction (mocked service layer only).
+- [x] [Review][Patch] Reject save when server roster student missing from client counts payload — `assertCountsMatchRoster` added [`dictation-save.ts:99`]
+
+- [x] [Review][Patch] Move already-saved guard inside transaction to close concurrent first-save race [`dictation-save.ts:254`]
+
+- [x] [Review][Patch] Guard concurrent `pending_promotions` insert — `onConflictDoNothing` on `student_id` [`dictation-save.ts:278`]
+
+- [x] [Review][Patch] Wrap `saveDictationAction` call in try/catch for unexpected throws [`class-grid.tsx:188`]
+
+- [x] [Review][Defer] No integration test for full `saveDictation` DB transaction (mocked service layer only) — includes rollback, already-saved guard, and promotion inserts [`dictation-save.test.ts`]
+
+- [x] [Review][Defer] `saveDictationAction` lacks tests in `actions.test.ts` — auth, revalidatePath, and error mapping untested [`actions.ts:86`]
+
+- [x] [Review][Defer] Promotion insert path untested in `dictation-save` — only `evaluatePendingPromotion` unit tests cover thresholds [`dictation-save.ts:247`]
+
+- [x] [Review][Defer] Enter-to-save guards untested — no test for Enter in cell input or Enter on container when grid invalid [`class-grid.test.tsx:680`]
+
+- [x] [Review][Defer] Grid data retention on failure untested — error toast asserted but counts unchanged not verified [`class-grid.test.tsx:633`]

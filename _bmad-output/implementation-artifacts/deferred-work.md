@@ -132,3 +132,21 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-4-scoring-engine-dictation-save.md`
   summary: Add integration test for full `saveDictation` DB transaction including promotion inserts.
   evidence: Only `prepareDictationEntries` is unit-tested; transaction rollback and already-saved guard lack automated coverage.
+
+## Deferred from: code review of spec-3-4-scoring-engine-dictation-save.md (2026-08-28) — pass 2
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-4-scoring-engine-dictation-save.md`
+  summary: Add `saveDictationAction` tests mirroring `createDictationAction` pattern.
+  evidence: `actions.test.ts` has no `saveDictationAction` describe block; class-grid mocks the action entirely.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-4-scoring-engine-dictation-save.md`
+  summary: Test promotion insert and skip-when-pending inside `saveDictation` transaction loop.
+  evidence: `promotion.test.ts` covers domain only; no mocked-DB test asserts `tx.insert(pendingPromotions)`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-4-scoring-engine-dictation-save.md`
+  summary: Add Enter-to-save regression tests (cell input focus, invalid grid on container Enter).
+  evidence: `class-grid.test.tsx` tests Enter on container only with valid grid; `HTMLInputElement` guard untested.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-4-scoring-engine-dictation-save.md`
+  summary: Assert grid counts unchanged after save failure toast.
+  evidence: Failure test checks `mockToastError` only, not retained `counts` state (UX-DR24).

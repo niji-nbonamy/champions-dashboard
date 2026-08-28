@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { prepareDictationEntries } from "./dictation-save";
+import {
+  assertCountsMatchRoster,
+  prepareDictationEntries,
+} from "./dictation-save";
 
 const matrixRow = {
   wordsYellow: 50,
@@ -31,6 +34,26 @@ const emptyCounts = {
   N: 0,
   S: 0,
 };
+
+describe("assertCountsMatchRoster", () => {
+  it("rejects when a roster student is missing from the counts payload", () => {
+    expect(() =>
+      assertCountsMatchRoster(students, {
+        [students[0].id]: { ...emptyCounts },
+      })
+    ).toThrow();
+  });
+
+  it("rejects when the counts payload includes an unknown student id", () => {
+    expect(() =>
+      assertCountsMatchRoster(students, {
+        [students[0].id]: { ...emptyCounts },
+        [students[1].id]: { ...emptyCounts },
+        "00000000-0000-4000-8000-000000000099": { ...emptyCounts },
+      })
+    ).toThrow();
+  });
+});
 
 describe("prepareDictationEntries", () => {
   it("builds snapshots with matrix-derived denominators per level", () => {

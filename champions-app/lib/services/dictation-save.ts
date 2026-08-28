@@ -96,6 +96,25 @@ function normalizeCategoryCounts(
   };
 }
 
+export function assertCountsMatchRoster(
+  students: Array<{ id: string }>,
+  countsByStudentId: GridCountsInput
+): void {
+  const rosterIds = new Set(students.map((student) => student.id));
+
+  for (const student of students) {
+    if (countsByStudentId[student.id] === undefined) {
+      throw new InvalidGridSaveError();
+    }
+  }
+
+  for (const studentId of Object.keys(countsByStudentId)) {
+    if (!rosterIds.has(studentId)) {
+      throw new InvalidGridSaveError();
+    }
+  }
+}
+
 export function prepareDictationEntries(
   students: Array<{ id: string; level: string }>,
   countsByStudentId: GridCountsInput,
@@ -151,16 +170,6 @@ export async function saveDictation(
 
   const db = getDb();
 
-  const [existingEntry] = await db
-    .select({ id: dictationEntries.id })
-    .from(dictationEntries)
-    .where(eq(dictationEntries.dictationId, dictationId))
-    .limit(1);
-
-  if (existingEntry) {
-    throw new DictationAlreadySavedError();
-  }
-
   const students = await listLeveledActiveStudents(classId);
   if (students.length === 0) {
     throw new InvalidGridSaveError();
@@ -177,6 +186,8 @@ export async function saveDictation(
   if (!matchingMatrixRow) {
     throw new InvalidGridSaveError();
   }
+
+  assertCountsMatchRoster(students, countsByStudentId);
 
   const preparedEntries = prepareDictationEntries(
     students,
@@ -234,6 +245,16 @@ export async function saveDictation(
   }
 
   await db.transaction(async (tx) => {
+    const [existingEntry] = await tx
+      .select({ id: dictationEntries.id })
+      .from(dictationEntries)
+      .where(eq(dictationEntries.dictationId, dictationId))
+      .limit(1);
+
+    if (existingEntry) {
+      throw new DictationAlreadySavedError();
+    }
+
     for (const entry of preparedEntries) {
       await tx.insert(dictationEntries).values({
         dictationId,
@@ -259,10 +280,13 @@ export async function saveDictation(
         promotion.targetLevel &&
         !studentsWithPendingPromotion.has(entry.studentId)
       ) {
-        await tx.insert(pendingPromotions).values({
-          studentId: entry.studentId,
-          targetLevel: promotion.targetLevel,
-        });
+        await tx
+          .insert(pendingPromotions)
+          .values({
+            studentId: entry.studentId,
+            targetLevel: promotion.targetLevel,
+          })
+          .onConflictDoNothing({ target: pendingPromotions.studentId });
         studentsWithPendingPromotion.add(entry.studentId);
       }
     }
