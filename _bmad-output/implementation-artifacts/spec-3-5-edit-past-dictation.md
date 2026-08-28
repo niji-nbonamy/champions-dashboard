@@ -28,7 +28,7 @@ context:
 - Global % recalculated via `calculateGlobalPercent(snapshot.wordDenominator, Σerrors)` from `lib/domain/scoring` (NFR3).
 - Client validation uses per-row snapshot `wordDenominator`, not current student level × matrix.
 - Grid pre-fills saved error counts on reopen; archived students with entries render read-only rows (counts visible, cells disabled, excluded from save payload) per `dictation-lifecycle.md`.
-- Promotion cascade after edit: for each student with an entry on the edited dictation, delete their `pending_promotions` row, reload two most recent dictation entries (by `dictationDate DESC, createdAt DESC`), call `evaluatePendingPromotion(mostRecent.levelAtSave, [recent%, prior%])`, insert pending if eligible. Students with fewer than two entries → no pending.
+- Promotion cascade after edit: for each **active** student with an entry on the edited dictation, delete their `pending_promotions` row, reload two most recent dictation entries (by `dictationDate DESC, createdAt DESC`), call `evaluatePendingPromotion(mostRecent.levelAtSave, [recent%, prior%])`, insert pending if eligible. Archived students are excluded. Students with fewer than two entries → no pending.
 - All writes in `db.transaction()`. Success toast « Dictée enregistrée. »; failure « Enregistrement impossible. Réessayez. » with grid retained (UX-DR24).
 - During save: spinner + cell lock (UX-DR23). No student names in server logs (NFR10).
 - No dictation delete/purge (FR42).
@@ -114,11 +114,29 @@ context:
 
 - [x] [Review][Defer] No ARIA/visual indicator beyond disabled cells for read-only archived rows [`class-grid.tsx:334`](../../champions-app/components/grid/class-grid.tsx#L334)
 
+- [x] [Review][Decision] Exclude archived students from `cascadePromotionReevaluation` — user chose option 2; filter `affectedStudentIds` to active entries only [`dictation-save.ts:316`](../../champions-app/lib/services/dictation-save.ts#L316)
+
+- [x] [Review][Defer] Unit test for `.returning()` zero-row guard on edit UPDATE [`dictation-save.ts:334`](../../champions-app/lib/services/dictation-save.ts#L334)
+
+- [x] [Review][Defer] Unit test for negative column clamp in `dbColumnsToCategoryErrors` [`error-categories.ts:159`](../../champions-app/lib/domain/error-categories.ts#L159)
+
+- [x] [Review][Defer] Unit tests for keyboard navigation skipping read-only rows [`class-grid.tsx:144`](../../champions-app/components/grid/class-grid.tsx#L144)
+
+- [x] [Review][Defer] Assert grid `counts` retained after save failure with `initialCounts` (UX-DR24 reopen path) [`class-grid.tsx:264`](../../champions-app/components/grid/class-grid.tsx#L264)
+
+- [x] [Review][Defer] Assert edit UPDATE `.set()` excludes `levelAtSave`/`wordDenominator` keys [`dictation-save.ts:322`](../../champions-app/lib/services/dictation-save.ts#L322)
+
+- [x] [Review][Defer] Integration test: invalid row (Σ errors > snapshot denominator) blocks transaction on edit path [`dictation-save.ts:318`](../../champions-app/lib/services/dictation-save.ts#L318)
+
+- [x] [Review][Defer] Test active student added after first save is excluded from reopen grid [`page.tsx:54`](../../champions-app/app/(dashboard)/dictations/[id]/page.tsx#L54)
+
+- [x] [Review][Defer] Test all-archived reopen grid disables save and skips save payload [`class-grid.tsx:122`](../../champions-app/components/grid/class-grid.tsx#L122)
+
 ## Design Notes
 
 `saveDictation` detects edit when any entry exists for `dictationId`. Edit flow loads existing snapshots keyed by `studentId`, validates counts against `wordDenominator` from snapshot (not matrix), updates `errors_*` + `globalPercent` only.
 
-Promotion cascade (per affected student): `DELETE FROM pending_promotions WHERE student_id = ?` then evaluate the two most recent entries class-wide for that student. Reuse `evaluatePendingPromotion` — do not duplicate threshold logic.
+Promotion cascade (per affected active student): `DELETE FROM pending_promotions WHERE student_id = ?` then evaluate the two most recent entries class-wide for that student. Archived students with entries on the dictation are excluded from cascade re-evaluation. Reuse `evaluatePendingPromotion` — do not duplicate threshold logic.
 
 `wordTotalsByStudentId` on edit page: `{ [studentId]: entry.wordDenominator }` for students with entries; active students without entry on this dictation are omitted from grid.
 

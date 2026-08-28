@@ -233,6 +233,8 @@ describe("saveDictation edit path", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    mockSelectLimit.mockReset();
+    mockSelectLimit.mockResolvedValue([]);
   });
 
   it("updates entries using snapshots and re-evaluates pending promotions", async () => {
@@ -407,6 +409,71 @@ describe("saveDictation edit path", () => {
       })
     ).rejects.toThrow();
     expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it("skips promotion cascade for archived students on the dictation", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: students[0].id,
+        displayName: "DUPONT Marie",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 50,
+        globalPercent: 80,
+        errorsC: 10,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+      {
+        studentId: students[1].id,
+        displayName: "MARTIN Paul",
+        archived: true,
+        levelAtSave: "green",
+        wordDenominator: 60,
+        globalPercent: 90,
+        errorsC: 6,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit.mockResolvedValueOnce([
+        { levelAtSave: "yellow", globalPercent: 96 },
+        { levelAtSave: "yellow", globalPercent: 92 },
+      ]);
+      await callback(tx);
+    });
+
+    const { saveDictation } = await import("./dictation-save");
+    await saveDictation(classId, dictationId, {
+      [students[0].id]: { ...emptyCounts, C: 2 },
+    });
+
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    expect(mockSelectLimit).toHaveBeenCalledTimes(1);
   });
 
   it("does not insert pending promotion when student has only one dictation", async () => {

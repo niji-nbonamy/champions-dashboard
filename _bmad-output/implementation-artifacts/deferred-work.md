@@ -164,3 +164,37 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
   summary: ARIA or visual affordance for read-only archived grid rows beyond disabled inputs.
   evidence: Archived rows use `disabled` only; no `aria-readonly` or label for screen readers.
+
+## Deferred from: code review of spec-3-5-edit-past-dictation.md (2026-08-28) — pass 2
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Unit test for `.returning()` zero-row guard on edit UPDATE.
+  evidence: `mockUpdateReturning` always resolves a row; guard at `dictation-save.ts:334` untested.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Unit test for negative column clamp in `dbColumnsToCategoryErrors`.
+  evidence: `error-categories.test.ts` covers positive round-trip only; `Math.max(0, …)` at line 159 unverified.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Unit tests for keyboard navigation skipping read-only archived rows.
+  evidence: `findEditableStudentIndex` implemented; existing keyboard tests use fully editable grids.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Assert grid counts retained after save failure with `initialCounts` (UX-DR24 reopen path).
+  evidence: Failure test asserts toast only, not input values after error.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Assert edit UPDATE `.set()` excludes `levelAtSave`/`wordDenominator`.
+  evidence: Integration test checks `globalPercent`/`errorsC` only; snapshot overwrite regression undetected.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Integration test — invalid row (Σ errors > snapshot denominator) blocks transaction on edit path.
+  evidence: `prepareDictationEntryUpdates` unit-tested; no test that `mockTransaction` is skipped on invalid edit.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Test active student added after first save is excluded from reopen grid.
+  evidence: Page maps `savedEntries` only; no page test for post-save roster addition.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Test all-archived reopen grid disables save.
+  evidence: `editableStudents.length > 0` guard present; no scenario test.

@@ -313,7 +313,9 @@ export async function saveDictation(
       editableSnapshots,
       countsByStudentId
     );
-    const affectedStudentIds = existingEntries.map((entry) => entry.studentId);
+    const affectedStudentIds = existingEntries
+      .filter((entry) => !entry.archived)
+      .map((entry) => entry.studentId);
 
     await db.transaction(async (tx) => {
       for (const entry of preparedUpdates) {
