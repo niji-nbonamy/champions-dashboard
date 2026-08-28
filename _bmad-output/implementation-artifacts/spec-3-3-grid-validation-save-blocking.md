@@ -126,3 +126,15 @@ Validation runs in `ClassGrid` via `useMemo` over `counts` + `wordTotalsByStuden
 
 - Shared builder for per-student word totals from matrix × level
   [`word-count-matrix.ts`](../../champions-app/lib/domain/word-count-matrix.ts)
+
+### Review Findings
+
+- [x] [Review][Decision] `ring-destructive/20` vs `ring-destructive` literal — **Resolved: accept `ring-destructive/20`** as sufficient visual treatment; consistent with design system (`button.tsx` uses same opacity pattern). Dismissed.
+
+- [x] [Review][Patch] Missing FR13 page integration test [`page.test.tsx`](../../champions-app/app/(dashboard)/dictations/[id]/page.test.tsx) — added mock ClassGrid assertion for matrix × level word totals.
+
+- [x] [Review][Patch] Redundant "Config" microcopy [`page.tsx:84-89`](../../champions-app/app/(dashboard)/dictations/[id]/page.tsx) — inline sentence with single linked « Config » word.
+
+- [x] [Review][Defer] No try/catch around `listWordCountMatrixRows` [`page.tsx:52`](../../champions-app/app/(dashboard)/dictations/[id]/page.tsx) — deferred, pre-existing — DB fetch failures surface as unhandled server error; consistent with other pages in this epic.
+
+- [x] [Review][Defer] Accessibility: cells not linked to inline alert via `aria-describedby` [`class-grid.tsx:669-676`](../../champions-app/components/grid/class-grid.tsx) — deferred, pre-existing — screen readers get `aria-invalid` but may not hear the Σ message without explicit association.

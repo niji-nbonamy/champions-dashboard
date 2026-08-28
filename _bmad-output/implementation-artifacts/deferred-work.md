@@ -121,3 +121,8 @@
 - Placeholder détail minimal (« Saisie grille — prochaine étape ») — story 3.2 owns grid UI on `/dictations/[id]`
 - Pas de `generateMetadata` sur routes dictées — pattern projet non uniformisé sur les routes dashboard
 - `isCompleteMatrixRow` sans tests unitaires dédiés — couverture indirecte via wizard et create-dictation tests suffisante pour 3.1
+
+## Deferred from: code review of spec-3-3-grid-validation-save-blocking.md (2026-08-28)
+
+- No try/catch around `listWordCountMatrixRows` on dictation detail page — same pattern as Config page and other dashboard routes (`page.tsx:52`)
+- Accessibility: grid cells not linked to inline Σ alert via `aria-describedby` — `aria-invalid` present; screen-reader association deferred to a11y pass (`class-grid.tsx:669-676`)

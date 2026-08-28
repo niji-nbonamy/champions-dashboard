@@ -173,23 +173,38 @@ describe("ClassGrid", () => {
 
     act(() => {
       firstInput?.focus();
-      firstInput?.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "5", bubbles: true })
-      );
+      setInputValue(firstInput!, "5");
     });
 
     expect(firstInput?.value).toBe("5");
 
     act(() => {
       firstInput?.focus();
-      firstInput?.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "3", bubbles: true })
-      );
+      setInputValue(firstInput!, "3");
     });
 
     expect(firstInput?.value).toBe("3");
     expect(firstInput?.getAttribute("aria-label")).toBe(
       "Marie, Conjugaison, 3 erreurs"
+    );
+  });
+
+  it("allows multi-digit values in a cell", () => {
+    renderGrid();
+
+    const firstInput = getCellInputs()[0];
+    expect(firstInput).toBeDefined();
+
+    act(() => {
+      firstInput?.focus();
+      setInputValue(firstInput!, "1");
+      setInputValue(firstInput!, "12");
+      setInputValue(firstInput!, "123");
+    });
+
+    expect(firstInput?.value).toBe("123");
+    expect(firstInput?.getAttribute("aria-label")).toBe(
+      "Marie, Conjugaison, 123 erreurs"
     );
   });
 
@@ -517,9 +532,7 @@ describe("ClassGrid", () => {
     const paulFirstCell = getCellInputs()[9];
     act(() => {
       paulFirstCell?.focus();
-      paulFirstCell?.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "6", bubbles: true })
-      );
+      setInputValue(paulFirstCell!, "6");
     });
 
     expect(container.textContent).toContain(
@@ -536,9 +549,7 @@ describe("ClassGrid", () => {
     const firstInput = getCellInputs()[0];
     act(() => {
       firstInput?.focus();
-      firstInput?.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "6", bubbles: true })
-      );
+      setInputValue(firstInput!, "6");
     });
 
     expect(container.textContent).toContain(

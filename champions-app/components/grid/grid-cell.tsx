@@ -74,12 +74,6 @@ export function GridCell({
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (/^[0-9]$/.test(event.key)) {
-      event.preventDefault();
-      onValueChange(studentId, categoryLetter, Number(event.key));
-      return;
-    }
-
     if (event.key === "Tab") {
       if (!event.shiftKey && isLastCell) {
         event.preventDefault();
@@ -125,7 +119,6 @@ export function GridCell({
         type="text"
         inputMode="numeric"
         pattern="[0-9]*"
-        maxLength={1}
         value={String(value)}
         aria-label={formatGridCellAriaLabel(firstName, categoryName, value)}
         aria-invalid={hasValidationError ? true : undefined}

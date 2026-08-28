@@ -4,7 +4,6 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { ClassGrid } from "@/components/grid/class-grid";
 import {
-  DICTATION_MATRIX_ROW_MISSING_ERROR,
   formatDictationDateForDisplay,
   findMatchingMatrixRow,
   isValidUuidV4,
@@ -81,13 +80,14 @@ export default async function DictationDetailPage({
       </p>
       {students.length > 0 && !matchingMatrixRow ? (
         <p className="text-sm text-muted-foreground">
-          {DICTATION_MATRIX_ROW_MISSING_ERROR}{" "}
+          Aucune ligne de matrice pour cette dictée. Configurez la matrice sur{" "}
           <Link
             href="/config"
             className="underline underline-offset-4"
           >
             Config
           </Link>
+          .
         </p>
       ) : (
         <ClassGrid
