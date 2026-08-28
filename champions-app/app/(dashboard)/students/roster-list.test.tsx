@@ -57,6 +57,9 @@ describe("RosterList", () => {
     );
 
     expect(html).toContain("DUPONT Marie");
+    expect(html).toContain(
+      'href="/students/770e8400-e29b-41d4-a716-446655440002"'
+    );
     expect(html).not.toContain("niveau requis");
     expect(html).not.toContain("level-dot-picker");
   });
@@ -83,11 +86,17 @@ describe("RosterList", () => {
     );
 
     expect(html).toContain("DUPONT Marie");
+    expect(html).toContain(
+      'href="/students/770e8400-e29b-41d4-a716-446655440002"'
+    );
     expect(html).toContain("niveau requis");
     expect(html).toContain(
       'data-testid="level-dot-picker-770e8400-e29b-41d4-a716-446655440002"'
     );
     expect(html).toContain("MARTIN Lucas");
+    expect(html).toContain(
+      'href="/students/880e8400-e29b-41d4-a716-446655440003"'
+    );
     expect(html).toContain("jaune");
     expect(html).not.toContain("Niveau non assigné");
   });
@@ -109,6 +118,9 @@ describe("RosterList", () => {
     );
 
     expect(html).toContain("BERNARD Paul");
+    expect(html).toContain(
+      'href="/students/990e8400-e29b-41d4-a716-446655440004"'
+    );
     expect(html).toContain("Archivé");
     expect(html).toContain("green");
     expect(html).not.toContain("level-dot-picker");

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { LevelBadge } from "@/components/ui/level-badge";
 import { RequiredLevelBadge } from "@/components/ui/required-level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
@@ -54,7 +56,13 @@ export function RosterList({
             key={student.id}
             className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
           >
-            <span className="text-sm font-medium">{student.displayName}</span>
+            <Link
+              href={`/students/${student.id}`}
+              className="text-sm font-medium underline-offset-4 hover:underline"
+              aria-label={`Dossier de ${student.displayName}`}
+            >
+              {student.displayName}
+            </Link>
             <div className="flex flex-col items-start gap-2 sm:items-end">
               {showLevelUi ? (
                 isArchived ? (
