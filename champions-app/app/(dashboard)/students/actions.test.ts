@@ -17,6 +17,7 @@ const {
   mockAddStudent,
   mockArchiveStudent,
   mockAssignStudentLevel,
+  mockOverrideStudentLevel,
   mockAuth,
   mockGetTeacherClass,
   mockCountActiveStudents,
@@ -31,6 +32,7 @@ const {
   mockAddStudent: vi.fn(),
   mockArchiveStudent: vi.fn(),
   mockAssignStudentLevel: vi.fn(),
+  mockOverrideStudentLevel: vi.fn(),
   mockAuth: vi.fn(),
   mockGetTeacherClass: vi.fn(),
   mockCountActiveStudents: vi.fn(),
@@ -117,6 +119,38 @@ vi.mock("@/lib/services/assign-student-level", () => {
     AssignStudentLevelError,
     StudentNotFoundError,
     StudentAlreadyAssignedError,
+  };
+});
+
+vi.mock("@/lib/services/override-student-level", () => {
+  class OverrideStudentLevelError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "OverrideStudentLevelError";
+    }
+  }
+
+  class StudentNotFoundForOverrideError extends OverrideStudentLevelError {
+    constructor() {
+      super("Élève introuvable.");
+      this.name = "StudentNotFoundForOverrideError";
+    }
+  }
+
+  class StudentNotLeveledForOverrideError extends OverrideStudentLevelError {
+    constructor() {
+      super("Le niveau n'est pas encore assigné.");
+      this.name = "StudentNotLeveledForOverrideError";
+    }
+  }
+
+  return {
+    overrideStudentLevel: mockOverrideStudentLevel,
+    OverrideStudentLevelError,
+    StudentNotFoundForOverrideError,
+    StudentNotLeveledForOverrideError,
+    OVERRIDE_STUDENT_LEVEL_GENERIC_ERROR:
+      "Modification impossible. Réessayez.",
   };
 });
 
@@ -464,6 +498,176 @@ describe("assignStudentLevelAction", () => {
     const result = await assignStudentLevelAction({ error: null }, formData);
 
     expect(result.error).toBe(ASSIGN_STUDENT_LEVEL_GENERIC_ERROR);
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("overrideStudentLevelAction", () => {
+  const studentId = "770e8400-e29b-41d4-a716-446655440002";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { overrideStudentLevelAction } = await import("./actions");
+
+    await expect(
+      overrideStudentLevelAction(
+        { error: null, changed: false },
+        new FormData()
+      )
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
+  it("overrides a level and revalidates dossier routes", async () => {
+    mockAuthenticatedSession();
+    mockOverrideStudentLevel.mockResolvedValueOnce({
+      studentId,
+      level: "green",
+      changed: true,
+    });
+
+    const { overrideStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "green");
+
+    const result = await overrideStudentLevelAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result).toEqual({ error: null, changed: true });
+    expect(mockOverrideStudentLevel).toHaveBeenCalledWith(
+      classId,
+      studentId,
+      "green"
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+  });
+
+  it("skips revalidation when the level is unchanged", async () => {
+    mockAuthenticatedSession();
+    mockOverrideStudentLevel.mockResolvedValueOnce({
+      studentId,
+      level: "yellow",
+      changed: false,
+    });
+
+    const { overrideStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "yellow");
+
+    const result = await overrideStudentLevelAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result).toEqual({ error: null, changed: false });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns not-found errors from the override service", async () => {
+    mockAuthenticatedSession();
+    const { StudentNotFoundForOverrideError } = await import(
+      "@/lib/services/override-student-level"
+    );
+    mockOverrideStudentLevel.mockRejectedValueOnce(
+      new StudentNotFoundForOverrideError()
+    );
+
+    const { overrideStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "green");
+
+    const result = await overrideStudentLevelAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result.error).toBe("Élève introuvable.");
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("redirects users without a class to onboarding", async () => {
+    mockAuth.mockResolvedValueOnce({
+      user: { id: teacherId, email: "t@example.com" },
+    });
+    mockGetTeacherClass.mockResolvedValueOnce(null);
+
+    const { overrideStudentLevelAction } = await import("./actions");
+
+    await expect(
+      overrideStudentLevelAction(
+        { error: null, changed: false },
+        new FormData()
+      )
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/class");
+  });
+
+  it("returns a generic French error for invalid levels", async () => {
+    mockAuthenticatedSession();
+
+    const { overrideStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "red");
+
+    const result = await overrideStudentLevelAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result.error).toBe("Modification impossible. Réessayez.");
+    expect(mockOverrideStudentLevel).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns not-leveled errors from the override service", async () => {
+    mockAuthenticatedSession();
+    const { StudentNotLeveledForOverrideError } = await import(
+      "@/lib/services/override-student-level"
+    );
+    mockOverrideStudentLevel.mockRejectedValueOnce(
+      new StudentNotLeveledForOverrideError()
+    );
+
+    const { overrideStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "green");
+
+    const result = await overrideStudentLevelAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result.error).toBe("Le niveau n'est pas encore assigné.");
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns a generic French error for unexpected failures", async () => {
+    mockAuthenticatedSession();
+    mockOverrideStudentLevel.mockRejectedValueOnce(new Error("database down"));
+
+    const { overrideStudentLevelAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("level", "green");
+
+    const result = await overrideStudentLevelAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result.error).toBe("Modification impossible. Réessayez.");
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

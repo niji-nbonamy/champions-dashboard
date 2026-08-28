@@ -37,4 +37,11 @@ describe("LevelBadge", () => {
     expect(html).toContain("w-[4.5rem]");
     expect(html).toContain("justify-center");
   });
+
+  it("renders a color dot when showDot is enabled", () => {
+    const html = renderToStaticMarkup(<LevelBadge level="green" showDot />);
+    expect(html).toContain("rounded-full bg-current");
+    expect(html).toContain("vert");
+    expect(html).not.toContain("w-[4.5rem]");
+  });
 });

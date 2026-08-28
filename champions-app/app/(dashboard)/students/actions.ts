@@ -27,6 +27,11 @@ import {
 } from "@/lib/services/assign-student-level";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import {
+  overrideStudentLevel,
+  OverrideStudentLevelError,
+  OVERRIDE_STUDENT_LEVEL_GENERIC_ERROR,
+} from "@/lib/services/override-student-level";
+import {
   refuseStudentPromotion,
   PROMOTION_REFUSE_GENERIC_ERROR,
 } from "@/lib/services/refuse-student-promotion";
@@ -44,6 +49,11 @@ export type AddStudentActionState = {
 
 export type AssignStudentLevelActionState = {
   error: string | null;
+};
+
+export type OverrideStudentLevelActionState = {
+  error: string | null;
+  changed: boolean;
 };
 
 export type ArchiveStudentActionState = {
@@ -173,6 +183,61 @@ export async function assignStudentLevelAction(
     }
 
     return { error: ASSIGN_STUDENT_LEVEL_GENERIC_ERROR };
+  }
+}
+
+export async function overrideStudentLevelAction(
+  _prevState: OverrideStudentLevelActionState,
+  formData: FormData
+): Promise<OverrideStudentLevelActionState> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  const studentIdField = formData.get("student_id");
+  const levelField = formData.get("level");
+  const studentId =
+    typeof studentIdField === "string" ? studentIdField.trim() : "";
+  const level = typeof levelField === "string" ? levelField : "";
+
+  if (!studentId) {
+    return { error: "Élève introuvable.", changed: false };
+  }
+
+  if (!parseChampionsLevel(level)) {
+    return { error: OVERRIDE_STUDENT_LEVEL_GENERIC_ERROR, changed: false };
+  }
+
+  try {
+    const result = await overrideStudentLevel(
+      teacherClass.id,
+      studentId,
+      level
+    );
+
+    if (result.changed) {
+      revalidateDossierPromotionPaths(studentId);
+    }
+
+    return { error: null, changed: result.changed };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (error instanceof OverrideStudentLevelError) {
+      return { error: error.message, changed: false };
+    }
+
+    return { error: OVERRIDE_STUDENT_LEVEL_GENERIC_ERROR, changed: false };
   }
 }
 

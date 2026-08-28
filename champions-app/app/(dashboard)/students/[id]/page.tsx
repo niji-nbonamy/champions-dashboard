@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { LevelHistoryList } from "@/components/dossier/level-history-list";
 import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
 import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
 import {
@@ -16,8 +17,11 @@ import { isValidUuidV4 } from "@/lib/domain/dictation";
 import { toCurvePoints } from "@/lib/domain/dossier-curve";
 import { getClassStudent } from "@/lib/services/get-class-student";
 import { getStudentDictationHistory } from "@/lib/services/get-student-dictation-history";
+import { getStudentLevelHistory } from "@/lib/services/get-student-level-history";
 import { listPendingPromotionsForStudents } from "@/lib/services/list-pending-promotions";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
+
+import { LevelDotPicker } from "../level-dot-picker";
 
 type StudentDossierPageProps = {
   params: Promise<{
@@ -53,6 +57,7 @@ export default async function StudentDossierPage({
   }
 
   const history = await getStudentDictationHistory(teacherClass.id, id);
+  const levelHistory = await getStudentLevelHistory(teacherClass.id, id);
   const hasHistory = history.length > 0;
   const curvePoints = toCurvePoints(history);
   const pendingPromotions = student.archived
@@ -72,10 +77,16 @@ export default async function StudentDossierPage({
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-display">{student.displayName}</h1>
           {student.level && isChampionsLevel(student.level) ? (
-            <LevelBadge level={student.level} />
+            <LevelBadge level={student.level} showDot />
           ) : null}
           {student.archived ? (
             <span className="text-sm text-muted-foreground">Archivé</span>
+          ) : student.level && isChampionsLevel(student.level) ? (
+            <LevelDotPicker
+              studentId={id}
+              mode="override"
+              currentLevel={student.level}
+            />
           ) : null}
         </div>
       </div>
@@ -104,6 +115,11 @@ export default async function StudentDossierPage({
           </>
         )}
       </div>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-medium">Historique des niveaux</h2>
+        <LevelHistoryList entries={levelHistory} />
+      </section>
     </main>
   );
 }

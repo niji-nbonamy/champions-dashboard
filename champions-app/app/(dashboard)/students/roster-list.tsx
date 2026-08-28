@@ -81,7 +81,11 @@ export function RosterList({
                     </span>
                   </div>
                 ) : student.level && isChampionsLevel(student.level) ? (
-                  <LevelBadge level={student.level} />
+                  <LevelDotPicker
+                    studentId={student.id}
+                    mode="override"
+                    currentLevel={student.level}
+                  />
                 ) : (
                   <div className="flex flex-col items-start gap-2 sm:items-end">
                     <RequiredLevelBadge />

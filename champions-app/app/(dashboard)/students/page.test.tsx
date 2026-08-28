@@ -39,6 +39,12 @@ vi.mock("./roster-filter", () => ({
   ),
 }));
 
+vi.mock("./level-dot-picker", () => ({
+  LevelDotPicker: ({ studentId }: { studentId: string }) => (
+    <div data-testid={`level-dot-picker-${studentId}`} />
+  ),
+}));
+
 import StudentsPage from "./page";
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
@@ -104,9 +110,13 @@ describe("students page", () => {
 
     expect(html).toContain("DUPONT Marie");
     expect(html).toContain("niveau requis");
-    expect(html).toContain("Assigner le niveau jaune");
+    expect(html).toContain(
+      'data-testid="level-dot-picker-770e8400-e29b-41d4-a716-446655440002"'
+    );
     expect(html).toContain("MARTIN Lucas");
-    expect(html).toContain("jaune");
+    expect(html).toContain(
+      'data-testid="level-dot-picker-880e8400-e29b-41d4-a716-446655440003"'
+    );
     expect(mockListClassStudents).toHaveBeenCalledWith(classId, "active");
   });
 

@@ -2,8 +2,20 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("./level-dot-picker", () => ({
-  LevelDotPicker: ({ studentId }: { studentId: string }) => (
-    <div data-testid={`level-dot-picker-${studentId}`} />
+  LevelDotPicker: ({
+    studentId,
+    mode,
+    currentLevel,
+  }: {
+    studentId: string;
+    mode?: string;
+    currentLevel?: string;
+  }) => (
+    <div
+      data-testid={`level-dot-picker-${studentId}`}
+      data-mode={mode ?? "assign"}
+      data-current-level={currentLevel ?? ""}
+    />
   ),
 }));
 
@@ -140,7 +152,11 @@ describe("RosterList", () => {
     expect(html).toContain(
       'href="/students/880e8400-e29b-41d4-a716-446655440003"'
     );
-    expect(html).toContain("jaune");
+    expect(html).toContain(
+      'data-testid="level-dot-picker-880e8400-e29b-41d4-a716-446655440003"'
+    );
+    expect(html).toContain('data-mode="override"');
+    expect(html).toContain('data-current-level="yellow"');
     expect(html).not.toContain("Niveau non assigné");
   });
 

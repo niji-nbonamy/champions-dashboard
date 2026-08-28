@@ -8,6 +8,7 @@ const {
   mockGetTeacherClass,
   mockGetClassStudent,
   mockGetStudentDictationHistory,
+  mockGetStudentLevelHistory,
   mockListPendingPromotionsForStudents,
 } = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -20,6 +21,7 @@ const {
   mockGetTeacherClass: vi.fn(),
   mockGetClassStudent: vi.fn(),
   mockGetStudentDictationHistory: vi.fn(),
+  mockGetStudentLevelHistory: vi.fn(),
   mockListPendingPromotionsForStudents: vi.fn(),
 }));
 
@@ -44,8 +46,30 @@ vi.mock("@/lib/services/get-student-dictation-history", () => ({
   getStudentDictationHistory: mockGetStudentDictationHistory,
 }));
 
+vi.mock("@/lib/services/get-student-level-history", () => ({
+  getStudentLevelHistory: mockGetStudentLevelHistory,
+}));
+
 vi.mock("@/lib/services/list-pending-promotions", () => ({
   listPendingPromotionsForStudents: mockListPendingPromotionsForStudents,
+}));
+
+vi.mock("../level-dot-picker", () => ({
+  LevelDotPicker: ({
+    studentId,
+    mode,
+    currentLevel,
+  }: {
+    studentId: string;
+    mode?: string;
+    currentLevel?: string;
+  }) => (
+    <div
+      data-testid={`level-dot-picker-${studentId}`}
+      data-mode={mode ?? "assign"}
+      data-current-level={currentLevel ?? ""}
+    />
+  ),
 }));
 
 vi.mock("@/components/promotion/promotion-banner", () => ({
@@ -89,6 +113,7 @@ describe("StudentDossierPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetStudentDictationHistory.mockResolvedValue([]);
+    mockGetStudentLevelHistory.mockResolvedValue([]);
     mockListPendingPromotionsForStudents.mockResolvedValue({});
   });
 
@@ -468,5 +493,75 @@ describe("StudentDossierPage", () => {
     expect(bannerIndex).toBeGreaterThan(-1);
     expect(curveIndex).toBeGreaterThan(-1);
     expect(bannerIndex).toBeLessThan(curveIndex);
+  });
+
+  it("renders the level override picker for active leveled students", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).toContain(`data-testid="level-dot-picker-${studentId}"`);
+    expect(html).toContain('data-mode="override"');
+    expect(html).toContain('data-current-level="yellow"');
+  });
+
+  it("renders level history entries on the dossier", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
+    });
+    mockGetStudentLevelHistory.mockResolvedValueOnce([
+      {
+        id: "aa0e8400-e29b-41d4-a716-446655440010",
+        level: "yellow",
+        action: "assigned",
+        occurredAt: new Date("2026-08-20T10:00:00.000Z"),
+      },
+    ]);
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(mockGetStudentLevelHistory).toHaveBeenCalledWith(classId, studentId);
+    expect(html).toContain("Historique des niveaux");
+    expect(html).toContain("Assigné");
+  });
+
+  it("still renders level history for archived students without override controls", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "BERNARD Paul",
+      level: "green",
+      archived: true,
+    });
+    mockGetStudentLevelHistory.mockResolvedValueOnce([
+      {
+        id: "bb0e8400-e29b-41d4-a716-446655440011",
+        level: "green",
+        action: "manual",
+        occurredAt: new Date("2026-08-21T10:00:00.000Z"),
+      },
+    ]);
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).toContain("Historique des niveaux");
+    expect(html).toContain("Modification manuelle");
+    expect(html).not.toContain(`data-testid="level-dot-picker-${studentId}"`);
   });
 });
