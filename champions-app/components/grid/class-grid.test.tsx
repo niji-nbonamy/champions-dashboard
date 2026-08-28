@@ -23,6 +23,11 @@ const sampleStudents: LeveledActiveStudent[] = [
   },
 ];
 
+const defaultWordTotalsByStudentId: Record<string, number> = {
+  "770e8400-e29b-41d4-a716-446655440002": 50,
+  "770e8400-e29b-41d4-a716-446655440004": 50,
+};
+
 function setInputValue(input: HTMLInputElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(
     window.HTMLInputElement.prototype,
@@ -51,10 +56,22 @@ describe("ClassGrid", () => {
     container.remove();
   });
 
-  function renderGrid(students: LeveledActiveStudent[] = sampleStudents) {
+  function renderGrid(
+    students: LeveledActiveStudent[] = sampleStudents,
+    wordTotalsByStudentId: Record<string, number> = defaultWordTotalsByStudentId
+  ) {
     act(() => {
-      root.render(<ClassGrid students={students} />);
+      root.render(
+        <ClassGrid
+          students={students}
+          wordTotalsByStudentId={wordTotalsByStudentId}
+        />
+      );
     });
+  }
+
+  function getSaveButton(): HTMLButtonElement | null {
+    return container.querySelector('button[type="button"]');
   }
 
   function getCellInputs(): HTMLInputElement[] {
@@ -81,6 +98,7 @@ describe("ClassGrid", () => {
     expect(container.textContent).toContain("Aucun élève nivelé");
     expect(container.textContent).toContain("Élèves");
     expect(container.querySelector("table")).toBeNull();
+    expect(getSaveButton()).toBeNull();
   });
 
   it("orders cell inputs row-major for Tab navigation", () => {
@@ -453,5 +471,109 @@ describe("ClassGrid", () => {
     ) as HTMLDivElement | null;
 
     expect(tooltip?.className).toContain("group-hover:opacity-100");
+  });
+
+  it("enables Enregistrer when all rows are valid", () => {
+    renderGrid();
+
+    const saveButton = getSaveButton();
+    expect(saveButton?.textContent).toBe("Enregistrer");
+    expect(saveButton?.disabled).toBe(false);
+  });
+
+  it("disables Enregistrer and shows validation message when sum exceeds word total", () => {
+    renderGrid(sampleStudents, {
+      [sampleStudents[0].id]: 5,
+      [sampleStudents[1].id]: 50,
+    });
+
+    const firstInput = getCellInputs()[0];
+    act(() => {
+      firstInput?.focus();
+      setInputValue(firstInput!, "6");
+    });
+
+    expect(container.textContent).toContain(
+      "Σ erreurs (6) > total mots (5) pour Marie"
+    );
+    expect(getSaveButton()?.disabled).toBe(true);
+    expect(firstInput?.className).toContain("border-destructive");
+    getCellInputs()
+      .slice(0, 9)
+      .forEach((input) => {
+        expect(input.className).toContain("border-destructive");
+      });
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain(
+      "Σ erreurs (6) > total mots (5) pour Marie"
+    );
+  });
+
+  it("disables Enregistrer when the second student row is invalid", () => {
+    renderGrid(sampleStudents, {
+      [sampleStudents[0].id]: 50,
+      [sampleStudents[1].id]: 5,
+    });
+
+    const paulFirstCell = getCellInputs()[9];
+    act(() => {
+      paulFirstCell?.focus();
+      paulFirstCell?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "6", bubbles: true })
+      );
+    });
+
+    expect(container.textContent).toContain(
+      "Σ erreurs (6) > total mots (5) pour Paul"
+    );
+    expect(getSaveButton()?.disabled).toBe(true);
+  });
+
+  it("disables Enregistrer when a single category exceeds word total", () => {
+    renderGrid(sampleStudents.slice(0, 1), {
+      [sampleStudents[0].id]: 5,
+    });
+
+    const firstInput = getCellInputs()[0];
+    act(() => {
+      firstInput?.focus();
+      firstInput?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "6", bubbles: true })
+      );
+    });
+
+    expect(container.textContent).toContain(
+      "Σ erreurs (6) > total mots (5) pour Marie"
+    );
+    expect(getSaveButton()?.disabled).toBe(true);
+  });
+
+  it("re-enables Enregistrer after fixing an invalid row", () => {
+    renderGrid(sampleStudents.slice(0, 1), {
+      [sampleStudents[0].id]: 5,
+    });
+
+    const firstInput = getCellInputs()[0];
+    act(() => {
+      firstInput?.focus();
+      setInputValue(firstInput!, "6");
+    });
+
+    expect(getSaveButton()?.disabled).toBe(true);
+
+    act(() => {
+      setInputValue(firstInput!, "3");
+    });
+
+    expect(getSaveButton()?.disabled).toBe(false);
+    expect(container.textContent).not.toContain("Σ erreurs");
+    expect(firstInput?.className).not.toContain("border-destructive");
+  });
+
+  it("treats an all-zero grid as valid with Enregistrer enabled", () => {
+    renderGrid(sampleStudents.slice(0, 1), {
+      [sampleStudents[0].id]: 10,
+    });
+
+    expect(getSaveButton()?.disabled).toBe(false);
   });
 });

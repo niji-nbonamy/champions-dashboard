@@ -26,6 +26,7 @@ type GridCellProps = {
   categoryIndex: number;
   isFirstCell?: boolean;
   isLastCell?: boolean;
+  hasValidationError?: boolean;
 };
 
 function parseNonNegativeInteger(rawValue: string): number | null {
@@ -56,6 +57,7 @@ export function GridCell({
   categoryIndex,
   isFirstCell = false,
   isLastCell = false,
+  hasValidationError = false,
 }: GridCellProps) {
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const parsed = parseNonNegativeInteger(event.target.value);
@@ -126,11 +128,15 @@ export function GridCell({
         maxLength={1}
         value={String(value)}
         aria-label={formatGridCellAriaLabel(firstName, categoryName, value)}
+        aria-invalid={hasValidationError ? true : undefined}
         onChange={handleChange}
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
         className={cn(
-          "text-data-md box-border min-h-[var(--spacing-grid-row-height)] min-w-[var(--spacing-grid-cell-min)] w-full border-0 bg-transparent px-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          "text-data-md box-border min-h-[var(--spacing-grid-row-height)] min-w-[var(--spacing-grid-cell-min)] w-full bg-transparent px-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset",
+          hasValidationError
+            ? "border border-destructive ring-2 ring-destructive/20 focus-visible:ring-destructive"
+            : "border-0 focus-visible:ring-ring"
         )}
       />
     </td>

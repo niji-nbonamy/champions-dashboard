@@ -3,10 +3,17 @@ import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { ClassGrid } from "@/components/grid/class-grid";
-import { formatDictationDateForDisplay, isValidUuidV4 } from "@/lib/domain/dictation";
+import {
+  DICTATION_MATRIX_ROW_MISSING_ERROR,
+  formatDictationDateForDisplay,
+  findMatchingMatrixRow,
+  isValidUuidV4,
+} from "@/lib/domain/dictation";
+import { buildWordTotalsByStudentId } from "@/lib/domain/word-count-matrix";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getDictationById } from "@/lib/services/list-dictations";
 import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
+import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
 
 type DictationDetailPageProps = {
   params: Promise<{
@@ -42,6 +49,15 @@ export default async function DictationDetailPage({
   }
 
   const students = await listLeveledActiveStudents(teacherClass.id);
+  const matrixRows = await listWordCountMatrixRows(teacherClass.id);
+  const matchingMatrixRow = findMatchingMatrixRow(
+    matrixRows,
+    dictation.dictationLabelKey
+  );
+
+  const wordTotalsByStudentId = matchingMatrixRow
+    ? buildWordTotalsByStudentId(students, matchingMatrixRow)
+    : {};
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
@@ -63,7 +79,22 @@ export default async function DictationDetailPage({
       <p className="text-sm text-muted-foreground">
         Les comptages ne sont pas encore enregistrés.
       </p>
-      <ClassGrid students={students} />
+      {students.length > 0 && !matchingMatrixRow ? (
+        <p className="text-sm text-muted-foreground">
+          {DICTATION_MATRIX_ROW_MISSING_ERROR}{" "}
+          <Link
+            href="/config"
+            className="underline underline-offset-4"
+          >
+            Config
+          </Link>
+        </p>
+      ) : (
+        <ClassGrid
+          students={students}
+          wordTotalsByStudentId={wordTotalsByStudentId}
+        />
+      )}
     </main>
   );
 }

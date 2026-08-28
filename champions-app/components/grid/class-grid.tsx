@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 import {
   CHAMPIONS_ERROR_CATEGORIES,
   type ChampionsErrorCategoryLetter,
 } from "@/lib/domain/error-categories";
+import {
+  formatGridRowValidationMessage,
+  validateGridRow,
+} from "@/lib/domain/grid-validation";
 import { getStudentFirstName } from "@/lib/domain/student-display-name";
 import type { LeveledActiveStudent } from "@/lib/services/list-leveled-active-students";
 
@@ -36,9 +41,13 @@ function createInitialGridCounts(students: LeveledActiveStudent[]): GridCounts {
 
 type ClassGridProps = {
   students: LeveledActiveStudent[];
+  wordTotalsByStudentId: Record<string, number>;
 };
 
-export function ClassGrid({ students }: ClassGridProps) {
+export function ClassGrid({
+  students,
+  wordTotalsByStudentId,
+}: ClassGridProps) {
   const [counts, setCounts] = useState<GridCounts>(() =>
     createInitialGridCounts(students)
   );
@@ -52,6 +61,42 @@ export function ClassGrid({ students }: ClassGridProps) {
         level: parseChampionsLevel(student.level),
       })),
     [students]
+  );
+
+  const rowValidation = useMemo(() => {
+    const byStudentId: Record<
+      string,
+      ReturnType<typeof validateGridRow> & { message?: string }
+    > = {};
+
+    for (const student of studentMeta) {
+      const studentCounts = {
+        ...createEmptyCounts(),
+        ...(counts[student.id] ?? {}),
+      };
+      const wordTotal = wordTotalsByStudentId[student.id] ?? 0;
+      const result = validateGridRow(studentCounts, wordTotal);
+
+      byStudentId[student.id] = {
+        ...result,
+        message: result.valid
+          ? undefined
+          : formatGridRowValidationMessage(
+              student.firstName,
+              result.sumErrors,
+              result.wordTotal
+            ),
+      };
+    }
+
+    return byStudentId;
+  }, [counts, studentMeta, wordTotalsByStudentId]);
+
+  const allRowsValid = useMemo(
+    () =>
+      studentMeta.length > 0 &&
+      studentMeta.every((student) => rowValidation[student.id]?.valid),
+    [rowValidation, studentMeta]
   );
 
   const lastStudentIndex = students.length - 1;
@@ -138,75 +183,95 @@ export function ClassGrid({ students }: ClassGridProps) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="min-w-full border-collapse text-sm">
-        <caption className="sr-only">
-          Grille de saisie des erreurs CHAMPIONS par élève
-        </caption>
-        <thead className="bg-muted/40">
-          <tr>
-            <th
-              scope="col"
-              className="sticky left-0 z-10 min-w-[10rem] bg-muted/40 px-3 py-2 text-left font-medium"
-            >
-              Élève
-            </th>
-            {CHAMPIONS_ERROR_CATEGORIES.map((category) => (
-              <CategoryHeader key={category.letter} category={category} />
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {studentMeta.map((student, studentIndex) => (
-            <tr key={student.id}>
+    <div className="flex flex-col gap-4">
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="min-w-full border-collapse text-sm">
+          <caption className="sr-only">
+            Grille de saisie des erreurs CHAMPIONS par élève
+          </caption>
+          <thead className="bg-muted/40">
+            <tr>
               <th
-                scope="row"
-                className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-normal"
+                scope="col"
+                className="sticky left-0 z-10 min-w-[10rem] bg-muted/40 px-3 py-2 text-left font-medium"
               >
-                <span className="flex w-full items-center gap-2">
-                  <span className="min-w-0 flex-1 break-words">
-                    {student.displayName}
-                  </span>
-                  <span className="flex w-[4.5rem] shrink-0 justify-end">
-                    {student.level ? (
-                      <LevelBadge
-                        level={student.level}
-                        className="px-1.5 py-0"
-                      />
-                    ) : null}
-                  </span>
-                </span>
+                Élève
               </th>
-              {CHAMPIONS_ERROR_CATEGORIES.map((category, categoryIndex) => (
-                <GridCell
-                  key={`${student.id}-${category.letter}`}
-                  studentId={student.id}
-                  categoryLetter={category.letter}
-                  categoryName={category.name}
-                  firstName={student.firstName}
-                  value={counts[student.id]?.[category.letter] ?? 0}
-                  studentIndex={studentIndex}
-                  categoryIndex={categoryIndex}
-                  isFirstCell={studentIndex === 0 && categoryIndex === 0}
-                  isLastCell={
-                    studentIndex === lastStudentIndex &&
-                    categoryIndex === lastCategoryIndex
-                  }
-                  inputRef={(element) => {
-                    if (!inputRefs.current[studentIndex]) {
-                      inputRefs.current[studentIndex] = [];
-                    }
-                    inputRefs.current[studentIndex][categoryIndex] = element;
-                  }}
-                  onValueChange={handleValueChange}
-                  onArrowKey={handleArrowKey}
-                  onTabWrap={handleTabWrap}
-                />
+              {CHAMPIONS_ERROR_CATEGORIES.map((category) => (
+                <CategoryHeader key={category.letter} category={category} />
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {studentMeta.map((student, studentIndex) => {
+              const validation = rowValidation[student.id];
+              const rowInvalid = validation?.valid === false;
+
+              return (
+                <tr key={student.id}>
+                  <th
+                    scope="row"
+                    className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-normal"
+                  >
+                    <span className="flex w-full items-center gap-2">
+                      <span className="min-w-0 flex-1 break-words">
+                        {student.displayName}
+                      </span>
+                      <span className="flex w-[4.5rem] shrink-0 justify-end">
+                        {student.level ? (
+                          <LevelBadge
+                            level={student.level}
+                            className="px-1.5 py-0"
+                          />
+                        ) : null}
+                      </span>
+                    </span>
+                    {validation?.message ? (
+                      <p
+                        className="mt-1 text-xs text-destructive"
+                        role="alert"
+                      >
+                        {validation.message}
+                      </p>
+                    ) : null}
+                  </th>
+                  {CHAMPIONS_ERROR_CATEGORIES.map((category, categoryIndex) => (
+                    <GridCell
+                      key={`${student.id}-${category.letter}`}
+                      studentId={student.id}
+                      categoryLetter={category.letter}
+                      categoryName={category.name}
+                      firstName={student.firstName}
+                      value={counts[student.id]?.[category.letter] ?? 0}
+                      studentIndex={studentIndex}
+                      categoryIndex={categoryIndex}
+                      isFirstCell={studentIndex === 0 && categoryIndex === 0}
+                      isLastCell={
+                        studentIndex === lastStudentIndex &&
+                        categoryIndex === lastCategoryIndex
+                      }
+                      hasValidationError={rowInvalid}
+                      inputRef={(element) => {
+                        if (!inputRefs.current[studentIndex]) {
+                          inputRefs.current[studentIndex] = [];
+                        }
+                        inputRefs.current[studentIndex][categoryIndex] =
+                          element;
+                      }}
+                      onValueChange={handleValueChange}
+                      onArrowKey={handleArrowKey}
+                      onTabWrap={handleTabWrap}
+                    />
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <Button type="button" disabled={!allRowsValid}>
+        Enregistrer
+      </Button>
     </div>
   );
 }

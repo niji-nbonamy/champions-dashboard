@@ -8,6 +8,7 @@ const {
   mockGetTeacherClass,
   mockGetDictationById,
   mockListLeveledActiveStudents,
+  mockListWordCountMatrixRows,
 } = vi.hoisted(() => ({
   auth: vi.fn(),
   redirect: vi.fn((url: string): never => {
@@ -19,6 +20,7 @@ const {
   mockGetTeacherClass: vi.fn(),
   mockGetDictationById: vi.fn(),
   mockListLeveledActiveStudents: vi.fn(),
+  mockListWordCountMatrixRows: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
@@ -40,6 +42,10 @@ vi.mock("@/lib/services/list-dictations", () => ({
 
 vi.mock("@/lib/services/list-leveled-active-students", () => ({
   listLeveledActiveStudents: mockListLeveledActiveStudents,
+}));
+
+vi.mock("@/lib/services/list-word-count-matrix-rows", () => ({
+  listWordCountMatrixRows: mockListWordCountMatrixRows,
 }));
 
 import DictationDetailPage from "./page";
@@ -119,6 +125,15 @@ describe("DictationDetailPage", () => {
         level: "yellow",
       },
     ]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([
+      {
+        dictationLabelKey: "Dictée 1",
+        wordsYellow: 10,
+        wordsGreen: 12,
+        wordsViolet: 14,
+        wordsGold: 16,
+      },
+    ]);
 
     const html = renderToStaticMarkup(
       await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
@@ -129,7 +144,35 @@ describe("DictationDetailPage", () => {
     expect(html).toContain("jaune");
     expect(html).toContain('href="/dictations"');
     expect(html).toContain("Conjugaison");
+    expect(html).toContain("Enregistrer");
     expect(mockListLeveledActiveStudents).toHaveBeenCalledWith(classId);
+    expect(mockListWordCountMatrixRows).toHaveBeenCalledWith(classId);
+  });
+
+  it("shows a blocking message when the matrix row is missing", async () => {
+    mockAuthenticatedClass();
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      label: "Dictée 1",
+      dictationLabelKey: "dictée 1",
+      dictationDate: "2026-08-27",
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: "770e8400-e29b-41d4-a716-446655440002",
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+    ]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([]);
+
+    const html = renderToStaticMarkup(
+      await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
+    );
+
+    expect(html).toContain("Aucune ligne de matrice pour cette dictée");
+    expect(html).toContain('href="/config"');
+    expect(html).not.toContain("Enregistrer");
   });
 
   it("renders the empty leveled roster message when no students are returned", async () => {
@@ -141,6 +184,7 @@ describe("DictationDetailPage", () => {
       dictationDate: "2026-08-27",
     });
     mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
       await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
@@ -148,5 +192,6 @@ describe("DictationDetailPage", () => {
 
     expect(html).toContain("Aucun élève nivelé");
     expect(html).toContain('href="/students"');
+    expect(html).not.toContain("Enregistrer");
   });
 });

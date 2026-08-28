@@ -1,3 +1,7 @@
+import type { ChampionsLevel } from "@/lib/design/tokens";
+
+import { parseChampionsLevel } from "@/lib/domain/champions-level";
+
 export const DICTATION_LABEL_MAX_LENGTH = 80;
 export const WORD_COUNT_MATRIX_MAX_ROWS = 20;
 export const WORD_COUNT_MATRIX_MAX_WORD_COUNT = 2147483647;
@@ -50,6 +54,37 @@ export type WordCountMatrixLevelCounts = {
   wordsViolet: number;
   wordsGold: number;
 };
+
+export function getWordCountForLevel(
+  row: WordCountMatrixLevelCounts,
+  level: ChampionsLevel
+): number {
+  switch (level) {
+    case "yellow":
+      return row.wordsYellow;
+    case "green":
+      return row.wordsGreen;
+    case "violet":
+      return row.wordsViolet;
+    case "gold":
+      return row.wordsGold;
+  }
+}
+
+export function buildWordTotalsByStudentId(
+  students: Array<{ id: string; level: string }>,
+  matrixRow: WordCountMatrixLevelCounts
+): Record<string, number> {
+  return Object.fromEntries(
+    students.map((student) => {
+      const level = parseChampionsLevel(student.level);
+      const wordTotal =
+        level !== null ? getWordCountForLevel(matrixRow, level) : 0;
+
+      return [student.id, wordTotal];
+    })
+  );
+}
 
 export function isCompleteMatrixRow(
   row: WordCountMatrixLevelCounts

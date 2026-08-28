@@ -9,6 +9,8 @@ import {
   parseWordCountMatrixRowsFromFormData,
   validateWordCountMatrix,
   validateWordCountMatrixRow,
+  getWordCountForLevel,
+  buildWordTotalsByStudentId,
   WORD_COUNT_CELL_INVALID_ERROR,
   WORD_COUNT_MATRIX_MAX_ROWS,
   WORD_COUNT_MATRIX_MAX_WORD_COUNT,
@@ -219,5 +221,45 @@ describe("parseWordCountMatrixRowsFromFormData", () => {
         wordsGold: "11",
       },
     ]);
+  });
+});
+
+describe("getWordCountForLevel", () => {
+  const row = {
+    wordsYellow: 10,
+    wordsGreen: 12,
+    wordsViolet: 14,
+    wordsGold: 16,
+  };
+
+  it("maps each CHAMPIONS level to the matrix column", () => {
+    expect(getWordCountForLevel(row, "yellow")).toBe(10);
+    expect(getWordCountForLevel(row, "green")).toBe(12);
+    expect(getWordCountForLevel(row, "violet")).toBe(14);
+    expect(getWordCountForLevel(row, "gold")).toBe(16);
+  });
+});
+
+describe("buildWordTotalsByStudentId", () => {
+  const matrixRow = {
+    wordsYellow: 10,
+    wordsGreen: 12,
+    wordsViolet: 14,
+    wordsGold: 16,
+  };
+
+  it("maps each student id to the word count for their level", () => {
+    expect(
+      buildWordTotalsByStudentId(
+        [
+          { id: "student-yellow", level: "yellow" },
+          { id: "student-green", level: "green" },
+        ],
+        matrixRow
+      )
+    ).toEqual({
+      "student-yellow": 10,
+      "student-green": 12,
+    });
   });
 });
