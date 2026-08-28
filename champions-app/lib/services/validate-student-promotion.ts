@@ -87,7 +87,9 @@ export async function validateStudentPromotion(
       throw new StudentNotFoundForPromotionError();
     }
 
-    const currentLevel = parseChampionsLevel(student.level);
+    const currentLevel = student.level
+      ? parseChampionsLevel(student.level)
+      : null;
     if (!currentLevel || getNextLevel(currentLevel) !== targetLevel) {
       throw new StudentPromotionError(PROMOTION_VALIDATE_GENERIC_ERROR);
     }
