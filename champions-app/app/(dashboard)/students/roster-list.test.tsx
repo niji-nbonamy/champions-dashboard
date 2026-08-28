@@ -40,6 +40,49 @@ describe("RosterList", () => {
     expect(html).toContain("Aucun élève archivé.");
   });
 
+  it("renders dossier links with an accessible aria-label", () => {
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: "770e8400-e29b-41d4-a716-446655440002",
+            displayName: "DUPONT Marie",
+            level: "yellow",
+            archived: false,
+          },
+        ]}
+        filter="active"
+      />
+    );
+
+    expect(html).toContain('aria-label="Dossier de DUPONT Marie"');
+    expect(html).toContain(
+      'href="/students/770e8400-e29b-41d4-a716-446655440002"'
+    );
+  });
+
+  it("renders plain names without dossier links when linkToDossier is false", () => {
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: "770e8400-e29b-41d4-a716-446655440002",
+            displayName: "DUPONT Marie",
+            level: null,
+            archived: false,
+          },
+        ]}
+        filter="active"
+        showLevelUi={false}
+        linkToDossier={false}
+      />
+    );
+
+    expect(html).toContain("DUPONT Marie");
+    expect(html).not.toContain('href="/students/');
+    expect(html).not.toContain("Dossier de");
+  });
+
   it("renders names only when level UI is hidden", () => {
     const html = renderToStaticMarkup(
       <RosterList

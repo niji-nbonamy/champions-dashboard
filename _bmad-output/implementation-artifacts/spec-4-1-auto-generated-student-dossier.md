@@ -84,6 +84,22 @@ context:
 - Given a student has no saved dictations, when I view their dossier, then I see « Aucune dictée enregistrée. » with an empty curve placeholder (UX-DR22).
 - Given an archived student with dictation history, when I open their dossier from the Élèves tab, then I see the history read-only with an « Archivé » label (UX-DR28).
 
+### Review Findings
+
+- [x] [Review][Patch] Prop `linkToDossier={false}` pour désactiver les liens dossier dans l'onboarding [`roster-list.tsx:37`, `step-levels.tsx:24`]
+
+- [x] [Review][Patch] Tie-breaker de tri supplémentaire [`get-student-dictation-history.ts:40`]
+- [x] [Review][Patch] Test header LevelBadge en état vide [`page.test.tsx:112`]
+- [x] [Review][Patch] Assertion prédicat innerJoin [`get-student-dictation-history.test.ts:86`]
+- [x] [Review][Patch] Test élève archivé sans historique [`page.test.tsx:173`]
+- [x] [Review][Patch] Test aria-label lien dossier [`roster-list.test.tsx:45`]
+
+- [x] [Review][Defer] Parcours e2e Élèves → dossier — deferred, pre-existing
+- [x] [Review][Defer] Auth/classe dupliqués layout + page — deferred, pre-existing
+- [x] [Review][Defer] Promise.all pour requêtes parallèles — deferred, pre-existing
+- [x] [Review][Defer] Tests unitaires composants dossier — deferred, pre-existing
+- [x] [Review][Defer] Type ClassStudentRecord dupliqué — deferred, pre-existing
+
 ## Design Notes
 
 `CurvePlaceholder` is intentionally a dumb static shell — story 4.2 mounts the real chart inside the same slot. Keep history as a flat list in 4.1; the collapsible per-category table arrives in 4.2.

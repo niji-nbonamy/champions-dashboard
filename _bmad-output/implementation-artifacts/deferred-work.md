@@ -203,3 +203,11 @@
 
 - Archived read-only row shows ⬆️ but hides **+** with no D1/D2 surface yet — pending on archived student is visible but unactionable until Epic 4 (`class-grid.tsx:534`)
 - Add + button to keyboard Tab order — D3+ **+** is click-only; deferred out of MVP scope for story 3-6 (`class-grid.tsx:515`)
+
+## Deferred from: code review of spec-4-1-auto-generated-student-dossier.md (2026-08-28)
+
+- Parcours e2e Élèves → dossier — action item epic-1/2 retro ; hors scope story 4.1
+- Auth/classe dupliqués layout + page — pattern préexistant sur toutes les pages dashboard (`page.tsx:23`)
+- Promise.all pour requêtes parallèles — micro-optimisation latence ; impact négligeable pour 2 requêtes (`page.tsx:41`)
+- Tests unitaires dédiés `curve-placeholder` / `dictation-history-list` — couverts indirectement par `page.test.tsx`
+- Type `ClassStudentRecord` dupliqué vs `ClassStudent` — cosmétique ; consolidation possible plus tard (`get-class-student.ts:6`)

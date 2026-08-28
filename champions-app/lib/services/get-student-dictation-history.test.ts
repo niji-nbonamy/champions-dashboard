@@ -91,7 +91,11 @@ describe("getStudentDictationHistory", () => {
     expect(mockAnd).toHaveBeenCalled();
     expect(mockDesc).toHaveBeenCalledWith(dictations.dictationDate);
     expect(mockAsc).toHaveBeenCalledWith(dictations.label);
-    expect(mockAsc).toHaveBeenCalledWith(dictations.id);
+    expect(mockAsc).not.toHaveBeenCalledWith(dictations.id);
+    expect(mockEq).toHaveBeenCalledWith(
+      dictationEntries.dictationId,
+      dictations.id
+    );
     expect(mockEq).toHaveBeenCalledWith(dictations.classId, classId);
     expect(mockEq).toHaveBeenCalledWith(dictationEntries.studentId, studentId);
     expect(result).toEqual([

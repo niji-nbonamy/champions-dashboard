@@ -34,11 +34,7 @@ export async function getStudentDictationHistory(
     .where(
       and(eq(dictations.classId, classId), eq(dictationEntries.studentId, studentId))
     )
-    .orderBy(
-      desc(dictations.dictationDate),
-      asc(dictations.label),
-      asc(dictations.id)
-    );
+    .orderBy(desc(dictations.dictationDate), asc(dictations.label));
 
   return rows.map((row) => ({
     ...row,

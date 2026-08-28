@@ -124,6 +124,7 @@ describe("StudentDossierPage", () => {
     );
 
     expect(html).toContain("DUPONT Marie");
+    expect(html).toContain("jaune");
     expect(html).toContain('href="/students"');
     expect(html).toContain("Retour aux élèves");
     expect(html).toContain("Aucune dictée enregistrée.");
@@ -168,6 +169,27 @@ describe("StudentDossierPage", () => {
     expect(html).toContain('data-testid="curve-placeholder"');
     expect(html).not.toContain('href="/dictations/');
     expect(html).not.toContain("Aucune dictée enregistrée.");
+  });
+
+  it("renders archived students with empty history and an Archivé label", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "BERNARD Paul",
+      level: "green",
+      archived: true,
+    });
+    mockGetStudentDictationHistory.mockResolvedValueOnce([]);
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).toContain("BERNARD Paul");
+    expect(html).toContain("Archivé");
+    expect(html).toContain("Aucune dictée enregistrée.");
+    expect(html).not.toContain("Historique des dictées");
+    expect(html).not.toContain("level-dot-picker");
   });
 
   it("renders archived students as read-only with an Archivé label", async () => {

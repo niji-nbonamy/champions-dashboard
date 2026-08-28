@@ -20,6 +20,7 @@ type RosterListProps = {
   filter?: ClassStudentFilter;
   showLevelUi?: boolean;
   showArchiveAction?: boolean;
+  linkToDossier?: boolean;
 };
 
 function getEmptyMessage(filter: ClassStudentFilter): string {
@@ -39,6 +40,7 @@ export function RosterList({
   filter = "active",
   showLevelUi = true,
   showArchiveAction = false,
+  linkToDossier = true,
 }: RosterListProps) {
   if (students.length === 0) {
     return (
@@ -56,13 +58,17 @@ export function RosterList({
             key={student.id}
             className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
           >
-            <Link
-              href={`/students/${student.id}`}
-              className="text-sm font-medium underline-offset-4 hover:underline"
-              aria-label={`Dossier de ${student.displayName}`}
-            >
-              {student.displayName}
-            </Link>
+            {linkToDossier ? (
+              <Link
+                href={`/students/${student.id}`}
+                className="text-sm font-medium underline-offset-4 hover:underline"
+                aria-label={`Dossier de ${student.displayName}`}
+              >
+                {student.displayName}
+              </Link>
+            ) : (
+              <span className="text-sm font-medium">{student.displayName}</span>
+            )}
             <div className="flex flex-col items-start gap-2 sm:items-end">
               {showLevelUi ? (
                 isArchived ? (
