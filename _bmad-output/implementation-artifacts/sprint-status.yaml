@@ -29,14 +29,14 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-28-2026 12:15
+last_updated: 08-28-2026 14:47
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
 story_location: 
   /Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts
 development_status:
-  epic-1: in-progress
+  epic-1: done
   1-1-project-scaffold-development-environment: done
   1-2-teacher-registration: done
   1-3-teacher-login-session-management: done
@@ -44,10 +44,10 @@ development_status:
   1-5-design-system-tokens-brand-theme: done
   1-6-app-shell-with-navigation-app-bar: done
   1-7-auth-form-ux-registration-security: done
-  1-8-public-landing-champions-branding: done
+  1-8-public-landing-page-champions-app-bar-branding: done
   epic-1-retrospective: done
 
-  epic-2: in-progress
+  epic-2: done
   2-1-csv-roster-import: done
   2-2-manual-student-add-roster-list: done
   2-3-level-assignment-color-dot-picker-e1: done
@@ -58,14 +58,14 @@ development_status:
   2-8-annual-year-reset: done
   epic-2-retrospective: done
 
-  epic-3: in-progress
+  epic-3: done
   3-1-create-dictation: done
   3-2-class-grid-ui-with-keyboard-navigation-a2: done
   3-3-grid-validation-save-blocking: done
   3-4-scoring-engine-dictation-save: done
   3-5-edit-past-dictation: done
   3-6-inline-promotion-indicators-on-grid-d3-d3: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   epic-4: backlog
   4-1-auto-generated-student-dossier: backlog
@@ -170,3 +170,34 @@ action_items:
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-08-27-2026.md"
+  - id: "epic-3-retro-item-14-compile-epic-4-context-md-from-planning"
+    epic: 3
+    action: "Compile epic-4-context.md from planning artifacts before Epic 4 build"
+    owner: "dev"
+    status: done
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
+  - id: "epic-3-retro-item-15-extend-e2e-smoke-dictation-create-grid-e"
+    epic: 3
+    action: "Extend E2E smoke: dictation create → grid entry → save"
+    owner: "dev"
+    status: open
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
+  - id: "epic-3-retro-item-16-add-integration-test-for-savedictation-t"
+    epic: 3
+    action: "Add integration test for saveDictation transaction rollback and promotion
+      insert"
+    owner: "dev"
+    status: open
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
+  - id: "epic-3-retro-item-17-extract-promotion-row-ui-from-class-grid"
+    epic: 3
+    action: "Extract promotion row UI from class-grid.tsx before Epic 4 dossier surfaces"
+    owner: "dev"
+    status: open
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
+  - id: "epic-3-retro-item-18-schedule-accessibility-pass-d3-button-in"
+    epic: 3
+    action: "Schedule accessibility pass: D3+ button in Tab order (story 3-6 deferral)"
+    owner: "dev"
+    status: open
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
