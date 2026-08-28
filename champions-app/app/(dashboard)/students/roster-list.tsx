@@ -1,9 +1,11 @@
 import Link from "next/link";
 
+import { RosterPromotionAction } from "@/components/promotion/roster-promotion-action";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { RequiredLevelBadge } from "@/components/ui/required-level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import type { ClassStudentFilter } from "@/lib/services/list-class-students";
+import type { PendingPromotionByStudent } from "@/lib/services/list-pending-promotions";
 
 import { ArchiveStudentButton } from "./archive-student-button";
 import { LevelDotPicker } from "./level-dot-picker";
@@ -21,6 +23,7 @@ type RosterListProps = {
   showLevelUi?: boolean;
   showArchiveAction?: boolean;
   linkToDossier?: boolean;
+  pendingPromotionsByStudentId?: Record<string, PendingPromotionByStudent>;
 };
 
 function getEmptyMessage(filter: ClassStudentFilter): string {
@@ -41,6 +44,7 @@ export function RosterList({
   showLevelUi = true,
   showArchiveAction = false,
   linkToDossier = true,
+  pendingPromotionsByStudentId = {},
 }: RosterListProps) {
   if (students.length === 0) {
     return (
@@ -52,6 +56,7 @@ export function RosterList({
     <ul className="divide-y divide-border rounded-lg border border-border">
       {students.map((student) => {
         const isArchived = student.archived === true;
+        const pendingPromotion = pendingPromotionsByStudentId[student.id] ?? null;
 
         return (
           <li
@@ -69,7 +74,7 @@ export function RosterList({
             ) : (
               <span className="text-sm font-medium">{student.displayName}</span>
             )}
-            <div className="flex flex-col items-start gap-2 sm:items-end">
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
               {showLevelUi ? (
                 isArchived ? (
                   <div className="flex flex-wrap items-center gap-2">
@@ -92,6 +97,19 @@ export function RosterList({
                     <LevelDotPicker studentId={student.id} />
                   </div>
                 )
+              ) : null}
+              {showLevelUi && pendingPromotion && !isArchived ? (
+                <div
+                  aria-hidden="true"
+                  className="border-border h-px w-full border-t sm:h-8 sm:w-px sm:self-center sm:border-t-0 sm:border-l"
+                />
+              ) : null}
+              {pendingPromotion && !isArchived ? (
+                <RosterPromotionAction
+                  studentId={student.id}
+                  displayName={student.displayName}
+                  targetLevel={pendingPromotion.targetLevel}
+                />
               ) : null}
               {!isArchived && showArchiveAction ? (
                 <ArchiveStudentButton

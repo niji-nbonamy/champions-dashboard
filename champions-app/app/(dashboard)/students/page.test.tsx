@@ -6,11 +6,13 @@ const {
   mockGetTeacherClass,
   mockGetYearStartWizardStatus,
   mockListClassStudents,
+  mockListPendingPromotionsForStudents,
 } = vi.hoisted(() => ({
   auth: vi.fn(),
   mockGetTeacherClass: vi.fn(),
   mockGetYearStartWizardStatus: vi.fn(),
   mockListClassStudents: vi.fn(),
+  mockListPendingPromotionsForStudents: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
@@ -29,6 +31,10 @@ vi.mock("@/lib/services/list-class-students", () => ({
   listClassStudents: mockListClassStudents,
 }));
 
+vi.mock("@/lib/services/list-pending-promotions", () => ({
+  listPendingPromotionsForStudents: mockListPendingPromotionsForStudents,
+}));
+
 vi.mock("./add-student-form", () => ({
   AddStudentForm: () => <div data-testid="add-student-form" />,
 }));
@@ -36,6 +42,24 @@ vi.mock("./add-student-form", () => ({
 vi.mock("./roster-filter", () => ({
   RosterFilter: ({ current }: { current: string }) => (
     <div data-testid={`roster-filter-${current}`} />
+  ),
+}));
+
+vi.mock("@/components/promotion/roster-promotion-action", () => ({
+  RosterPromotionAction: ({
+    studentId,
+    targetLevel,
+  }: {
+    studentId: string;
+    targetLevel: string;
+  }) => (
+    <button
+      type="button"
+      data-testid={`roster-promotion-${studentId}`}
+      data-target-level={targetLevel}
+    >
+      +
+    </button>
   ),
 }));
 
@@ -66,6 +90,7 @@ function mockClassContext() {
     unassignedCount: 0,
     matrixRowCount: 4,
   });
+  mockListPendingPromotionsForStudents.mockResolvedValueOnce({});
 }
 
 describe("students page", () => {
@@ -159,6 +184,7 @@ describe("students page", () => {
         archived: false,
       },
     ]);
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({});
 
     const html = renderToStaticMarkup(
       await StudentsPage({ searchParams: Promise.resolve({}) })
@@ -211,6 +237,44 @@ describe("students page", () => {
     );
 
     expect(html).toContain("Élève archivé.");
+  });
+
+  it("loads pending promotions for active roster students", async () => {
+    mockClassContext();
+    mockListClassStudents.mockResolvedValueOnce([
+      {
+        id: "770e8400-e29b-41d4-a716-446655440002",
+        displayName: "DUPONT Marie",
+        level: "yellow",
+        archived: false,
+      },
+    ]);
+    mockListPendingPromotionsForStudents.mockReset();
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({
+      "770e8400-e29b-41d4-a716-446655440002": { targetLevel: "green" },
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentsPage({ searchParams: Promise.resolve({}) })
+    );
+
+    expect(mockListPendingPromotionsForStudents).toHaveBeenCalledWith(classId, [
+      "770e8400-e29b-41d4-a716-446655440002",
+    ]);
+    expect(html).toContain('data-testid="roster-promotion-770e8400-e29b-41d4-a716-446655440002"');
+    expect(html).toContain('data-target-level="green"');
+  });
+
+  it("does not load pending promotions for archived filter", async () => {
+    mockClassContext();
+    mockListClassStudents.mockResolvedValueOnce([]);
+    mockListPendingPromotionsForStudents.mockReset();
+
+    await StudentsPage({
+      searchParams: Promise.resolve({ filter: "archived" }),
+    });
+
+    expect(mockListPendingPromotionsForStudents).not.toHaveBeenCalled();
   });
 
   it("does not load students when no class exists", async () => {

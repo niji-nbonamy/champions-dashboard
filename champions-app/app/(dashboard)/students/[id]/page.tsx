@@ -81,21 +81,36 @@ export default async function StudentDossierPage({
         >
           Retour aux élèves
         </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-display">{student.displayName}</h1>
-          {student.level && isChampionsLevel(student.level) ? (
-            <LevelBadge level={student.level} showDot />
-          ) : null}
-          {student.archived ? (
-            <span className="text-sm text-muted-foreground">Archivé</span>
-          ) : student.level && isChampionsLevel(student.level) ? (
-            <LevelDotPicker
-              studentId={id}
-              mode="override"
-              currentLevel={student.level}
+        <h1 className="text-display">{student.displayName}</h1>
+        {student.level && isChampionsLevel(student.level) ? (
+          <div className="mt-2 flex flex-col sm:flex-row sm:items-start">
+            <div className="flex flex-col gap-2 pb-4 sm:pb-0 sm:pr-6">
+              <span className="text-sm font-medium text-muted-foreground">
+                Niveau actuel
+              </span>
+              <LevelBadge level={student.level} showDot />
+            </div>
+            <div
+              aria-hidden="true"
+              className="border-border border-t sm:h-auto sm:w-px sm:self-stretch sm:border-t-0 sm:border-l"
             />
-          ) : null}
-        </div>
+            {student.archived ? (
+              <div className="pt-4 sm:pt-0 sm:pl-6">
+                <span className="text-sm text-muted-foreground">Archivé</span>
+              </div>
+            ) : (
+              <div className="pt-4 sm:pt-0 sm:pl-6">
+                <LevelDotPicker
+                  studentId={id}
+                  mode="override"
+                  currentLevel={student.level}
+                />
+              </div>
+            )}
+          </div>
+        ) : student.archived ? (
+          <span className="mt-2 text-sm text-muted-foreground">Archivé</span>
+        ) : null}
       </div>
 
       {pendingPromotion ? (

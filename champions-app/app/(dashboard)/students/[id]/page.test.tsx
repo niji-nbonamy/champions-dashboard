@@ -511,6 +511,7 @@ describe("StudentDossierPage", () => {
     expect(html).toContain(`data-testid="level-dot-picker-${studentId}"`);
     expect(html).toContain('data-mode="override"');
     expect(html).toContain('data-current-level="yellow"');
+    expect(html).toContain("Niveau actuel");
   });
 
   it("renders level history entries on the dossier", async () => {

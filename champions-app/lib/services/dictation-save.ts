@@ -12,6 +12,7 @@ import {
   type CategoryErrorCounts,
 } from "@/lib/domain/grid-validation";
 import { evaluatePendingPromotion } from "@/lib/domain/promotion";
+import { reevaluatePendingPromotionFromDictationHistory } from "@/lib/services/reevaluate-pending-promotion";
 import { calculateGlobalPercent } from "@/lib/domain/scoring";
 import {
   getWordCountForLevel,
@@ -213,54 +214,11 @@ async function cascadePromotionReevaluation(
   studentIds: string[]
 ): Promise<void> {
   for (const studentId of studentIds) {
-    await tx
-      .delete(pendingPromotions)
-      .where(eq(pendingPromotions.studentId, studentId));
-
-    const recentEntries = await tx
-      .select({
-        levelAtSave: dictationEntries.levelAtSave,
-        globalPercent: dictationEntries.globalPercent,
-      })
-      .from(dictationEntries)
-      .innerJoin(dictations, eq(dictationEntries.dictationId, dictations.id))
-      .where(
-        and(
-          eq(dictations.classId, classId),
-          eq(dictationEntries.studentId, studentId)
-        )
-      )
-      .orderBy(
-        desc(dictations.dictationDate),
-        desc(dictations.createdAt),
-        asc(dictationEntries.createdAt)
-      )
-      .limit(2);
-
-    if (recentEntries.length < 2) {
-      continue;
-    }
-
-    const mostRecentLevel = parseChampionsLevel(recentEntries[0].levelAtSave);
-    if (!mostRecentLevel) {
-      continue;
-    }
-
-    const recentPercents = recentEntries.map((entry) => entry.globalPercent);
-    const promotion = evaluatePendingPromotion(
-      mostRecentLevel,
-      recentPercents
+    await reevaluatePendingPromotionFromDictationHistory(
+      tx,
+      classId,
+      studentId
     );
-
-    if (promotion.eligible && promotion.targetLevel) {
-      await tx
-        .insert(pendingPromotions)
-        .values({
-          studentId,
-          targetLevel: promotion.targetLevel,
-        })
-        .onConflictDoNothing({ target: pendingPromotions.studentId });
-    }
   }
 }
 

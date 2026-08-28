@@ -8,6 +8,7 @@ import {
   listClassStudents,
   type ClassStudentFilter,
 } from "@/lib/services/list-class-students";
+import { listPendingPromotionsForStudents } from "@/lib/services/list-pending-promotions";
 
 import { AddStudentForm } from "./add-student-form";
 import { RosterFilter } from "./roster-filter";
@@ -44,6 +45,15 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
     teacherClass !== null
       ? await listClassStudents(teacherClass.id, filter)
       : [];
+  const pendingPromotionsByStudentId =
+    teacherClass !== null && filter !== "archived"
+      ? await listPendingPromotionsForStudents(
+          teacherClass.id,
+          students
+            .filter((student) => student.archived !== true)
+            .map((student) => student.id)
+        )
+      : {};
   const wizardStatus =
     teacherClass !== null
       ? await getYearStartWizardStatus(teacherClass.id)
@@ -81,6 +91,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
           students={students}
           filter={filter}
           showArchiveAction={wizardStatus?.completed === true}
+          pendingPromotionsByStudentId={pendingPromotionsByStudentId}
         />
       </section>
     </main>

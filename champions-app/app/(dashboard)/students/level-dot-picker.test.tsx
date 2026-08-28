@@ -110,11 +110,14 @@ describe("LevelDotPicker", () => {
       />
     );
 
+    expect(html).toContain("Modifier le niveau");
     expect(html).toContain("Changer le niveau jaune");
     expect(html).toContain("Changer le niveau vert");
     expect(html).toContain('aria-current="true"');
     expect(html).toContain('value="yellow"');
     expect(html).toContain('disabled=""');
+    expect(html).toContain("cursor-pointer");
+    expect(html).toContain('data-mode="override"');
   });
 
   it("does not render inline alerts for override errors", () => {

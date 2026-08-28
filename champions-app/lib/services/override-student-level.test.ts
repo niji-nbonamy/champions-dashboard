@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { levelHistoryEntries, pendingPromotions, students } from "@/lib/db/schema";
+import { levelHistoryEntries, students } from "@/lib/db/schema";
 
 const mockLimit = vi.fn();
 const mockWhereSelect = vi.fn(() => ({ limit: mockLimit }));
@@ -48,6 +48,8 @@ vi.mock("drizzle-orm", async (importOriginal) => {
   };
 });
 
+const mockReevaluatePendingPromotionForCurrentLevel = vi.fn();
+
 const getDb = vi.fn(() => ({
   select: mockSelect,
   transaction: mockTransaction,
@@ -55,6 +57,11 @@ const getDb = vi.fn(() => ({
 
 vi.mock("@/lib/db/index", () => ({
   getDb,
+}));
+
+vi.mock("./reevaluate-pending-promotion", () => ({
+  reevaluatePendingPromotionForCurrentLevel:
+    mockReevaluatePendingPromotionForCurrentLevel,
 }));
 
 describe("overrideStudentLevel", () => {
@@ -65,11 +72,11 @@ describe("overrideStudentLevel", () => {
     vi.clearAllMocks();
   });
 
-  it("overrides the level, clears pending promotion, and records manual history", async () => {
+  it("overrides the level, re-evaluates pending promotion, and records manual history", async () => {
     mockLimit.mockResolvedValueOnce([{ id: studentId, level: "yellow" }]);
     mockReturningUpdate.mockResolvedValueOnce([{ id: studentId }]);
-    mockDeleteWhere.mockResolvedValueOnce(undefined);
     mockValues.mockResolvedValueOnce(undefined);
+    mockReevaluatePendingPromotionForCurrentLevel.mockResolvedValueOnce(undefined);
 
     const { overrideStudentLevel } = await import("./override-student-level");
     const result = await overrideStudentLevel(classId, studentId, "green");
@@ -81,8 +88,12 @@ describe("overrideStudentLevel", () => {
     });
     expect(mockTransaction).toHaveBeenCalledOnce();
     expect(mockSet).toHaveBeenCalledWith({ level: "green" });
-    expect(mockDelete).toHaveBeenCalledOnce();
-    expect(mockEq).toHaveBeenCalledWith(pendingPromotions.studentId, studentId);
+    expect(mockReevaluatePendingPromotionForCurrentLevel).toHaveBeenCalledWith(
+      expect.anything(),
+      classId,
+      studentId,
+      "green"
+    );
     expect(mockValues).toHaveBeenCalledWith({
       studentId,
       level: "green",
@@ -103,6 +114,7 @@ describe("overrideStudentLevel", () => {
     });
     expect(mockTransaction).toHaveBeenCalledOnce();
     expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockReevaluatePendingPromotionForCurrentLevel).not.toHaveBeenCalled();
   });
 
   it("rejects invalid levels", async () => {

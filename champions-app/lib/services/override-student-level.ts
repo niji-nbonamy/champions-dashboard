@@ -6,11 +6,9 @@ import {
 } from "@/lib/domain/champions-level";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import { getDb } from "@/lib/db";
-import {
-  levelHistoryEntries,
-  pendingPromotions,
-  students,
-} from "@/lib/db/schema";
+import { levelHistoryEntries, students } from "@/lib/db/schema";
+
+import { reevaluatePendingPromotionForCurrentLevel } from "./reevaluate-pending-promotion";
 
 export const OVERRIDE_STUDENT_LEVEL_GENERIC_ERROR =
   "Modification impossible. Réessayez.";
@@ -100,15 +98,18 @@ export async function overrideStudentLevel(
       throw new StudentNotFoundForOverrideError();
     }
 
-    await tx
-      .delete(pendingPromotions)
-      .where(eq(pendingPromotions.studentId, studentId));
-
     await tx.insert(levelHistoryEntries).values({
       studentId,
       level,
       action: "manual",
     });
+
+    await reevaluatePendingPromotionForCurrentLevel(
+      tx,
+      classId,
+      studentId,
+      level
+    );
 
     result = { studentId, level, changed: true };
   });

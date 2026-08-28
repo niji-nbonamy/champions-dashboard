@@ -33,6 +33,24 @@ vi.mock("./archive-student-button", () => ({
   ),
 }));
 
+vi.mock("@/components/promotion/roster-promotion-action", () => ({
+  RosterPromotionAction: ({
+    studentId,
+    targetLevel,
+  }: {
+    studentId: string;
+    targetLevel: string;
+  }) => (
+    <button
+      type="button"
+      data-testid={`roster-promotion-${studentId}`}
+      data-target-level={targetLevel}
+    >
+      +
+    </button>
+  ),
+}));
+
 import { RosterList } from "./roster-list";
 
 describe("RosterList", () => {
@@ -240,6 +258,52 @@ describe("RosterList", () => {
 
     expect(html).not.toContain("archive-button");
     expect(html).not.toContain("Archiver");
+  });
+
+  it("shows promotion indicators on roster rows when pending exists", () => {
+    const studentId = "880e8400-e29b-41d4-a716-446655440003";
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: studentId,
+            displayName: "MARTIN Lucas",
+            level: "yellow",
+            archived: false,
+          },
+        ]}
+        pendingPromotionsByStudentId={{
+          [studentId]: { targetLevel: "green" },
+        }}
+      />
+    );
+
+    expect(html).not.toContain("⬆️");
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain(`data-testid="roster-promotion-${studentId}"`);
+    expect(html).toContain('data-target-level="green"');
+  });
+
+  it("hides promotion indicators for archived students", () => {
+    const studentId = "990e8400-e29b-41d4-a716-446655440004";
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: studentId,
+            displayName: "BERNARD Paul",
+            level: "green",
+            archived: true,
+          },
+        ]}
+        pendingPromotionsByStudentId={{
+          [studentId]: { targetLevel: "violet" },
+        }}
+      />
+    );
+
+    expect(html).not.toContain("⬆️");
+    expect(html).not.toContain(`data-testid="roster-promotion-${studentId}"`);
   });
 
   it("renders archive buttons for active rows when archive actions are enabled", () => {
