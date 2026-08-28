@@ -22,4 +22,10 @@ describe("Button", () => {
     expect(html).toContain("text-accent");
     expect(html).toContain("bg-transparent");
   });
+
+  it("shows a pointer cursor for clickable buttons", () => {
+    const html = renderToStaticMarkup(<Button>Click</Button>);
+
+    expect(html).toContain("cursor-pointer");
+  });
 });
