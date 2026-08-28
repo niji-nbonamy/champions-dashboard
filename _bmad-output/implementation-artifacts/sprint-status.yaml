@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-28-2026 11:24
+last_updated: 08-28-2026 11:51
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -64,7 +64,7 @@ development_status:
   3-3-grid-validation-save-blocking: done
   3-4-scoring-engine-dictation-save: done
   3-5-edit-past-dictation: done
-  3-6-inline-promotion-indicators-on-grid-d3-d3: backlog
+  3-6-inline-promotion-indicators-on-grid-d3-d3: review
   epic-3-retrospective: optional
 
   epic-4: backlog

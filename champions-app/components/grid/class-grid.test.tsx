@@ -13,11 +13,24 @@ import { ClassGrid } from "./class-grid";
 const dictationId = "880e8400-e29b-41d4-a716-446655440003";
 
 const mockSaveDictationAction = vi.fn();
+const mockValidatePromotionAction = vi.fn();
+const mockRefusePromotionAction = vi.fn();
+const mockRouterRefresh = vi.fn();
 const mockToastSuccess = vi.fn();
 const mockToastError = vi.fn();
 
 vi.mock("@/app/(dashboard)/dictations/actions", () => ({
   saveDictationAction: (...args: unknown[]) => mockSaveDictationAction(...args),
+  validatePromotionAction: (...args: unknown[]) =>
+    mockValidatePromotionAction(...args),
+  refusePromotionAction: (...args: unknown[]) =>
+    mockRefusePromotionAction(...args),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    refresh: mockRouterRefresh,
+  }),
 }));
 
 
@@ -66,9 +79,14 @@ describe("ClassGrid", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     mockSaveDictationAction.mockReset();
+    mockValidatePromotionAction.mockReset();
+    mockRefusePromotionAction.mockReset();
+    mockRouterRefresh.mockReset();
     mockToastSuccess.mockReset();
     mockToastError.mockReset();
     mockSaveDictationAction.mockResolvedValue({ error: null });
+    mockValidatePromotionAction.mockResolvedValue({ error: null });
+    mockRefusePromotionAction.mockResolvedValue({ error: null });
   });
 
   afterEach(() => {
@@ -87,6 +105,10 @@ describe("ClassGrid", () => {
         Record<(typeof CHAMPIONS_ERROR_CATEGORY_LETTERS)[number], number>
       >;
       readOnlyStudentIds?: string[];
+      pendingPromotionsByStudentId?: Record<
+        string,
+        { targetLevel: "yellow" | "green" | "violet" | "gold" }
+      >;
     }
   ) {
     act(() => {
@@ -97,6 +119,7 @@ describe("ClassGrid", () => {
           wordTotalsByStudentId={wordTotalsByStudentId}
           initialCounts={options?.initialCounts}
           readOnlyStudentIds={options?.readOnlyStudentIds}
+          pendingPromotionsByStudentId={options?.pendingPromotionsByStudentId}
         />
       );
     });
@@ -636,6 +659,7 @@ describe("ClassGrid", () => {
       expect.any(Object)
     );
     expect(mockToastSuccess).toHaveBeenCalledWith("Dictée enregistrée.");
+    expect(mockRouterRefresh).toHaveBeenCalled();
     expect(mockToastError).not.toHaveBeenCalled();
   });
 
@@ -850,6 +874,95 @@ describe("ClassGrid", () => {
     );
 
     expect(getSaveButton()?.disabled).toBe(true);
+  });
+
+  it("shows promotion indicators when a pending promotion exists", () => {
+    renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    expect(container.textContent).toContain("⬆️");
+    expect(
+      container.querySelector(
+        'button[aria-label="Ouvrir la promotion pour Marie"]'
+      )
+    ).not.toBeNull();
+  });
+
+  it("hides the promotion plus button on read-only archived rows", () => {
+    renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
+      readOnlyStudentIds: [sampleStudents[0].id],
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    expect(container.textContent).toContain("⬆️");
+    expect(
+      container.querySelector(
+        'button[aria-label="Ouvrir la promotion pour Marie"]'
+      )
+    ).toBeNull();
+  });
+
+  it("opens the promotion dialog when the plus button is clicked", async () => {
+    renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    const plusButton = container.querySelector(
+      'button[aria-label="Ouvrir la promotion pour Marie"]'
+    );
+
+    await act(async () => {
+      plusButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    const dialog = container.querySelector("dialog");
+    expect(dialog?.open).toBe(true);
+    expect(container.textContent).toContain("Prêt à monter → vert");
+  });
+
+  it("validates promotion from the dialog and refreshes the grid", async () => {
+    renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    const plusButton = container.querySelector(
+      'button[aria-label="Ouvrir la promotion pour Marie"]'
+    );
+
+    await act(async () => {
+      plusButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    const validateButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Valider"
+    );
+
+    await act(async () => {
+      validateButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockValidatePromotionAction).toHaveBeenCalledWith(
+      sampleStudents[0].id,
+      dictationId
+    );
+    expect(mockToastSuccess).toHaveBeenCalledWith("Niveau mis à jour.");
+    expect(mockRouterRefresh).toHaveBeenCalled();
   });
 });
 

@@ -15,6 +15,7 @@ import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getDictationById } from "@/lib/services/list-dictations";
 import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
+import { listPendingPromotionsForStudents } from "@/lib/services/list-pending-promotions";
 import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
 import type { LeveledActiveStudent } from "@/lib/services/list-leveled-active-students";
 
@@ -98,6 +99,12 @@ export default async function DictationDetailPage({
       .filter((entry) => entry.archived)
       .map((entry) => entry.studentId);
 
+    const pendingPromotionsByStudentId =
+      await listPendingPromotionsForStudents(
+        teacherClass.id,
+        gridStudents.map((student) => student.id)
+      );
+
     return (
       <main className="flex flex-1 flex-col gap-4 p-6">
         <div className="flex flex-col gap-1">
@@ -121,6 +128,7 @@ export default async function DictationDetailPage({
           wordTotalsByStudentId={wordTotalsByStudentId}
           initialCounts={initialCounts}
           readOnlyStudentIds={readOnlyStudentIds}
+          pendingPromotionsByStudentId={pendingPromotionsByStudentId}
         />
       </main>
     );
@@ -135,6 +143,11 @@ export default async function DictationDetailPage({
   const wordTotalsByStudentId = matchingMatrixRow
     ? buildWordTotalsByStudentId(activeStudents, matchingMatrixRow)
     : {};
+
+  const pendingPromotionsByStudentId = await listPendingPromotionsForStudents(
+    teacherClass.id,
+    activeStudents.map((student) => student.id)
+  );
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
@@ -169,6 +182,7 @@ export default async function DictationDetailPage({
           dictationId={dictation.id}
           students={activeStudents}
           wordTotalsByStudentId={wordTotalsByStudentId}
+          pendingPromotionsByStudentId={pendingPromotionsByStudentId}
         />
       )}
     </main>

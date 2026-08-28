@@ -1,18 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { saveDictationAction } from "@/app/(dashboard)/dictations/actions";
+import {
+  refusePromotionAction,
+  saveDictationAction,
+  validatePromotionAction,
+} from "@/app/(dashboard)/dictations/actions";
 import {
   DICTATION_SAVE_GENERIC_ERROR,
   DICTATION_SAVE_SUCCESS_MESSAGE,
 } from "@/lib/domain/dictation-save-messages";
+import {
+  PROMOTION_REFUSE_GENERIC_ERROR,
+} from "@/lib/services/refuse-student-promotion";
+import {
+  PROMOTION_VALIDATE_GENERIC_ERROR,
+} from "@/lib/services/validate-student-promotion";
 
 import { Button } from "@/components/ui/button";
 import { LevelBadge } from "@/components/ui/level-badge";
+import { PromotionDialog } from "@/components/promotion/promotion-dialog";
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 import {
   CHAMPIONS_ERROR_CATEGORIES,
@@ -24,6 +36,7 @@ import {
 } from "@/lib/domain/grid-validation";
 import { getStudentFirstName } from "@/lib/domain/student-display-name";
 import type { LeveledActiveStudent } from "@/lib/services/list-leveled-active-students";
+import type { PendingPromotionByStudent } from "@/lib/services/list-pending-promotions";
 
 import { CategoryHeader } from "./category-header";
 import { GridCell } from "./grid-cell";
@@ -59,6 +72,7 @@ type ClassGridProps = {
   wordTotalsByStudentId: Record<string, number>;
   initialCounts?: GridCounts;
   readOnlyStudentIds?: string[];
+  pendingPromotionsByStudentId?: Record<string, PendingPromotionByStudent>;
 };
 
 export function ClassGrid({
@@ -67,7 +81,10 @@ export function ClassGrid({
   wordTotalsByStudentId,
   initialCounts,
   readOnlyStudentIds = [],
+  pendingPromotionsByStudentId: pendingPromotionsProp,
 }: ClassGridProps) {
+  const router = useRouter();
+  const pendingPromotionsByStudentId = pendingPromotionsProp ?? {};
   const readOnlyIds = useMemo(
     () => new Set(readOnlyStudentIds),
     [readOnlyStudentIds]
@@ -77,6 +94,10 @@ export function ClassGrid({
     createInitialGridCounts(students, initialCounts)
   );
   const [isPending, startTransition] = useTransition();
+  const [isPromotionPending, startPromotionTransition] = useTransition();
+  const [promotionDialogStudentId, setPromotionDialogStudentId] = useState<
+    string | null
+  >(null);
   const inputRefs = useRef<Array<Array<HTMLInputElement | null>>>([]);
   const gridContainerRef = useRef<HTMLDivElement>(null);
 
@@ -253,7 +274,7 @@ export function ClassGrid({
   );
 
   const handleSave = useCallback(() => {
-    if (!allRowsValid || isPending) {
+    if (!allRowsValid || isPending || isPromotionPending) {
       return;
     }
 
@@ -271,11 +292,105 @@ export function ClassGrid({
         }
 
         toast.success(DICTATION_SAVE_SUCCESS_MESSAGE);
+        router.refresh();
       } catch {
         toast.error(DICTATION_SAVE_GENERIC_ERROR);
       }
     });
-  }, [allRowsValid, counts, dictationId, isPending, readOnlyIds]);
+  }, [allRowsValid, counts, dictationId, isPending, isPromotionPending, readOnlyIds, router]);
+
+  const promotionDialogStudent = useMemo(() => {
+    if (!promotionDialogStudentId) {
+      return null;
+    }
+
+    const student = studentMeta.find(
+      (entry) => entry.id === promotionDialogStudentId
+    );
+    const pending = pendingPromotionsByStudentId[promotionDialogStudentId];
+
+    if (!student || !pending) {
+      return null;
+    }
+
+    return {
+      id: student.id,
+      firstName: student.firstName,
+      targetLevel: pending.targetLevel,
+    };
+  }, [pendingPromotionsByStudentId, promotionDialogStudentId, studentMeta]);
+
+  useEffect(() => {
+    if (promotionDialogStudentId && !promotionDialogStudent) {
+      setPromotionDialogStudentId(null);
+    }
+  }, [promotionDialogStudent, promotionDialogStudentId]);
+
+  const closePromotionDialog = useCallback(() => {
+    if (isPromotionPending) {
+      return;
+    }
+
+    setPromotionDialogStudentId(null);
+  }, [isPromotionPending]);
+
+  const handlePromotionValidate = useCallback(() => {
+    if (!promotionDialogStudentId || isPromotionPending) {
+      return;
+    }
+
+    startPromotionTransition(async () => {
+      try {
+        const result = await validatePromotionAction(
+          promotionDialogStudentId,
+          dictationId
+        );
+
+        if (result.error) {
+          toast.error(result.error);
+          router.refresh();
+          return;
+        }
+
+        toast.success("Niveau mis à jour.");
+        setPromotionDialogStudentId(null);
+        router.refresh();
+      } catch {
+        toast.error(PROMOTION_VALIDATE_GENERIC_ERROR);
+        setPromotionDialogStudentId(null);
+        router.refresh();
+      }
+    });
+  }, [dictationId, isPromotionPending, promotionDialogStudentId, router]);
+
+  const handlePromotionRefuse = useCallback(() => {
+    if (!promotionDialogStudentId || isPromotionPending) {
+      return;
+    }
+
+    startPromotionTransition(async () => {
+      try {
+        const result = await refusePromotionAction(
+          promotionDialogStudentId,
+          dictationId
+        );
+
+        if (result.error) {
+          toast.error(result.error);
+          router.refresh();
+          return;
+        }
+
+        toast.success("Promotion refusée.");
+        setPromotionDialogStudentId(null);
+        router.refresh();
+      } catch {
+        toast.error(PROMOTION_REFUSE_GENERIC_ERROR);
+        setPromotionDialogStudentId(null);
+        router.refresh();
+      }
+    });
+  }, [dictationId, isPromotionPending, promotionDialogStudentId, router]);
 
   const handleContainerKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -331,6 +446,9 @@ export function ClassGrid({
               {CHAMPIONS_ERROR_CATEGORIES.map((category) => (
                 <CategoryHeader key={category.letter} category={category} />
               ))}
+              <th scope="col" className="w-12 px-2 py-2">
+                <span className="sr-only">Promotion</span>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -338,6 +456,9 @@ export function ClassGrid({
               const validation = rowValidation[student.id];
               const rowInvalid =
                 !readOnlyIds.has(student.id) && validation?.valid === false;
+              const pendingPromotion =
+                pendingPromotionsByStudentId[student.id] ?? null;
+              const isReadOnlyRow = readOnlyIds.has(student.id);
 
               return (
                 <tr key={student.id}>
@@ -346,6 +467,19 @@ export function ClassGrid({
                     className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-normal"
                   >
                     <span className="flex w-full items-center gap-2">
+                      {pendingPromotion ? (
+                        <>
+                          <span
+                            className="shrink-0 text-promotion-ready"
+                            aria-hidden="true"
+                          >
+                            ⬆️
+                          </span>
+                          <span className="sr-only">
+                            Promotion en attente pour {student.firstName}
+                          </span>
+                        </>
+                      ) : null}
                       <span className="min-w-0 flex-1 break-words">
                         {student.displayName}
                       </span>
@@ -396,6 +530,19 @@ export function ClassGrid({
                       onTabWrap={handleTabWrap}
                     />
                   ))}
+                  <td className="px-2 py-2 text-center">
+                    {pendingPromotion && !isReadOnlyRow ? (
+                      <button
+                        type="button"
+                        className="inline-flex size-8 items-center justify-center rounded-full bg-promotion-ready text-sm font-semibold text-promotion-ready-foreground outline-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                        aria-label={`Ouvrir la promotion pour ${student.firstName}`}
+                        disabled={isPending || isPromotionPending}
+                        onClick={() => setPromotionDialogStudentId(student.id)}
+                      >
+                        +
+                      </button>
+                    ) : null}
+                  </td>
                 </tr>
               );
             })}
@@ -404,7 +551,7 @@ export function ClassGrid({
       </div>
       <Button
         type="button"
-        disabled={!allRowsValid || isPending}
+        disabled={!allRowsValid || isPending || isPromotionPending}
         onClick={handleSave}
       >
         {isPending ? (
@@ -419,6 +566,17 @@ export function ClassGrid({
           "Enregistrer"
         )}
       </Button>
+      {promotionDialogStudent ? (
+        <PromotionDialog
+          open={promotionDialogStudentId !== null}
+          studentFirstName={promotionDialogStudent.firstName}
+          targetLevel={promotionDialogStudent.targetLevel}
+          pending={isPromotionPending}
+          onClose={closePromotionDialog}
+          onValidate={handlePromotionValidate}
+          onRefuse={handlePromotionRefuse}
+        />
+      ) : null}
     </div>
   );
 }

@@ -10,6 +10,7 @@ const {
   mockGetDictationEntriesByDictationId,
   mockListLeveledActiveStudents,
   mockListWordCountMatrixRows,
+  mockListPendingPromotionsForStudents,
   mockClassGrid,
 } = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -24,6 +25,7 @@ const {
   mockGetDictationEntriesByDictationId: vi.fn(),
   mockListLeveledActiveStudents: vi.fn(),
   mockListWordCountMatrixRows: vi.fn(),
+  mockListPendingPromotionsForStudents: vi.fn(),
   mockClassGrid: vi.fn(),
 }));
 
@@ -56,6 +58,10 @@ vi.mock("@/lib/services/list-word-count-matrix-rows", () => ({
   listWordCountMatrixRows: mockListWordCountMatrixRows,
 }));
 
+vi.mock("@/lib/services/list-pending-promotions", () => ({
+  listPendingPromotionsForStudents: mockListPendingPromotionsForStudents,
+}));
+
 vi.mock("@/components/grid/class-grid", () => ({
   ClassGrid: (props: unknown) => {
     mockClassGrid(props);
@@ -86,6 +92,7 @@ describe("DictationDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetDictationEntriesByDictationId.mockResolvedValue([]);
+    mockListPendingPromotionsForStudents.mockResolvedValue({});
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -164,6 +171,14 @@ describe("DictationDetailPage", () => {
     expect(html).toContain('href="/dictations"');
     expect(mockListLeveledActiveStudents).toHaveBeenCalledWith(classId);
     expect(mockListWordCountMatrixRows).toHaveBeenCalledWith(classId);
+    expect(mockListPendingPromotionsForStudents).toHaveBeenCalledWith(classId, [
+      marieStudentId,
+    ]);
+    expect(mockClassGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pendingPromotionsByStudentId: {},
+      })
+    );
     expect(mockClassGrid).toHaveBeenCalledTimes(1);
   });
 

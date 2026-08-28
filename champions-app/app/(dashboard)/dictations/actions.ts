@@ -20,6 +20,15 @@ import {
   DictationSaveError,
   DICTATION_SAVE_GENERIC_ERROR,
 } from "@/lib/services/dictation-save";
+import {
+  refuseStudentPromotion,
+  PROMOTION_REFUSE_GENERIC_ERROR,
+} from "@/lib/services/refuse-student-promotion";
+import {
+  validateStudentPromotion,
+  StudentPromotionError,
+  PROMOTION_VALIDATE_GENERIC_ERROR,
+} from "@/lib/services/validate-student-promotion";
 import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
 
 export type CreateDictationActionState = {
@@ -29,6 +38,10 @@ export type CreateDictationActionState = {
 const CREATE_DICTATION_GENERIC_ERROR = "Création impossible. Réessayez.";
 
 export type SaveDictationActionResult = {
+  error: string | null;
+};
+
+export type PromotionActionResult = {
   error: string | null;
 };
 
@@ -110,5 +123,75 @@ export async function saveDictationAction(
     }
 
     return { error: DICTATION_SAVE_GENERIC_ERROR };
+  }
+}
+
+export async function validatePromotionAction(
+  studentId: string,
+  dictationId: string
+): Promise<PromotionActionResult> {
+  if (!studentId?.trim()) {
+    return { error: PROMOTION_VALIDATE_GENERIC_ERROR };
+  }
+
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  try {
+    await validateStudentPromotion(teacherClass.id, studentId);
+    revalidatePath(`/dictations/${dictationId}`);
+    revalidatePath("/dictations");
+    revalidatePath("/students");
+    return { error: null };
+  } catch (error) {
+    if (error instanceof StudentPromotionError) {
+      return { error: error.message };
+    }
+
+    return { error: PROMOTION_VALIDATE_GENERIC_ERROR };
+  }
+}
+
+export async function refusePromotionAction(
+  studentId: string,
+  dictationId: string
+): Promise<PromotionActionResult> {
+  if (!studentId?.trim()) {
+    return { error: PROMOTION_REFUSE_GENERIC_ERROR };
+  }
+
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  try {
+    await refuseStudentPromotion(teacherClass.id, studentId);
+    revalidatePath(`/dictations/${dictationId}`);
+    revalidatePath("/dictations");
+    revalidatePath("/students");
+    return { error: null };
+  } catch (error) {
+    if (error instanceof StudentPromotionError) {
+      return { error: error.message };
+    }
+
+    return { error: PROMOTION_REFUSE_GENERIC_ERROR };
   }
 }

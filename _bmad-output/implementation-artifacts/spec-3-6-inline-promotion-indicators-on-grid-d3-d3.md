@@ -2,8 +2,9 @@
 title: '3-6 Inline Promotion Indicators on Grid (D3/D3+)'
 type: 'feature'
 created: '2026-08-28'
-status: 'ready-for-dev'
+status: 'done'
 review_loop_iteration: 0
+baseline_commit: 'c680ce86689ae0fbf22988f3dd8ea9711ad7aa49'
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-3-context.md'
   - '{project-root}/_bmad-output/specs/spec-dashboards-dictees-champions-ce2/level-system.md'
@@ -80,13 +81,13 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `champions-app/lib/services/list-pending-promotions.ts` -- class-scoped pending lookup -- server data for indicators.
-- [ ] `champions-app/lib/services/validate-student-promotion.ts` + test -- promoted tx -- FR19 validate path.
-- [ ] `champions-app/lib/services/refuse-student-promotion.ts` + test -- refused tx + streak reset -- level-system.md.
-- [ ] `champions-app/components/promotion/promotion-dialog.tsx` + test -- shared D1/D3+ dialog -- UX-DR8.
-- [ ] `champions-app/app/(dashboard)/dictations/actions.ts` -- promotion Server Actions -- mutation entry points.
-- [ ] `champions-app/app/(dashboard)/dictations/[id]/page.tsx` + test -- fetch + pass pending map -- page integration.
-- [ ] `champions-app/components/grid/class-grid.tsx` + test -- D3/D3+ UI, dialog wiring, post-save refresh -- FR18/FR19 core.
+- [x] `champions-app/lib/services/list-pending-promotions.ts` -- class-scoped pending lookup -- server data for indicators.
+- [x] `champions-app/lib/services/validate-student-promotion.ts` + test -- promoted tx -- FR19 validate path.
+- [x] `champions-app/lib/services/refuse-student-promotion.ts` + test -- refused tx + streak reset -- level-system.md.
+- [x] `champions-app/components/promotion/promotion-dialog.tsx` + test -- shared D1/D3+ dialog -- UX-DR8.
+- [x] `champions-app/app/(dashboard)/dictations/actions.ts` -- promotion Server Actions -- mutation entry points.
+- [x] `champions-app/app/(dashboard)/dictations/[id]/page.tsx` + test -- fetch + pass pending map -- page integration.
+- [x] `champions-app/components/grid/class-grid.tsx` + test -- D3/D3+ UI, dialog wiring, post-save refresh -- FR18/FR19 core.
 
 **Acceptance Criteria:**
 - Given a student has a pending promotion after a previous save, when I view their row on the class grid, then a ⬆️ indicator appears at row start (FR18).
@@ -112,3 +113,47 @@ Post-save refresh in `handleSave` is required so a qualifying save immediately s
 
 **Manual checks (if no CLI):**
 - Save two qualifying dictations for a yellow student → reopen/new dictation → ⬆️ and **+** appear → Valider → level dot turns green and **+** disappears.
+
+## Spec Change Log
+
+### Review Findings
+
+- [x] [Review][Patch] Include archived grid students in pending lookup — removed `archived` filter [`list-pending-promotions.ts:32`](../../champions-app/lib/services/list-pending-promotions.ts#L32)
+- [x] [Review][Patch] Guard concurrent save during promotion — `isPromotionPending` blocks save [`class-grid.tsx:268`](../../champions-app/components/grid/class-grid.tsx#L268)
+- [x] [Review][Patch] sr-only text for ⬆️ indicator — screen reader support [`class-grid.tsx:456`](../../champions-app/components/grid/class-grid.tsx#L456)
+- [x] [Review][Patch] Fix + button aria-label — opens dialog, not immediate validate [`class-grid.tsx:508`](../../champions-app/components/grid/class-grid.tsx#L508)
+- [x] [Review][Defer] Streak reset on refuse relies on re-evaluation on next save — same two qualifying entries may re-pending until new dictations qualify
+
+## Suggested Review Order
+
+**Promotion mutation services**
+
+- Transactional validate: level update + history + pending delete
+  [`validate-student-promotion.ts:44`](../../champions-app/lib/services/validate-student-promotion.ts#L44)
+
+- Transactional refuse: history + pending delete, level unchanged
+  [`refuse-student-promotion.ts:28`](../../champions-app/lib/services/refuse-student-promotion.ts#L28)
+
+- Class-scoped pending lookup for grid student IDs
+  [`list-pending-promotions.ts:12`](../../champions-app/lib/services/list-pending-promotions.ts#L12)
+
+**Server Actions & page data**
+
+- Auth-wrapped validate/refuse actions with revalidatePath
+  [`actions.ts:129`](../../champions-app/app/(dashboard)/dictations/actions.ts#L129)
+
+- Fetch pending map on both new-entry and reopen paths
+  [`page.tsx:102`](../../champions-app/app/(dashboard)/dictations/[id]/page.tsx#L102)
+
+**Grid UI (D3/D3+)**
+
+- Row indicators, dialog wiring, post-save refresh
+  [`class-grid.tsx:443`](../../champions-app/components/grid/class-grid.tsx#L443)
+
+- Shared Valider/Refuser dialog shell for D1 reuse
+  [`promotion-dialog.tsx:19`](../../champions-app/components/promotion/promotion-dialog.tsx#L19)
+
+**Tests**
+
+- Grid indicator visibility and validate flow
+  [`class-grid.test.tsx:878`](../../champions-app/components/grid/class-grid.test.tsx#L878)
