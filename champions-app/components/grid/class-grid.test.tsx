@@ -964,6 +964,162 @@ describe("ClassGrid", () => {
     expect(mockToastSuccess).toHaveBeenCalledWith("Niveau mis à jour.");
     expect(mockRouterRefresh).toHaveBeenCalled();
   });
+
+  it("refuses promotion from the dialog and refreshes the grid", async () => {
+    renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    const plusButton = container.querySelector(
+      'button[aria-label="Ouvrir la promotion pour Marie"]'
+    );
+
+    await act(async () => {
+      plusButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    const refuseButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Refuser"
+    );
+
+    await act(async () => {
+      refuseButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockRefusePromotionAction).toHaveBeenCalledWith(
+      sampleStudents[0].id,
+      dictationId
+    );
+    expect(mockToastSuccess).toHaveBeenCalledWith("Promotion refusée.");
+    expect(mockRouterRefresh).toHaveBeenCalled();
+  });
+
+  it("disables save while the promotion dialog is open", async () => {
+    renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    const plusButton = container.querySelector(
+      'button[aria-label="Ouvrir la promotion pour Marie"]'
+    );
+
+    await act(async () => {
+      plusButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Enregistrer"
+    );
+
+    expect(saveButton?.disabled).toBe(true);
+
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockSaveDictationAction).not.toHaveBeenCalled();
+  });
+
+  it("keeps the promotion dialog open when validation returns an error", async () => {
+    mockValidatePromotionAction.mockResolvedValueOnce({
+      error: "Validation impossible. Réessayez.",
+    });
+
+    renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    const plusButton = container.querySelector(
+      'button[aria-label="Ouvrir la promotion pour Marie"]'
+    );
+
+    await act(async () => {
+      plusButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    const validateButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Valider"
+    );
+
+    await act(async () => {
+      validateButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockToastError).toHaveBeenCalledWith(
+      "Validation impossible. Réessayez."
+    );
+    expect(container.querySelector("dialog")?.open).toBe(true);
+  });
+
+  it("disables save while promotion validation is pending", async () => {
+    let resolveValidate:
+      | ((value: { error: string | null }) => void)
+      | undefined;
+    mockValidatePromotionAction.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveValidate = resolve;
+        })
+    );
+
+    renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    const plusButton = container.querySelector(
+      'button[aria-label="Ouvrir la promotion pour Marie"]'
+    );
+
+    await act(async () => {
+      plusButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    const validateButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Valider"
+    );
+
+    await act(async () => {
+      validateButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(getSaveButton()?.disabled).toBe(true);
+
+    await act(async () => {
+      getSaveButton()?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockSaveDictationAction).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveValidate?.({ error: null });
+      await Promise.resolve();
+    });
+  });
 });
 
 function emptyCountsForTest() {

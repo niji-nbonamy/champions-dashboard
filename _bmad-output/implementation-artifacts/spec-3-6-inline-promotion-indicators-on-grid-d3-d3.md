@@ -123,6 +123,22 @@ Post-save refresh in `handleSave` is required so a qualifying save immediately s
 - [x] [Review][Patch] sr-only text for ⬆️ indicator — screen reader support [`class-grid.tsx:456`](../../champions-app/components/grid/class-grid.tsx#L456)
 - [x] [Review][Patch] Fix + button aria-label — opens dialog, not immediate validate [`class-grid.tsx:508`](../../champions-app/components/grid/class-grid.tsx#L508)
 - [x] [Review][Defer] Streak reset on refuse relies on re-evaluation on next save — same two qualifying entries may re-pending until new dictations qualify
+- [x] [Review][Patch] Block Enregistrer while promotion dialog is open — disable save and Enter when `promotionDialogStudentId !== null` (resolved: block save while dialog open) [`class-grid.tsx:277`](../../champions-app/components/grid/class-grid.tsx#L277)
+- [x] [Review][Defer] Add + button to keyboard Tab order — `isLastCell` ends at column S; D3+ **+** is click-only (resolved: out of MVP scope for story 3-6; defer to accessibility story) [`class-grid.tsx:515`](../../champions-app/components/grid/class-grid.tsx#L515)
+- [x] [Review][Patch] Idempotent validate/refuse when pending already cleared — `PendingPromotionNotFoundError` treated as success; other errors return generic message [`actions.ts:155`](../../champions-app/app/(dashboard)/dictations/actions.ts#L155) [`class-grid.tsx:349`](../../champions-app/components/grid/class-grid.tsx#L349)
+- [x] [Review][Patch] Validate `targetLevel` matches `getNextLevel(currentLevel)` — stale pending row rejected inside transaction [`validate-student-promotion.ts:66`](../../champions-app/lib/services/validate-student-promotion.ts#L66)
+- [x] [Review][Patch] Move pending row read inside transaction — pending lookup moved into tx for validate/refuse [`validate-student-promotion.ts:47`](../../champions-app/lib/services/validate-student-promotion.ts#L47) [`refuse-student-promotion.ts:29`](../../champions-app/lib/services/refuse-student-promotion.ts#L29)
+- [x] [Review][Patch] Add page reopen pending wiring test — reopen test asserts `listPendingPromotionsForStudents` call and prop for archived+active IDs [`page.test.tsx:284`](../../champions-app/app/(dashboard)/dictations/[id]/page.test.tsx#L284)
+- [x] [Review][Patch] Add page non-empty pending propagation test — new-entry test asserts non-empty map [`page.test.tsx:174`](../../champions-app/app/(dashboard)/dictations/[id]/page.test.tsx#L174)
+- [x] [Review][Patch] Add `list-pending-promotions` service tests — archived inclusion and invalid target levels covered [`list-pending-promotions.test.ts`](../../champions-app/lib/services/list-pending-promotions.test.ts)
+- [x] [Review][Patch] Add class-grid refuse flow test — refuse path asserts action, toast, refresh [`class-grid.test.tsx:933`](../../champions-app/components/grid/class-grid.test.tsx#L933)
+- [x] [Review][Patch] Add promotion-dialog Esc/refuse tests — Esc and Refuser callbacks covered [`promotion-dialog.test.tsx:45`](../../champions-app/components/promotion/promotion-dialog.test.tsx#L45)
+- [x] [Review][Patch] Add `validatePromotionAction` / `refusePromotionAction` tests — auth, revalidate, idempotency, generic errors [`actions.test.ts`](../../champions-app/app/(dashboard)/dictations/actions.test.ts)
+- [x] [Review][Patch] Add class-scope guard tests for promotion services — wrong-class cases covered [`validate-student-promotion.test.ts`](../../champions-app/lib/services/validate-student-promotion.test.ts)
+- [x] [Review][Patch] Add `isPromotionPending` save-block and promotion error-path grid tests — dialog-open save block, pending save block, error keeps dialog open [`class-grid.tsx:277`](../../champions-app/components/grid/class-grid.tsx#L277)
+- [x] [Review][Patch] Handle `listPendingPromotionsForStudents` failure on dictation page — `loadPendingPromotionsForGrid` degrades to `{}` [`page.tsx:102`](../../champions-app/app/(dashboard)/dictations/[id]/page.tsx#L102)
+- [x] [Review][Patch] Harmonize dialog close on promotion error — catch path no longer closes dialog; both error paths keep dialog open [`class-grid.tsx:349`](../../champions-app/components/grid/class-grid.tsx#L349)
+- [x] [Review][Defer] Archived read-only row shows ⬆️ but hides **+** with no D1/D2 surface yet — pending on archived student is visible but unactionable until Epic 4 [`class-grid.tsx:534`](../../champions-app/components/grid/class-grid.tsx#L534) — deferred, Epic 4 backlog
 
 ## Suggested Review Order
 

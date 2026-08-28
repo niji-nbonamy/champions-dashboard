@@ -274,7 +274,12 @@ export function ClassGrid({
   );
 
   const handleSave = useCallback(() => {
-    if (!allRowsValid || isPending || isPromotionPending) {
+    if (
+      !allRowsValid ||
+      isPending ||
+      isPromotionPending ||
+      promotionDialogStudentId !== null
+    ) {
       return;
     }
 
@@ -297,7 +302,7 @@ export function ClassGrid({
         toast.error(DICTATION_SAVE_GENERIC_ERROR);
       }
     });
-  }, [allRowsValid, counts, dictationId, isPending, isPromotionPending, readOnlyIds, router]);
+  }, [allRowsValid, counts, dictationId, isPending, isPromotionPending, promotionDialogStudentId, readOnlyIds, router]);
 
   const promotionDialogStudent = useMemo(() => {
     if (!promotionDialogStudentId) {
@@ -357,7 +362,6 @@ export function ClassGrid({
         router.refresh();
       } catch {
         toast.error(PROMOTION_VALIDATE_GENERIC_ERROR);
-        setPromotionDialogStudentId(null);
         router.refresh();
       }
     });
@@ -386,7 +390,6 @@ export function ClassGrid({
         router.refresh();
       } catch {
         toast.error(PROMOTION_REFUSE_GENERIC_ERROR);
-        setPromotionDialogStudentId(null);
         router.refresh();
       }
     });
@@ -394,7 +397,12 @@ export function ClassGrid({
 
   const handleContainerKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key !== "Enter" || !allRowsValid || isPending) {
+      if (
+        event.key !== "Enter" ||
+        !allRowsValid ||
+        isPending ||
+        promotionDialogStudentId !== null
+      ) {
         return;
       }
 
@@ -406,7 +414,7 @@ export function ClassGrid({
       event.preventDefault();
       handleSave();
     },
-    [allRowsValid, handleSave, isPending]
+    [allRowsValid, handleSave, isPending, promotionDialogStudentId]
   );
 
   if (students.length === 0) {
@@ -551,7 +559,12 @@ export function ClassGrid({
       </div>
       <Button
         type="button"
-        disabled={!allRowsValid || isPending || isPromotionPending}
+        disabled={
+          !allRowsValid ||
+          isPending ||
+          isPromotionPending ||
+          promotionDialogStudentId !== null
+        }
         onClick={handleSave}
       >
         {isPending ? (

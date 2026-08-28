@@ -26,31 +26,31 @@ export async function refuseStudentPromotion(
 ): Promise<RefuseStudentPromotionResult> {
   const db = getDb();
 
-  const [pending] = await db
-    .select({
-      targetLevel: pendingPromotions.targetLevel,
-    })
-    .from(pendingPromotions)
-    .innerJoin(students, eq(pendingPromotions.studentId, students.id))
-    .where(
-      and(
-        eq(pendingPromotions.studentId, studentId),
-        eq(students.classId, classId),
-        eq(students.archived, false)
-      )
-    )
-    .limit(1);
-
-  if (!pending) {
-    throw new PendingPromotionNotFoundError();
-  }
-
-  const targetLevel = parseChampionsLevel(pending.targetLevel);
-  if (!targetLevel) {
-    throw new StudentPromotionError(PROMOTION_REFUSE_GENERIC_ERROR);
-  }
-
   await db.transaction(async (tx) => {
+    const [pendingRow] = await tx
+      .select({
+        targetLevel: pendingPromotions.targetLevel,
+      })
+      .from(pendingPromotions)
+      .innerJoin(students, eq(pendingPromotions.studentId, students.id))
+      .where(
+        and(
+          eq(pendingPromotions.studentId, studentId),
+          eq(students.classId, classId),
+          eq(students.archived, false)
+        )
+      )
+      .limit(1);
+
+    if (!pendingRow) {
+      throw new PendingPromotionNotFoundError();
+    }
+
+    const targetLevel = parseChampionsLevel(pendingRow.targetLevel);
+    if (!targetLevel) {
+      throw new StudentPromotionError(PROMOTION_REFUSE_GENERIC_ERROR);
+    }
+
     const [student] = await tx
       .select({ id: students.id })
       .from(students)

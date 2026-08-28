@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const mockLimit = vi.fn();
 const mockWhereSelect = vi.fn(() => ({ limit: mockLimit }));
 const mockInnerJoin = vi.fn(() => ({ where: mockWhereSelect }));
-const mockFromSelect = vi.fn(() => ({ innerJoin: mockInnerJoin }));
+const mockFromSelect = vi.fn(() => ({ innerJoin: mockInnerJoin, where: mockWhereSelect }));
 const mockSelect = vi.fn(() => ({ from: mockFromSelect }));
 
 const mockReturningUpdate = vi.fn();
@@ -20,11 +20,13 @@ const mockInsert = vi.fn(() => ({ values: mockValues }));
 
 const mockTransaction = vi.fn(
   async (callback: (tx: {
+    select: typeof mockSelect;
     update: typeof mockUpdate;
     delete: typeof mockDelete;
     insert: typeof mockInsert;
   }) => Promise<unknown>) =>
     callback({
+      select: mockSelect,
       update: mockUpdate,
       delete: mockDelete,
       insert: mockInsert,
@@ -32,7 +34,6 @@ const mockTransaction = vi.fn(
 );
 
 const getDb = vi.fn(() => ({
-  select: mockSelect,
   transaction: mockTransaction,
 }));
 
@@ -49,7 +50,9 @@ describe("validateStudentPromotion", () => {
   });
 
   it("promotes the student and clears pending promotion", async () => {
-    mockLimit.mockResolvedValueOnce([{ targetLevel: "green" }]);
+    mockLimit
+      .mockResolvedValueOnce([{ targetLevel: "green" }])
+      .mockResolvedValueOnce([{ level: "yellow" }]);
     mockReturningUpdate.mockResolvedValueOnce([{ id: studentId }]);
     mockReturningDelete.mockResolvedValueOnce([{ id: "pending-id" }]);
     mockValues.mockResolvedValueOnce(undefined);
@@ -77,6 +80,31 @@ describe("validateStudentPromotion", () => {
     await expect(
       validateStudentPromotion(classId, studentId)
     ).rejects.toBeInstanceOf(PendingPromotionNotFoundError);
-    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects when the student is outside the class scope", async () => {
+    mockLimit.mockResolvedValueOnce([]);
+
+    const { validateStudentPromotion, PendingPromotionNotFoundError } =
+      await import("./validate-student-promotion");
+
+    await expect(
+      validateStudentPromotion("other-class-id", studentId)
+    ).rejects.toBeInstanceOf(PendingPromotionNotFoundError);
+  });
+
+  it("rejects when pending target level does not match next level", async () => {
+    mockLimit
+      .mockResolvedValueOnce([{ targetLevel: "violet" }])
+      .mockResolvedValueOnce([{ level: "yellow" }]);
+
+    const { validateStudentPromotion, StudentPromotionError } = await import(
+      "./validate-student-promotion"
+    );
+
+    await expect(
+      validateStudentPromotion(classId, studentId)
+    ).rejects.toBeInstanceOf(StudentPromotionError);
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 });

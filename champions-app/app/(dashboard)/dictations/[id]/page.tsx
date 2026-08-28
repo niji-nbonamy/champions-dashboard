@@ -25,6 +25,17 @@ type DictationDetailPageProps = {
   }>;
 };
 
+async function loadPendingPromotionsForGrid(
+  classId: string,
+  studentIds: string[]
+) {
+  try {
+    return await listPendingPromotionsForStudents(classId, studentIds);
+  } catch {
+    return {};
+  }
+}
+
 export default async function DictationDetailPage({
   params,
 }: DictationDetailPageProps) {
@@ -99,11 +110,10 @@ export default async function DictationDetailPage({
       .filter((entry) => entry.archived)
       .map((entry) => entry.studentId);
 
-    const pendingPromotionsByStudentId =
-      await listPendingPromotionsForStudents(
-        teacherClass.id,
-        gridStudents.map((student) => student.id)
-      );
+    const pendingPromotionsByStudentId = await loadPendingPromotionsForGrid(
+      teacherClass.id,
+      gridStudents.map((student) => student.id)
+    );
 
     return (
       <main className="flex flex-1 flex-col gap-4 p-6">
@@ -144,7 +154,7 @@ export default async function DictationDetailPage({
     ? buildWordTotalsByStudentId(activeStudents, matchingMatrixRow)
     : {};
 
-  const pendingPromotionsByStudentId = await listPendingPromotionsForStudents(
+  const pendingPromotionsByStudentId = await loadPendingPromotionsForGrid(
     teacherClass.id,
     activeStudents.map((student) => student.id)
   );

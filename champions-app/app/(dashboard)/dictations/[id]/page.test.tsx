@@ -182,6 +182,47 @@ describe("DictationDetailPage", () => {
     expect(mockClassGrid).toHaveBeenCalledTimes(1);
   });
 
+  it("passes non-empty pending promotions to ClassGrid on new entry", async () => {
+    mockAuthenticatedClass();
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      label: "Dictée 1",
+      dictationLabelKey: "dictée 1",
+      dictationDate: "2026-08-27",
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: marieStudentId,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+    ]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([
+      {
+        dictationLabelKey: "Dictée 1",
+        wordsYellow: 10,
+        wordsGreen: 12,
+        wordsViolet: 14,
+        wordsGold: 16,
+      },
+    ]);
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({
+      [marieStudentId]: { targetLevel: "green" },
+    });
+
+    renderToStaticMarkup(
+      await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
+    );
+
+    expect(mockClassGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pendingPromotionsByStudentId: {
+          [marieStudentId]: { targetLevel: "green" },
+        },
+      })
+    );
+  });
+
   it("passes matrix-derived word totals per student level to ClassGrid (FR13)", async () => {
     mockAuthenticatedClass();
     mockGetDictationById.mockResolvedValueOnce({
@@ -332,6 +373,9 @@ describe("DictationDetailPage", () => {
         level: "yellow",
       },
     ]);
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({
+      [marieStudentId]: { targetLevel: "green" },
+    });
 
     renderToStaticMarkup(
       await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
@@ -363,6 +407,56 @@ describe("DictationDetailPage", () => {
           }),
         },
         readOnlyStudentIds: ["770e8400-e29b-41d4-a716-446655440099"],
+      })
+    );
+    expect(mockListPendingPromotionsForStudents).toHaveBeenCalledWith(classId, [
+      marieStudentId,
+      "770e8400-e29b-41d4-a716-446655440099",
+    ]);
+    expect(mockClassGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pendingPromotionsByStudentId: {
+          [marieStudentId]: { targetLevel: "green" },
+        },
+      })
+    );
+  });
+
+  it("renders the grid with an empty pending map when pending lookup fails", async () => {
+    mockAuthenticatedClass();
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      label: "Dictée 1",
+      dictationLabelKey: "dictée 1",
+      dictationDate: "2026-08-27",
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: marieStudentId,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+    ]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([
+      {
+        dictationLabelKey: "Dictée 1",
+        wordsYellow: 10,
+        wordsGreen: 12,
+        wordsViolet: 14,
+        wordsGold: 16,
+      },
+    ]);
+    mockListPendingPromotionsForStudents.mockRejectedValueOnce(
+      new Error("database unavailable")
+    );
+
+    renderToStaticMarkup(
+      await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
+    );
+
+    expect(mockClassGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pendingPromotionsByStudentId: {},
       })
     );
   });

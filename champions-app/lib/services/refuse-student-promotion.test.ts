@@ -3,17 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const mockLimit = vi.fn();
 const mockWhereSelect = vi.fn(() => ({ limit: mockLimit }));
 const mockInnerJoin = vi.fn(() => ({ where: mockWhereSelect }));
-const mockFromSelect = vi.fn(() => ({ innerJoin: mockInnerJoin }));
+const mockFromSelect = vi.fn(() => ({ innerJoin: mockInnerJoin, where: mockWhereSelect }));
 const mockSelect = vi.fn(() => ({ from: mockFromSelect }));
-
-const mockTransactionLimit = vi.fn();
-const mockTransactionWhereSelect = vi.fn(() => ({
-  limit: mockTransactionLimit,
-}));
-const mockTransactionFromSelect = vi.fn(() => ({
-  where: mockTransactionWhereSelect,
-}));
-const mockTransactionSelect = vi.fn(() => ({ from: mockTransactionFromSelect }));
 
 const mockReturningDelete = vi.fn();
 const mockDeleteWhere = vi.fn(() => ({ returning: mockReturningDelete }));
@@ -24,19 +15,18 @@ const mockInsert = vi.fn(() => ({ values: mockValues }));
 
 const mockTransaction = vi.fn(
   async (callback: (tx: {
-    select: typeof mockTransactionSelect;
+    select: typeof mockSelect;
     delete: typeof mockDelete;
     insert: typeof mockInsert;
   }) => Promise<unknown>) =>
     callback({
-      select: mockTransactionSelect,
+      select: mockSelect,
       delete: mockDelete,
       insert: mockInsert,
     })
 );
 
 const getDb = vi.fn(() => ({
-  select: mockSelect,
   transaction: mockTransaction,
 }));
 
@@ -53,8 +43,9 @@ describe("refuseStudentPromotion", () => {
   });
 
   it("records refusal and clears pending promotion without changing level", async () => {
-    mockLimit.mockResolvedValueOnce([{ targetLevel: "green" }]);
-    mockTransactionLimit.mockResolvedValueOnce([{ id: studentId }]);
+    mockLimit
+      .mockResolvedValueOnce([{ targetLevel: "green" }])
+      .mockResolvedValueOnce([{ id: studentId }]);
     mockReturningDelete.mockResolvedValueOnce([{ id: "pending-id" }]);
     mockValues.mockResolvedValueOnce(undefined);
 
@@ -80,6 +71,18 @@ describe("refuseStudentPromotion", () => {
     await expect(
       refuseStudentPromotion(classId, studentId)
     ).rejects.toBeInstanceOf(PendingPromotionNotFoundError);
-    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects when the student is outside the class scope", async () => {
+    mockLimit.mockResolvedValueOnce([]);
+
+    const { refuseStudentPromotion } = await import("./refuse-student-promotion");
+    const { PendingPromotionNotFoundError } = await import(
+      "./validate-student-promotion"
+    );
+
+    await expect(
+      refuseStudentPromotion("other-class-id", studentId)
+    ).rejects.toBeInstanceOf(PendingPromotionNotFoundError);
   });
 });

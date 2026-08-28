@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
+import { getNextLevel } from "@/lib/domain/promotion";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import { getDb } from "@/lib/db";
 import {
@@ -43,32 +44,54 @@ export async function validateStudentPromotion(
   studentId: string
 ): Promise<ValidateStudentPromotionResult> {
   const db = getDb();
-
-  const [pending] = await db
-    .select({
-      targetLevel: pendingPromotions.targetLevel,
-    })
-    .from(pendingPromotions)
-    .innerJoin(students, eq(pendingPromotions.studentId, students.id))
-    .where(
-      and(
-        eq(pendingPromotions.studentId, studentId),
-        eq(students.classId, classId),
-        eq(students.archived, false)
-      )
-    )
-    .limit(1);
-
-  if (!pending) {
-    throw new PendingPromotionNotFoundError();
-  }
-
-  const targetLevel = parseChampionsLevel(pending.targetLevel);
-  if (!targetLevel) {
-    throw new StudentPromotionError(PROMOTION_VALIDATE_GENERIC_ERROR);
-  }
+  let validatedLevel: ChampionsLevel | null = null;
 
   await db.transaction(async (tx) => {
+    const [pendingRow] = await tx
+      .select({
+        targetLevel: pendingPromotions.targetLevel,
+      })
+      .from(pendingPromotions)
+      .innerJoin(students, eq(pendingPromotions.studentId, students.id))
+      .where(
+        and(
+          eq(pendingPromotions.studentId, studentId),
+          eq(students.classId, classId),
+          eq(students.archived, false)
+        )
+      )
+      .limit(1);
+
+    if (!pendingRow) {
+      throw new PendingPromotionNotFoundError();
+    }
+
+    const targetLevel = parseChampionsLevel(pendingRow.targetLevel);
+    if (!targetLevel) {
+      throw new StudentPromotionError(PROMOTION_VALIDATE_GENERIC_ERROR);
+    }
+
+    const [student] = await tx
+      .select({ level: students.level })
+      .from(students)
+      .where(
+        and(
+          eq(students.id, studentId),
+          eq(students.classId, classId),
+          eq(students.archived, false)
+        )
+      )
+      .limit(1);
+
+    if (!student) {
+      throw new StudentNotFoundForPromotionError();
+    }
+
+    const currentLevel = parseChampionsLevel(student.level);
+    if (!currentLevel || getNextLevel(currentLevel) !== targetLevel) {
+      throw new StudentPromotionError(PROMOTION_VALIDATE_GENERIC_ERROR);
+    }
+
     const [updatedStudent] = await tx
       .update(students)
       .set({ level: targetLevel })
@@ -99,7 +122,9 @@ export async function validateStudentPromotion(
       level: targetLevel,
       action: "promoted",
     });
+
+    validatedLevel = targetLevel;
   });
 
-  return { studentId, level: targetLevel };
+  return { studentId, level: validatedLevel! };
 }

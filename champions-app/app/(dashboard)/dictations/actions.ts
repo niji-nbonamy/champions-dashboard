@@ -27,6 +27,7 @@ import {
 import {
   validateStudentPromotion,
   StudentPromotionError,
+  PendingPromotionNotFoundError,
   PROMOTION_VALIDATE_GENERIC_ERROR,
 } from "@/lib/services/validate-student-promotion";
 import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
@@ -153,8 +154,15 @@ export async function validatePromotionAction(
     revalidatePath("/students");
     return { error: null };
   } catch (error) {
+    if (error instanceof PendingPromotionNotFoundError) {
+      revalidatePath(`/dictations/${dictationId}`);
+      revalidatePath("/dictations");
+      revalidatePath("/students");
+      return { error: null };
+    }
+
     if (error instanceof StudentPromotionError) {
-      return { error: error.message };
+      return { error: PROMOTION_VALIDATE_GENERIC_ERROR };
     }
 
     return { error: PROMOTION_VALIDATE_GENERIC_ERROR };
@@ -188,8 +196,15 @@ export async function refusePromotionAction(
     revalidatePath("/students");
     return { error: null };
   } catch (error) {
+    if (error instanceof PendingPromotionNotFoundError) {
+      revalidatePath(`/dictations/${dictationId}`);
+      revalidatePath("/dictations");
+      revalidatePath("/students");
+      return { error: null };
+    }
+
     if (error instanceof StudentPromotionError) {
-      return { error: error.message };
+      return { error: PROMOTION_REFUSE_GENERIC_ERROR };
     }
 
     return { error: PROMOTION_REFUSE_GENERIC_ERROR };

@@ -198,3 +198,8 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
   summary: Test all-archived reopen grid disables save.
   evidence: `editableStudents.length > 0` guard present; no scenario test.
+
+## Deferred from: code review of spec-3-6-inline-promotion-indicators-on-grid-d3-d3.md (2026-08-28)
+
+- Archived read-only row shows ⬆️ but hides **+** with no D1/D2 surface yet — pending on archived student is visible but unactionable until Epic 4 (`class-grid.tsx:534`)
+- Add + button to keyboard Tab order — D3+ **+** is click-only; deferred out of MVP scope for story 3-6 (`class-grid.tsx:515`)

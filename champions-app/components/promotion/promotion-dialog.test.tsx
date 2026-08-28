@@ -69,4 +69,61 @@ describe("PromotionDialog", () => {
 
     expect(onValidate).toHaveBeenCalledOnce();
   });
+
+  it("calls onRefuse when Refuser is clicked", () => {
+    const onRefuse = vi.fn();
+
+    act(() => {
+      root.render(
+        <PromotionDialog
+          open
+          studentFirstName="Marie"
+          targetLevel="green"
+          pending={false}
+          onClose={vi.fn()}
+          onValidate={vi.fn()}
+          onRefuse={onRefuse}
+        />
+      );
+    });
+
+    const refuseButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Refuser"
+    );
+
+    act(() => {
+      refuseButton?.click();
+    });
+
+    expect(onRefuse).toHaveBeenCalledOnce();
+  });
+
+  it("calls onClose when Escape is pressed", () => {
+    const onClose = vi.fn();
+
+    act(() => {
+      root.render(
+        <PromotionDialog
+          open
+          studentFirstName="Marie"
+          targetLevel="green"
+          pending={false}
+          onClose={onClose}
+          onValidate={vi.fn()}
+          onRefuse={vi.fn()}
+        />
+      );
+    });
+
+    const dialog = container.querySelector("dialog");
+    expect(dialog).not.toBeNull();
+
+    act(() => {
+      dialog?.dispatchEvent(
+        new Event("cancel", { bubbles: true, cancelable: true })
+      );
+    });
+
+    expect(onClose).toHaveBeenCalledOnce();
+  });
 });
