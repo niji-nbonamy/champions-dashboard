@@ -80,7 +80,14 @@ describe("ClassGrid", () => {
 
   function renderGrid(
     students: LeveledActiveStudent[] = sampleStudents,
-    wordTotalsByStudentId: Record<string, number> = defaultWordTotalsByStudentId
+    wordTotalsByStudentId: Record<string, number> = defaultWordTotalsByStudentId,
+    options?: {
+      initialCounts?: Record<
+        string,
+        Record<(typeof CHAMPIONS_ERROR_CATEGORY_LETTERS)[number], number>
+      >;
+      readOnlyStudentIds?: string[];
+    }
   ) {
     act(() => {
       root.render(
@@ -88,6 +95,8 @@ describe("ClassGrid", () => {
           dictationId={dictationId}
           students={students}
           wordTotalsByStudentId={wordTotalsByStudentId}
+          initialCounts={options?.initialCounts}
+          readOnlyStudentIds={options?.readOnlyStudentIds}
         />
       );
     });
@@ -698,4 +707,162 @@ describe("ClassGrid", () => {
       expect.any(Object)
     );
   });
+
+  it("pre-fills cells from initialCounts on reopen", () => {
+    renderGrid(sampleStudents.slice(0, 1), { [sampleStudents[0].id]: 50 }, {
+      initialCounts: {
+        [sampleStudents[0].id]: {
+          C: 3,
+          H: 0,
+          A: 0,
+          M: 0,
+          P: 0,
+          I: 0,
+          O: 0,
+          N: 0,
+          S: 0,
+        },
+      },
+    });
+
+    const firstInput = getCellInputs()[0];
+    expect(firstInput?.value).toBe("3");
+    expect(firstInput?.getAttribute("aria-label")).toBe(
+      "Marie, Conjugaison, 3 erreurs"
+    );
+  });
+
+  it("validates editable rows against snapshot denominators on reopen", () => {
+    renderGrid(sampleStudents.slice(0, 1), { [sampleStudents[0].id]: 10 }, {
+      initialCounts: {
+        [sampleStudents[0].id]: {
+          C: 0,
+          H: 0,
+          A: 0,
+          M: 0,
+          P: 0,
+          I: 0,
+          O: 0,
+          N: 0,
+          S: 0,
+        },
+      },
+    });
+
+    const firstInput = getCellInputs()[0];
+    act(() => {
+      firstInput?.focus();
+      setInputValue(firstInput!, "11");
+    });
+
+    expect(container.textContent).toContain(
+      "Σ erreurs (11) > total mots (10) pour Marie"
+    );
+    expect(getSaveButton()?.disabled).toBe(true);
+  });
+
+  it("renders archived student rows as read-only and excludes them from save", async () => {
+    const archivedStudentId = "770e8400-e29b-41d4-a716-446655440099";
+    renderGrid(
+      [
+        sampleStudents[0],
+        {
+          id: archivedStudentId,
+          displayName: "ANCIEN Léa",
+          level: "yellow",
+        },
+      ],
+      {
+        [sampleStudents[0].id]: 50,
+        [archivedStudentId]: 40,
+      },
+      {
+        initialCounts: {
+          [sampleStudents[0].id]: { ...emptyCountsForTest() },
+          [archivedStudentId]: {
+            C: 4,
+            H: 0,
+            A: 0,
+            M: 0,
+            P: 0,
+            I: 0,
+            O: 0,
+            N: 0,
+            S: 0,
+          },
+        },
+        readOnlyStudentIds: [archivedStudentId],
+      }
+    );
+
+    const inputs = getCellInputs();
+    const archivedFirstCell = inputs[9];
+    expect(archivedFirstCell?.value).toBe("4");
+    expect(archivedFirstCell?.disabled).toBe(true);
+
+    act(() => {
+      archivedFirstCell?.focus();
+      setInputValue(archivedFirstCell!, "9");
+    });
+    expect(archivedFirstCell?.value).toBe("4");
+
+    const saveButton = getSaveButton();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockSaveDictationAction).toHaveBeenCalledWith(dictationId, {
+      [sampleStudents[0].id]: expect.any(Object),
+    });
+    expect(mockSaveDictationAction.mock.calls[0]?.[1]).not.toHaveProperty(
+      archivedStudentId
+    );
+  });
+
+  it("disables save when every row is read-only", () => {
+    const archivedStudentId = "770e8400-e29b-41d4-a716-446655440099";
+    renderGrid(
+      [
+        {
+          id: archivedStudentId,
+          displayName: "ANCIEN Léa",
+          level: "yellow",
+        },
+      ],
+      { [archivedStudentId]: 40 },
+      {
+        initialCounts: {
+          [archivedStudentId]: {
+            C: 4,
+            H: 0,
+            A: 0,
+            M: 0,
+            P: 0,
+            I: 0,
+            O: 0,
+            N: 0,
+            S: 0,
+          },
+        },
+        readOnlyStudentIds: [archivedStudentId],
+      }
+    );
+
+    expect(getSaveButton()?.disabled).toBe(true);
+  });
 });
+
+function emptyCountsForTest() {
+  return {
+    C: 0,
+    H: 0,
+    A: 0,
+    M: 0,
+    P: 0,
+    I: 0,
+    O: 0,
+    N: 0,
+    S: 0,
+  };
+}

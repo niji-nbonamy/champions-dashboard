@@ -1,7 +1,9 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
-import { categoryErrorsToDbColumns } from "@/lib/domain/error-categories";
+import {
+  categoryErrorsToDbColumns,
+} from "@/lib/domain/error-categories";
 import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
 import { findMatchingMatrixRow } from "@/lib/domain/dictation";
 import {
@@ -28,6 +30,7 @@ import {
   DICTATION_SAVE_SUCCESS_MESSAGE,
 } from "@/lib/domain/dictation-save-messages";
 
+import { getDictationEntriesByDictationId } from "./get-dictation-entries";
 import { listLeveledActiveStudents } from "./list-leveled-active-students";
 import { getDictationById } from "./list-dictations";
 import { listWordCountMatrixRows } from "./list-word-count-matrix-rows";
@@ -73,6 +76,12 @@ export type PreparedDictationEntry = {
   wordDenominator: number;
   globalPercent: number;
   errorColumns: ReturnType<typeof categoryErrorsToDbColumns>;
+};
+
+export type ExistingEntrySnapshot = {
+  studentId: string;
+  levelAtSave: ChampionsLevel;
+  wordDenominator: number;
 };
 
 export type SaveDictationResult = {
@@ -158,6 +167,103 @@ export function prepareDictationEntries(
   return prepared;
 }
 
+export function prepareDictationEntryUpdates(
+  existingSnapshots: ExistingEntrySnapshot[],
+  countsByStudentId: GridCountsInput
+): PreparedDictationEntry[] {
+  const prepared: PreparedDictationEntry[] = [];
+
+  for (const snapshot of existingSnapshots) {
+    const studentCounts = normalizeCategoryCounts(
+      countsByStudentId[snapshot.studentId]
+    );
+    const validation = validateGridRow(
+      studentCounts,
+      snapshot.wordDenominator
+    );
+
+    if (!validation.valid) {
+      throw new InvalidGridSaveError();
+    }
+
+    const globalPercent = calculateGlobalPercent(
+      snapshot.wordDenominator,
+      sumCategoryErrors(studentCounts)
+    );
+
+    prepared.push({
+      studentId: snapshot.studentId,
+      levelAtSave: snapshot.levelAtSave,
+      wordDenominator: snapshot.wordDenominator,
+      globalPercent,
+      errorColumns: categoryErrorsToDbColumns(studentCounts),
+    });
+  }
+
+  return prepared;
+}
+
+type DbTransaction = Parameters<
+  Parameters<ReturnType<typeof getDb>["transaction"]>[0]
+>[0];
+
+async function cascadePromotionReevaluation(
+  tx: DbTransaction,
+  classId: string,
+  studentIds: string[]
+): Promise<void> {
+  for (const studentId of studentIds) {
+    await tx
+      .delete(pendingPromotions)
+      .where(eq(pendingPromotions.studentId, studentId));
+
+    const recentEntries = await tx
+      .select({
+        levelAtSave: dictationEntries.levelAtSave,
+        globalPercent: dictationEntries.globalPercent,
+      })
+      .from(dictationEntries)
+      .innerJoin(dictations, eq(dictationEntries.dictationId, dictations.id))
+      .where(
+        and(
+          eq(dictations.classId, classId),
+          eq(dictationEntries.studentId, studentId)
+        )
+      )
+      .orderBy(
+        desc(dictations.dictationDate),
+        desc(dictations.createdAt),
+        asc(dictationEntries.createdAt)
+      )
+      .limit(2);
+
+    if (recentEntries.length < 2) {
+      continue;
+    }
+
+    const mostRecentLevel = parseChampionsLevel(recentEntries[0].levelAtSave);
+    if (!mostRecentLevel) {
+      continue;
+    }
+
+    const recentPercents = recentEntries.map((entry) => entry.globalPercent);
+    const promotion = evaluatePendingPromotion(
+      mostRecentLevel,
+      recentPercents
+    );
+
+    if (promotion.eligible && promotion.targetLevel) {
+      await tx
+        .insert(pendingPromotions)
+        .values({
+          studentId,
+          targetLevel: promotion.targetLevel,
+        })
+        .onConflictDoNothing({ target: pendingPromotions.studentId });
+    }
+  }
+}
+
 export async function saveDictation(
   classId: string,
   dictationId: string,
@@ -169,6 +275,75 @@ export async function saveDictation(
   }
 
   const db = getDb();
+  const existingEntries = await getDictationEntriesByDictationId(
+    classId,
+    dictationId
+  );
+
+  if (existingEntries.length > 0) {
+    const editableSnapshots: ExistingEntrySnapshot[] = [];
+
+    for (const entry of existingEntries) {
+      if (entry.archived) {
+        continue;
+      }
+
+      const levelAtSave = parseChampionsLevel(entry.levelAtSave);
+      if (!levelAtSave) {
+        throw new InvalidGridSaveError();
+      }
+
+      editableSnapshots.push({
+        studentId: entry.studentId,
+        levelAtSave,
+        wordDenominator: entry.wordDenominator,
+      });
+    }
+
+    assertCountsMatchRoster(
+      editableSnapshots.map((snapshot) => ({ id: snapshot.studentId })),
+      countsByStudentId
+    );
+
+    if (editableSnapshots.length === 0) {
+      throw new InvalidGridSaveError();
+    }
+
+    const preparedUpdates = prepareDictationEntryUpdates(
+      editableSnapshots,
+      countsByStudentId
+    );
+    const affectedStudentIds = existingEntries.map((entry) => entry.studentId);
+
+    await db.transaction(async (tx) => {
+      for (const entry of preparedUpdates) {
+        const updatedRows = await tx
+          .update(dictationEntries)
+          .set({
+            globalPercent: entry.globalPercent,
+            ...entry.errorColumns,
+          })
+          .where(
+            and(
+              eq(dictationEntries.dictationId, dictationId),
+              eq(dictationEntries.studentId, entry.studentId)
+            )
+          )
+          .returning({ id: dictationEntries.id });
+
+        if (updatedRows.length === 0) {
+          throw new InvalidGridSaveError();
+        }
+      }
+
+      await cascadePromotionReevaluation(tx, classId, affectedStudentIds);
+    });
+
+    return {
+      dictationId,
+      entryCount: preparedUpdates.length,
+    };
+  }
 
   const students = await listLeveledActiveStudents(classId);
   if (students.length === 0) {

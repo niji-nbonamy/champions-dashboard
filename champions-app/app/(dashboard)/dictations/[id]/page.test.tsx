@@ -7,6 +7,7 @@ const {
   notFound,
   mockGetTeacherClass,
   mockGetDictationById,
+  mockGetDictationEntriesByDictationId,
   mockListLeveledActiveStudents,
   mockListWordCountMatrixRows,
   mockClassGrid,
@@ -20,6 +21,7 @@ const {
   }),
   mockGetTeacherClass: vi.fn(),
   mockGetDictationById: vi.fn(),
+  mockGetDictationEntriesByDictationId: vi.fn(),
   mockListLeveledActiveStudents: vi.fn(),
   mockListWordCountMatrixRows: vi.fn(),
   mockClassGrid: vi.fn(),
@@ -40,6 +42,10 @@ vi.mock("@/lib/services/get-teacher-class", () => ({
 
 vi.mock("@/lib/services/list-dictations", () => ({
   getDictationById: mockGetDictationById,
+}));
+
+vi.mock("@/lib/services/get-dictation-entries", () => ({
+  getDictationEntriesByDictationId: mockGetDictationEntriesByDictationId,
 }));
 
 vi.mock("@/lib/services/list-leveled-active-students", () => ({
@@ -79,6 +85,7 @@ function mockAuthenticatedClass() {
 describe("DictationDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetDictationEntriesByDictationId.mockResolvedValue([]);
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -257,5 +264,91 @@ describe("DictationDetailPage", () => {
       })
     );
     expect(html).not.toContain("Enregistrer");
+  });
+
+  it("passes saved entry snapshots and read-only archived ids on reopen", async () => {
+    mockAuthenticatedClass();
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      label: "Dictée 1",
+      dictationLabelKey: "dictée 1",
+      dictationDate: "2026-08-27",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: marieStudentId,
+        displayName: "DUPONT Marie",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 42,
+        globalPercent: 90,
+        errorsC: 4,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+      {
+        studentId: "770e8400-e29b-41d4-a716-446655440099",
+        displayName: "ANCIEN Léa",
+        archived: true,
+        levelAtSave: "yellow",
+        wordDenominator: 40,
+        globalPercent: 88,
+        errorsC: 5,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: marieStudentId,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+    ]);
+
+    renderToStaticMarkup(
+      await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
+    );
+
+    expect(mockClassGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dictationId,
+        students: [
+          {
+            id: marieStudentId,
+            displayName: "DUPONT Marie",
+            level: "yellow",
+          },
+          {
+            id: "770e8400-e29b-41d4-a716-446655440099",
+            displayName: "ANCIEN Léa",
+            level: "yellow",
+          },
+        ],
+        wordTotalsByStudentId: {
+          [marieStudentId]: 42,
+          "770e8400-e29b-41d4-a716-446655440099": 40,
+        },
+        initialCounts: {
+          [marieStudentId]: expect.objectContaining({ C: 4 }),
+          "770e8400-e29b-41d4-a716-446655440099": expect.objectContaining({
+            C: 5,
+          }),
+        },
+        readOnlyStudentIds: ["770e8400-e29b-41d4-a716-446655440099"],
+      })
+    );
   });
 });

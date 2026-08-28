@@ -40,9 +40,15 @@ function createEmptyCounts(): Record<ChampionsErrorCategoryLetter, number> {
   );
 }
 
-function createInitialGridCounts(students: LeveledActiveStudent[]): GridCounts {
+function createInitialGridCounts(
+  students: LeveledActiveStudent[],
+  initialCounts?: GridCounts
+): GridCounts {
   return students.reduce<GridCounts>((counts, student) => {
-    counts[student.id] = createEmptyCounts();
+    counts[student.id] = {
+      ...createEmptyCounts(),
+      ...(initialCounts?.[student.id] ?? {}),
+    };
     return counts;
   }, {});
 }
@@ -51,15 +57,24 @@ type ClassGridProps = {
   dictationId: string;
   students: LeveledActiveStudent[];
   wordTotalsByStudentId: Record<string, number>;
+  initialCounts?: GridCounts;
+  readOnlyStudentIds?: string[];
 };
 
 export function ClassGrid({
   dictationId,
   students,
   wordTotalsByStudentId,
+  initialCounts,
+  readOnlyStudentIds = [],
 }: ClassGridProps) {
+  const readOnlyIds = useMemo(
+    () => new Set(readOnlyStudentIds),
+    [readOnlyStudentIds]
+  );
+
   const [counts, setCounts] = useState<GridCounts>(() =>
-    createInitialGridCounts(students)
+    createInitialGridCounts(students, initialCounts)
   );
   const [isPending, startTransition] = useTransition();
   const inputRefs = useRef<Array<Array<HTMLInputElement | null>>>([]);
@@ -104,15 +119,41 @@ export function ClassGrid({
     return byStudentId;
   }, [counts, studentMeta, wordTotalsByStudentId]);
 
-  const allRowsValid = useMemo(
-    () =>
-      studentMeta.length > 0 &&
-      studentMeta.every((student) => rowValidation[student.id]?.valid),
-    [rowValidation, studentMeta]
-  );
+  const allRowsValid = useMemo(() => {
+    const editableStudents = studentMeta.filter(
+      (student) => !readOnlyIds.has(student.id)
+    );
+
+    return (
+      editableStudents.length > 0 &&
+      editableStudents.every((student) => rowValidation[student.id]?.valid)
+    );
+  }, [readOnlyIds, rowValidation, studentMeta]);
 
   const lastStudentIndex = students.length - 1;
   const lastCategoryIndex = CHAMPIONS_ERROR_CATEGORIES.length - 1;
+
+  const isStudentEditable = useCallback(
+    (studentIndex: number) => {
+      const student = students[studentIndex];
+      return student !== undefined && !readOnlyIds.has(student.id);
+    },
+    [readOnlyIds, students]
+  );
+
+  const findEditableStudentIndex = useCallback(
+    (startIndex: number, direction: 1 | -1): number | null => {
+      let index = startIndex;
+      while (index >= 0 && index <= lastStudentIndex) {
+        if (isStudentEditable(index)) {
+          return index;
+        }
+        index += direction;
+      }
+      return null;
+    },
+    [isStudentEditable, lastStudentIndex]
+  );
 
   const focusCell = useCallback(
     (studentIndex: number, categoryIndex: number) => {
@@ -137,26 +178,53 @@ export function ClassGrid({
       } else if (direction === "right") {
         nextCategoryIndex = Math.min(lastCategoryIndex, categoryIndex + 1);
       } else if (direction === "up") {
-        nextStudentIndex = Math.max(0, studentIndex - 1);
+        const candidate = findEditableStudentIndex(studentIndex - 1, -1);
+        if (candidate === null) {
+          return;
+        }
+        nextStudentIndex = candidate;
       } else if (direction === "down") {
-        nextStudentIndex = Math.min(lastStudentIndex, studentIndex + 1);
+        const candidate = findEditableStudentIndex(studentIndex + 1, 1);
+        if (candidate === null) {
+          return;
+        }
+        nextStudentIndex = candidate;
+      }
+
+      if (!isStudentEditable(nextStudentIndex)) {
+        return;
       }
 
       focusCell(nextStudentIndex, nextCategoryIndex);
     },
-    [focusCell, lastCategoryIndex, lastStudentIndex]
+    [
+      findEditableStudentIndex,
+      focusCell,
+      isStudentEditable,
+      lastCategoryIndex,
+      lastStudentIndex,
+    ]
   );
 
   const handleTabWrap = useCallback(
     (direction: "forward" | "backward") => {
       if (direction === "forward") {
-        focusCell(0, 0);
+        const firstEditable = findEditableStudentIndex(0, 1);
+        if (firstEditable === null) {
+          return;
+        }
+        focusCell(firstEditable, 0);
         return;
       }
 
-      focusCell(lastStudentIndex, lastCategoryIndex);
+      const lastEditable = findEditableStudentIndex(lastStudentIndex, -1);
+      if (lastEditable === null) {
+        return;
+      }
+
+      focusCell(lastEditable, lastCategoryIndex);
     },
-    [focusCell, lastCategoryIndex, lastStudentIndex]
+    [findEditableStudentIndex, focusCell, lastCategoryIndex, lastStudentIndex]
   );
 
   const handleValueChange = useCallback(
@@ -165,6 +233,10 @@ export function ClassGrid({
       letter: ChampionsErrorCategoryLetter,
       value: number
     ) => {
+      if (readOnlyIds.has(studentId)) {
+        return;
+      }
+
       if (!Number.isFinite(value) || value < 0) {
         return;
       }
@@ -177,7 +249,7 @@ export function ClassGrid({
         },
       }));
     },
-    []
+    [readOnlyIds]
   );
 
   const handleSave = useCallback(() => {
@@ -185,9 +257,13 @@ export function ClassGrid({
       return;
     }
 
+    const editableCounts = Object.fromEntries(
+      Object.entries(counts).filter(([studentId]) => !readOnlyIds.has(studentId))
+    );
+
     startTransition(async () => {
       try {
-        const result = await saveDictationAction(dictationId, counts);
+        const result = await saveDictationAction(dictationId, editableCounts);
 
         if (result.error) {
           toast.error(result.error);
@@ -199,7 +275,7 @@ export function ClassGrid({
         toast.error(DICTATION_SAVE_GENERIC_ERROR);
       }
     });
-  }, [allRowsValid, counts, dictationId, isPending]);
+  }, [allRowsValid, counts, dictationId, isPending, readOnlyIds]);
 
   const handleContainerKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -260,7 +336,8 @@ export function ClassGrid({
           <tbody className="divide-y divide-border">
             {studentMeta.map((student, studentIndex) => {
               const validation = rowValidation[student.id];
-              const rowInvalid = validation?.valid === false;
+              const rowInvalid =
+                !readOnlyIds.has(student.id) && validation?.valid === false;
 
               return (
                 <tr key={student.id}>
@@ -281,7 +358,7 @@ export function ClassGrid({
                         ) : null}
                       </span>
                     </span>
-                    {validation?.message ? (
+                    {validation?.message && !readOnlyIds.has(student.id) ? (
                       <p
                         className="mt-1 text-xs text-destructive"
                         role="alert"
@@ -306,7 +383,7 @@ export function ClassGrid({
                         categoryIndex === lastCategoryIndex
                       }
                       hasValidationError={rowInvalid}
-                      disabled={isPending}
+                      disabled={isPending || readOnlyIds.has(student.id)}
                       inputRef={(element) => {
                         if (!inputRefs.current[studentIndex]) {
                           inputRefs.current[studentIndex] = [];

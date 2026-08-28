@@ -8,11 +8,15 @@ import {
   findMatchingMatrixRow,
   isValidUuidV4,
 } from "@/lib/domain/dictation";
+import { dbColumnsToCategoryErrors } from "@/lib/domain/error-categories";
+import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
 import { buildWordTotalsByStudentId } from "@/lib/domain/word-count-matrix";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
+import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getDictationById } from "@/lib/services/list-dictations";
 import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
 import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
+import type { LeveledActiveStudent } from "@/lib/services/list-leveled-active-students";
 
 type DictationDetailPageProps = {
   params: Promise<{
@@ -47,7 +51,81 @@ export default async function DictationDetailPage({
     notFound();
   }
 
-  const students = await listLeveledActiveStudents(teacherClass.id);
+  const savedEntries = await getDictationEntriesByDictationId(teacherClass.id, id);
+  const activeStudents = await listLeveledActiveStudents(teacherClass.id);
+
+  if (savedEntries.length > 0) {
+    const activeStudentsById = new Map(
+      activeStudents.map((student) => [student.id, student])
+    );
+
+    const gridStudents: LeveledActiveStudent[] = savedEntries.map((entry) => {
+      const activeStudent = activeStudentsById.get(entry.studentId);
+
+      return {
+        id: entry.studentId,
+        displayName: activeStudent?.displayName ?? entry.displayName,
+        level: entry.levelAtSave,
+      };
+    });
+
+    const initialCounts = savedEntries.reduce<
+      Record<string, Record<ChampionsErrorCategoryLetter, number>>
+    >((counts, entry) => {
+      counts[entry.studentId] = dbColumnsToCategoryErrors({
+        errorsC: entry.errorsC,
+        errorsH: entry.errorsH,
+        errorsA: entry.errorsA,
+        errorsM: entry.errorsM,
+        errorsP: entry.errorsP,
+        errorsI: entry.errorsI,
+        errorsO: entry.errorsO,
+        errorsN: entry.errorsN,
+        errorsS: entry.errorsS,
+      });
+      return counts;
+    }, {});
+
+    const wordTotalsByStudentId = savedEntries.reduce<Record<string, number>>(
+      (totals, entry) => {
+        totals[entry.studentId] = entry.wordDenominator;
+        return totals;
+      },
+      {}
+    );
+
+    const readOnlyStudentIds = savedEntries
+      .filter((entry) => entry.archived)
+      .map((entry) => entry.studentId);
+
+    return (
+      <main className="flex flex-1 flex-col gap-4 p-6">
+        <div className="flex flex-col gap-1">
+          <Link
+            href="/dictations"
+            className="text-sm text-muted-foreground underline underline-offset-4"
+          >
+            Retour aux dictées
+          </Link>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {dictation.label}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {formatDictationDateForDisplay(dictation.dictationDate)}
+          </p>
+        </div>
+        <h2 className="text-lg font-medium">Saisie des erreurs</h2>
+        <ClassGrid
+          dictationId={dictation.id}
+          students={gridStudents}
+          wordTotalsByStudentId={wordTotalsByStudentId}
+          initialCounts={initialCounts}
+          readOnlyStudentIds={readOnlyStudentIds}
+        />
+      </main>
+    );
+  }
+
   const matrixRows = await listWordCountMatrixRows(teacherClass.id);
   const matchingMatrixRow = findMatchingMatrixRow(
     matrixRows,
@@ -55,7 +133,7 @@ export default async function DictationDetailPage({
   );
 
   const wordTotalsByStudentId = matchingMatrixRow
-    ? buildWordTotalsByStudentId(students, matchingMatrixRow)
+    ? buildWordTotalsByStudentId(activeStudents, matchingMatrixRow)
     : {};
 
   return (
@@ -75,7 +153,7 @@ export default async function DictationDetailPage({
         </p>
       </div>
       <h2 className="text-lg font-medium">Saisie des erreurs</h2>
-      {students.length > 0 && !matchingMatrixRow ? (
+      {activeStudents.length > 0 && !matchingMatrixRow ? (
         <p className="text-sm text-muted-foreground">
           Aucune ligne de matrice pour cette dictée. Configurez la matrice sur{" "}
           <Link
@@ -89,7 +167,7 @@ export default async function DictationDetailPage({
       ) : (
         <ClassGrid
           dictationId={dictation.id}
-          students={students}
+          students={activeStudents}
           wordTotalsByStudentId={wordTotalsByStudentId}
         />
       )}

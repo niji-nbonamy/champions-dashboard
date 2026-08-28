@@ -148,3 +148,20 @@ export function categoryErrorsToDbColumns(
     return columns;
   }, {} as DictationEntryErrorColumns);
 }
+
+export function dbColumnsToCategoryErrors(
+  columns: DictationEntryErrorColumns
+): Record<ChampionsErrorCategoryLetter, number> {
+  return CHAMPIONS_ERROR_CATEGORIES.reduce(
+    (counts, category) => {
+      const column = ERROR_LETTER_TO_COLUMN[category.letter];
+      const value = columns[column];
+      counts[category.letter] = Math.max(
+        0,
+        Number.isFinite(value) ? value : 0
+      );
+      return counts;
+    },
+    {} as Record<ChampionsErrorCategoryLetter, number>
+  );
+}

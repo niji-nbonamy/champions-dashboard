@@ -150,3 +150,17 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-4-scoring-engine-dictation-save.md`
   summary: Assert grid counts unchanged after save failure toast.
   evidence: Failure test checks `mockToastError` only, not retained `counts` state (UX-DR24).
+
+## Deferred from: code review of spec-3-5-edit-past-dictation.md (2026-08-28)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Add dedicated test file for `getDictationEntriesByDictationId` DB query and mapping.
+  evidence: Service fully mocked in page/save tests; no `get-dictation-entries.test.ts` unlike `list-dictations.test.ts`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: Integration test for edit-path transaction rollback on DB failure.
+  evidence: I/O matrix row « DB failure mid-tx » has no covering test; mocked transaction always succeeds.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-5-edit-past-dictation.md`
+  summary: ARIA or visual affordance for read-only archived grid rows beyond disabled inputs.
+  evidence: Archived rows use `disabled` only; no `aria-readonly` or label for screen readers.
