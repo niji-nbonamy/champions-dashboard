@@ -43,8 +43,7 @@ vi.mock("next/dist/client/components/redirect-error", () => ({
 }));
 
 import { PromotionBanner } from "./promotion-banner";
-import { PROMOTION_REFUSE_GENERIC_ERROR } from "@/lib/services/refuse-student-promotion";
-import { PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/services/validate-student-promotion";
+import { PROMOTION_REFUSE_GENERIC_ERROR, PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/domain/promotion-messages";
 
 function getPromotionButtons(container: HTMLDivElement) {
   const buttons = Array.from(container.querySelectorAll("button"));

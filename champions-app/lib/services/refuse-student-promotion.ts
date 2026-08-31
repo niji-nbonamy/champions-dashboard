@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
+import { PROMOTION_REFUSE_GENERIC_ERROR } from "@/lib/domain/promotion-messages";
 import { getDb } from "@/lib/db";
 import {
   levelHistoryEntries,
@@ -14,7 +15,7 @@ import {
   StudentPromotionError,
 } from "./validate-student-promotion";
 
-export const PROMOTION_REFUSE_GENERIC_ERROR = "Refus impossible. Réessayez.";
+export { PROMOTION_REFUSE_GENERIC_ERROR } from "@/lib/domain/promotion-messages";
 
 export type RefuseStudentPromotionResult = {
   studentId: string;

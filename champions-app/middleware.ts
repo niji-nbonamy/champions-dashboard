@@ -1,6 +1,10 @@
+import NextAuth from "next-auth";
+
 import { runAuthMiddleware } from "@/lib/auth/middleware-handler";
 
-import { auth } from "./auth";
+import { authConfig } from "./auth.config";
+
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) =>
   runAuthMiddleware(req.nextUrl.pathname, !!req.auth, req.nextUrl)

@@ -10,10 +10,7 @@ import {
   validateDossierPromotionAction,
 } from "@/app/(dashboard)/students/actions";
 import type { ChampionsLevel } from "@/lib/design/tokens";
-import {
-  PROMOTION_REFUSE_GENERIC_ERROR,
-} from "@/lib/services/refuse-student-promotion";
-import { PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/services/validate-student-promotion";
+import { PROMOTION_REFUSE_GENERIC_ERROR, PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/domain/promotion-messages";
 
 import { PromotionDialog } from "./promotion-dialog";
 

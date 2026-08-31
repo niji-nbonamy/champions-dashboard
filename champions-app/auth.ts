@@ -1,21 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
-import {
-  mapJwtTokenToSession,
-  mapUserToJwtToken,
-} from "@/lib/auth/session-mapping";
-import { getAuthSecret } from "@/lib/config/auth-secret";
 import { authenticateTeacher } from "@/lib/services/authenticate-teacher";
 
+import { authConfig } from "./auth.config";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: getAuthSecret(),
-  session: {
-    strategy: "jwt",
-  },
-  pages: {
-    signIn: "/login",
-  },
+  ...authConfig,
   providers: [
     Credentials({
       credentials: {
@@ -38,12 +29,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      return mapUserToJwtToken(token, user);
-    },
-    async session({ session, token }) {
-      return mapJwtTokenToSession(session, token);
-    },
-  },
 });

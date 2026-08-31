@@ -7,6 +7,7 @@ const monorepoRoot = path.join(__dirname, "..");
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: monorepoRoot,
+  serverExternalPackages: ["pg"],
   turbopack: {
     root: monorepoRoot,
   },

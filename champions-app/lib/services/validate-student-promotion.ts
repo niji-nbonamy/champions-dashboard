@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 import { getNextLevel } from "@/lib/domain/promotion";
+import { PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/domain/promotion-messages";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import { getDb } from "@/lib/db";
 import {
@@ -10,8 +11,7 @@ import {
   students,
 } from "@/lib/db/schema";
 
-export const PROMOTION_VALIDATE_GENERIC_ERROR =
-  "Validation impossible. Réessayez.";
+export { PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/domain/promotion-messages";
 
 export class StudentPromotionError extends Error {
   constructor(message: string) {

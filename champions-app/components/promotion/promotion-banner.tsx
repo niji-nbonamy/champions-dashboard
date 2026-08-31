@@ -12,10 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getChampionsLevelFrenchLabel } from "@/lib/domain/champions-level";
 import type { ChampionsLevel } from "@/lib/design/tokens";
-import {
-  PROMOTION_REFUSE_GENERIC_ERROR,
-} from "@/lib/services/refuse-student-promotion";
-import { PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/services/validate-student-promotion";
+import { PROMOTION_REFUSE_GENERIC_ERROR, PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/domain/promotion-messages";
 
 type PromotionBannerProps = {
   studentId: string;

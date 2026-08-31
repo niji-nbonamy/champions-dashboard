@@ -17,10 +17,8 @@ import {
 } from "@/lib/domain/dictation-save-messages";
 import {
   PROMOTION_REFUSE_GENERIC_ERROR,
-} from "@/lib/services/refuse-student-promotion";
-import {
   PROMOTION_VALIDATE_GENERIC_ERROR,
-} from "@/lib/services/validate-student-promotion";
+} from "@/lib/domain/promotion-messages";
 
 import { Button } from "@/components/ui/button";
 import { LevelBadge } from "@/components/ui/level-badge";
