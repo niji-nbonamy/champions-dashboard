@@ -473,19 +473,6 @@ export function ClassGrid({
                     className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-normal"
                   >
                     <span className="flex w-full items-center gap-2">
-                      {pendingPromotion ? (
-                        <>
-                          <span
-                            className="shrink-0 text-promotion-ready"
-                            aria-hidden="true"
-                          >
-                            ⬆️
-                          </span>
-                          <span className="sr-only">
-                            Promotion en attente pour {student.firstName}
-                          </span>
-                        </>
-                      ) : null}
                       <span className="min-w-0 flex-1 break-words">
                         {student.displayName}
                       </span>

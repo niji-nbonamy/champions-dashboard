@@ -876,14 +876,14 @@ describe("ClassGrid", () => {
     expect(getSaveButton()?.disabled).toBe(true);
   });
 
-  it("shows promotion indicators when a pending promotion exists", () => {
+  it("shows the promotion plus button when a pending promotion exists", () => {
     renderGrid(sampleStudents, defaultWordTotalsByStudentId, {
       pendingPromotionsByStudentId: {
         [sampleStudents[0].id]: { targetLevel: "green" },
       },
     });
 
-    expect(container.textContent).toContain("⬆️");
+    expect(container.textContent).not.toContain("⬆️");
     expect(
       container.querySelector(
         'button[aria-label="Ouvrir la promotion pour Marie"]'
@@ -899,7 +899,7 @@ describe("ClassGrid", () => {
       },
     });
 
-    expect(container.textContent).toContain("⬆️");
+    expect(container.textContent).not.toContain("⬆️");
     expect(
       container.querySelector(
         'button[aria-label="Ouvrir la promotion pour Marie"]'
