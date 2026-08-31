@@ -84,7 +84,7 @@ context:
 
 ## Design Notes
 
-Refuse cutoff: query `level_history_entries` for `studentId` + `action = 'refused'` ordered by `occurredAt DESC LIMIT 1`. When loading recent dictation entries, join `dictations` and filter `dictations.createdAt > refusedAt` (or `dictation_entries.createdAt` — pick one consistently and document in test). Then take the 2 most recent from the filtered set.
+Refuse cutoff: query `level_history_entries` for `studentId` + `action = 'refused'` ordered by `occurredAt DESC LIMIT 1`. When loading recent dictation entries, filter with `gt(dictationEntries.createdAt, refusalCutoff)` — only entry `createdAt` is used (not `dictations.createdAt`). Then take the 2 most recent from the filtered set.
 
 Unifying first-save removes the FR30 "skip if pending exists" pre-check — the reevaluate path already delete-then-evaluate, which is the correct semantics when scores change.
 
@@ -104,6 +104,10 @@ Unifying first-save removes the FR30 "skip if pending exists" pre-check — the 
 - [x] [Review][Patch] Assert `gt(dictationEntries.createdAt, refusalCutoff)` in FR31 tests [`reevaluate-pending-promotion.test.ts:127`]
 - [x] [Review][Patch] Add violet→gold and gold no-op service tests [`reevaluate-pending-promotion.test.ts:276`]
 - [x] [Review][Patch] Document `dictationEntries.createdAt` as FR31 cutoff field [`reevaluate-pending-promotion.ts:54`]
+- [x] [Review][Patch] Strengthen FR31 tests to assert pre-refuse qualifying dictations are excluded (not just `mockGt` + empty mock) [`reevaluate-pending-promotion.test.ts:127`]
+- [x] [Review][Patch] Add dictation-save integration test for FR31 refuse streak reset [`dictation-save.test.ts`]
+- [x] [Review][Patch] Add test for multiple `refused` history entries using latest cutoff [`reevaluate-pending-promotion.test.ts`]
+- [x] [Review][Patch] Resolve design-notes ambiguity: document `dictationEntries.createdAt` as sole FR31 cutoff field [`spec-4-5-promotion-detection-rules.md:87`]
 
 ## Suggested Review Order
 

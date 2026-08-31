@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { dictationEntries } from "@/lib/db/schema";
 import {
   assertCountsMatchRoster,
   prepareDictationEntries,
@@ -90,6 +91,21 @@ const mockGetDictationById = vi.fn();
 const mockGetDictationEntriesByDictationId = vi.fn();
 const mockListLeveledActiveStudents = vi.fn();
 const mockListWordCountMatrixRows = vi.fn();
+
+const { mockGt } = vi.hoisted(() => ({
+  mockGt: vi.fn(),
+}));
+
+vi.mock("drizzle-orm", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("drizzle-orm")>();
+  return {
+    ...actual,
+    gt: (...args: Parameters<typeof actual.gt>) => {
+      mockGt(...args);
+      return actual.gt(...args);
+    },
+  };
+});
 
 vi.mock("@/lib/db/index", () => ({
   getDb: () => mockGetDb(),
@@ -606,6 +622,62 @@ describe("saveDictation first-save path", () => {
         .mockResolvedValueOnce([
           { levelAtSave: "yellow", globalPercent: 96 },
         ]);
+      await callback(tx);
+    });
+
+    const { saveDictation } = await import("./dictation-save");
+    await saveDictation(classId, dictationId, {
+      [students[0].id]: { ...emptyCounts, C: 2 },
+    });
+
+    expect(mockDeleteWhere).toHaveBeenCalled();
+    expect(mockInsertValues).not.toHaveBeenCalledWith(
+      expect.objectContaining({ targetLevel: expect.any(String) })
+    );
+  });
+
+  it("does not recreate pending promotion from pre-refuse dictations after edit save (FR31)", async () => {
+    const refusalDate = new Date("2026-03-15T12:00:00Z");
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: students[0].id,
+        displayName: "DUPONT Marie",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 50,
+        globalPercent: 96,
+        errorsC: 2,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit
+        .mockResolvedValueOnce([{ occurredAt: refusalDate }])
+        .mockImplementationOnce(() => {
+          expect(mockGt).toHaveBeenCalledWith(
+            dictationEntries.createdAt,
+            refusalDate
+          );
+          return Promise.resolve([]);
+        });
       await callback(tx);
     });
 

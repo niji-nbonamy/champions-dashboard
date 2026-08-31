@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { pendingPromotions } from "@/lib/db/schema";
+import { dictationEntries, pendingPromotions } from "@/lib/db/schema";
 
 const mockLimit = vi.fn();
 const mockOrderBy = vi.fn(() => ({ limit: mockLimit }));
@@ -57,10 +57,37 @@ vi.mock("@/lib/db/index", () => ({
   getDb,
 }));
 
+type MockDictationRow = {
+  levelAtSave?: string;
+  globalPercent: number;
+  createdAt?: Date;
+};
+
 function mockNoRefusalThenDictations(
   dictationRows: Array<{ levelAtSave?: string; globalPercent: number }>
 ) {
   mockLimit.mockResolvedValueOnce([]).mockResolvedValueOnce(dictationRows);
+}
+
+function mockRefusalThenPostRefuseFilter(
+  refusalDate: Date,
+  dictationRows: MockDictationRow[]
+) {
+  mockLimit
+    .mockResolvedValueOnce([{ occurredAt: refusalDate }])
+    .mockImplementationOnce(() => {
+      expect(mockGt).toHaveBeenCalledWith(
+        dictationEntries.createdAt,
+        refusalDate
+      );
+      const postRefuseRows = dictationRows
+        .filter((row) => (row.createdAt ?? refusalDate) > refusalDate)
+        .map(({ levelAtSave, globalPercent }) => ({
+          levelAtSave: levelAtSave ?? "yellow",
+          globalPercent,
+        }));
+      return Promise.resolve(postRefuseRows);
+    });
 }
 
 describe("reevaluatePendingPromotionForCurrentLevel", () => {
@@ -126,9 +153,18 @@ describe("reevaluatePendingPromotionForCurrentLevel", () => {
 
   it("does not recreate pending promotion from pre-refuse dictations (FR31)", async () => {
     const refusalDate = new Date("2026-03-15T12:00:00Z");
-    mockLimit
-      .mockResolvedValueOnce([{ occurredAt: refusalDate }])
-      .mockResolvedValueOnce([]);
+    mockRefusalThenPostRefuseFilter(refusalDate, [
+      {
+        levelAtSave: "yellow",
+        globalPercent: 92,
+        createdAt: new Date("2026-03-10T12:00:00Z"),
+      },
+      {
+        levelAtSave: "yellow",
+        globalPercent: 91,
+        createdAt: new Date("2026-03-12T12:00:00Z"),
+      },
+    ]);
     mockDeleteWhere.mockResolvedValueOnce(undefined);
 
     const { reevaluatePendingPromotionForCurrentLevel } = await import(
@@ -144,7 +180,6 @@ describe("reevaluatePendingPromotionForCurrentLevel", () => {
       );
     });
 
-    expect(mockGt).toHaveBeenCalled();
     expect(mockDelete).toHaveBeenCalledOnce();
     expect(mockInsert).not.toHaveBeenCalled();
   });
@@ -232,9 +267,18 @@ describe("reevaluatePendingPromotionFromDictationHistory", () => {
 
   it("does not recreate pending promotion from pre-refuse dictations (FR31)", async () => {
     const refusalDate = new Date("2026-03-15T12:00:00Z");
-    mockLimit
-      .mockResolvedValueOnce([{ occurredAt: refusalDate }])
-      .mockResolvedValueOnce([]);
+    mockRefusalThenPostRefuseFilter(refusalDate, [
+      {
+        levelAtSave: "yellow",
+        globalPercent: 92,
+        createdAt: new Date("2026-03-10T12:00:00Z"),
+      },
+      {
+        levelAtSave: "yellow",
+        globalPercent: 91,
+        createdAt: new Date("2026-03-12T12:00:00Z"),
+      },
+    ]);
     mockDeleteWhere.mockResolvedValueOnce(undefined);
 
     const { reevaluatePendingPromotionFromDictationHistory } = await import(
@@ -249,18 +293,60 @@ describe("reevaluatePendingPromotionFromDictationHistory", () => {
       );
     });
 
-    expect(mockGt).toHaveBeenCalled();
+    expect(mockDelete).toHaveBeenCalledOnce();
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("uses the most recent refused history entry as FR31 cutoff", async () => {
+    const latestRefusal = new Date("2026-03-15T12:00:00Z");
+    mockRefusalThenPostRefuseFilter(latestRefusal, [
+      {
+        levelAtSave: "yellow",
+        globalPercent: 92,
+        createdAt: new Date("2026-03-10T12:00:00Z"),
+      },
+      {
+        levelAtSave: "yellow",
+        globalPercent: 91,
+        createdAt: new Date("2026-03-12T12:00:00Z"),
+      },
+    ]);
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+
+    const { reevaluatePendingPromotionFromDictationHistory } = await import(
+      "./reevaluate-pending-promotion"
+    );
+
+    await getDb().transaction(async (tx) => {
+      await reevaluatePendingPromotionFromDictationHistory(
+        tx,
+        classId,
+        studentId
+      );
+    });
+
+    expect(mockGt).toHaveBeenCalledWith(
+      dictationEntries.createdAt,
+      latestRefusal
+    );
     expect(mockDelete).toHaveBeenCalledOnce();
     expect(mockInsert).not.toHaveBeenCalled();
   });
 
   it("recreates pending promotion after two new post-refuse qualifying dictations", async () => {
-    mockLimit
-      .mockResolvedValueOnce([{ occurredAt: new Date("2026-03-15T12:00:00Z") }])
-      .mockResolvedValueOnce([
-        { levelAtSave: "yellow", globalPercent: 92 },
-        { levelAtSave: "yellow", globalPercent: 91 },
-      ]);
+    const refusalDate = new Date("2026-03-15T12:00:00Z");
+    mockRefusalThenPostRefuseFilter(refusalDate, [
+      {
+        levelAtSave: "yellow",
+        globalPercent: 92,
+        createdAt: new Date("2026-03-20T12:00:00Z"),
+      },
+      {
+        levelAtSave: "yellow",
+        globalPercent: 91,
+        createdAt: new Date("2026-03-18T12:00:00Z"),
+      },
+    ]);
     mockDeleteWhere.mockResolvedValueOnce(undefined);
     mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
 
