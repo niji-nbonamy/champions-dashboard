@@ -18,6 +18,7 @@ import {
 } from "@/lib/services/create-dictation";
 import {
   saveDictation,
+  saveDictationStudentEntry,
   DictationSaveError,
   DICTATION_SAVE_GENERIC_ERROR,
 } from "@/lib/services/dictation-save";
@@ -117,6 +118,49 @@ export async function saveDictationAction(
   try {
     await saveDictation(teacherClass.id, dictationId, counts);
     revalidatePath(`/dictations/${dictationId}`);
+    revalidatePath("/dictations");
+    return { error: null };
+  } catch (error) {
+    if (error instanceof DictationSaveError) {
+      return { error: error.message };
+    }
+
+    return { error: DICTATION_SAVE_GENERIC_ERROR };
+  }
+}
+
+export type SaveDictationStudentEntryCounts = Record<
+  ChampionsErrorCategoryLetter,
+  number
+>;
+
+export async function saveDictationStudentEntryAction(
+  dictationId: string,
+  studentId: string,
+  counts: SaveDictationStudentEntryCounts
+): Promise<SaveDictationActionResult> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  try {
+    await saveDictationStudentEntry(
+      teacherClass.id,
+      dictationId,
+      studentId,
+      counts
+    );
+    revalidatePath(`/dictations/${dictationId}`);
+    revalidatePath(`/dictations/${dictationId}/mobile`);
+    revalidatePath(`/dictations/${dictationId}/mobile/summary`);
     revalidatePath("/dictations");
     return { error: null };
   } catch (error) {

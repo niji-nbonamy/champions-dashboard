@@ -85,6 +85,11 @@ export type SaveDictationResult = {
   entryCount: number;
 };
 
+export type StudentEntryCountsInput = Record<
+  ChampionsErrorCategoryLetter,
+  number
+>;
+
 function normalizeCategoryCounts(
   counts: Record<ChampionsErrorCategoryLetter, number> | undefined
 ): CategoryErrorCounts {
@@ -355,5 +360,114 @@ export async function saveDictation(
   return {
     dictationId,
     entryCount: preparedEntries.length,
+  };
+}
+
+export async function saveDictationStudentEntry(
+  classId: string,
+  dictationId: string,
+  studentId: string,
+  counts: StudentEntryCountsInput
+): Promise<SaveDictationResult> {
+  const dictation = await getDictationById(classId, dictationId);
+  if (!dictation) {
+    throw new DictationNotFoundError();
+  }
+
+  const students = await listLeveledActiveStudents(classId);
+  const student = students.find((rosterStudent) => rosterStudent.id === studentId);
+  if (!student) {
+    throw new InvalidGridSaveError();
+  }
+
+  const existingEntries = await getDictationEntriesByDictationId(
+    classId,
+    dictationId
+  );
+  const existingEntry = existingEntries.find(
+    (entry) => entry.studentId === studentId && !entry.archived
+  );
+
+  const db = getDb();
+
+  if (existingEntry) {
+    const levelAtSave = parseChampionsLevel(existingEntry.levelAtSave);
+    if (!levelAtSave) {
+      throw new InvalidGridSaveError();
+    }
+
+    const [preparedEntry] = prepareDictationEntryUpdates(
+      [
+        {
+          studentId,
+          levelAtSave,
+          wordDenominator: existingEntry.wordDenominator,
+        },
+      ],
+      { [studentId]: counts }
+    );
+
+    await db.transaction(async (tx) => {
+      const updatedRows = await tx
+        .update(dictationEntries)
+        .set({
+          globalPercent: preparedEntry.globalPercent,
+          ...preparedEntry.errorColumns,
+        })
+        .where(
+          and(
+            eq(dictationEntries.dictationId, dictationId),
+            eq(dictationEntries.studentId, studentId)
+          )
+        )
+        .returning({ id: dictationEntries.id });
+
+      if (updatedRows.length === 0) {
+        throw new InvalidGridSaveError();
+      }
+
+      await cascadePromotionReevaluation(tx, classId, [studentId]);
+    });
+
+    return {
+      dictationId,
+      entryCount: 1,
+    };
+  }
+
+  const matrixRows = (await listWordCountMatrixRows(classId)).filter(
+    isCompleteMatrixRow
+  );
+  const matchingMatrixRow = findMatchingMatrixRow(
+    matrixRows,
+    dictation.dictationLabelKey
+  );
+
+  if (!matchingMatrixRow) {
+    throw new InvalidGridSaveError();
+  }
+
+  const [preparedEntry] = prepareDictationEntries(
+    [student],
+    { [studentId]: counts },
+    matchingMatrixRow
+  );
+
+  await db.transaction(async (tx) => {
+    await tx.insert(dictationEntries).values({
+      dictationId,
+      studentId: preparedEntry.studentId,
+      levelAtSave: preparedEntry.levelAtSave,
+      wordDenominator: preparedEntry.wordDenominator,
+      globalPercent: preparedEntry.globalPercent,
+      ...preparedEntry.errorColumns,
+    });
+
+    await cascadePromotionReevaluation(tx, classId, [studentId]);
+  });
+
+  return {
+    dictationId,
+    entryCount: 1,
   };
 }

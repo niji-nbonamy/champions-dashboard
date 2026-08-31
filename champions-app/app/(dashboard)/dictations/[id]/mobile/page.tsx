@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { MobileStudentPicker } from "@/components/dictations/mobile-student-picker";
 import { auth } from "@/auth";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
+import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
+import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
 import { getDictationById } from "@/lib/services/list-dictations";
 
 type MobileDictationPageProps = {
@@ -38,6 +41,19 @@ export default async function MobileDictationPage({
     notFound();
   }
 
+  const [students, entries] = await Promise.all([
+    listLeveledActiveStudents(teacherClass.id),
+    getDictationEntriesByDictationId(teacherClass.id, id),
+  ]);
+
+  const leveledStudentIds = new Set(students.map((student) => student.id));
+  const enteredStudentIds = entries
+    .filter(
+      (entry) => !entry.archived && leveledStudentIds.has(entry.studentId)
+    )
+    .map((entry) => entry.studentId);
+  const remainingCount = students.length - enteredStudentIds.length;
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
       <Link
@@ -46,9 +62,18 @@ export default async function MobileDictationPage({
       >
         Retour au hub
       </Link>
-      <h1 className="text-xl font-semibold tracking-tight">
-        Sélectionnez un élève
-      </h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-semibold tracking-tight">
+          Sélectionnez un élève
+        </h1>
+        <p className="text-sm text-muted-foreground">{dictation.label}</p>
+      </div>
+      <MobileStudentPicker
+        dictationId={id}
+        students={students}
+        enteredStudentIds={enteredStudentIds}
+        remainingCount={remainingCount}
+      />
     </main>
   );
 }

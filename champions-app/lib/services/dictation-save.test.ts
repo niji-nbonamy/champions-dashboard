@@ -692,3 +692,178 @@ describe("saveDictation first-save path", () => {
     );
   });
 });
+
+describe("saveDictationStudentEntry", () => {
+  const classId = "660e8400-e29b-41d4-a716-446655440001";
+  const dictationId = "880e8400-e29b-41d4-a716-446655440005";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    mockSelectLimit.mockReset();
+    mockSelectLimit.mockResolvedValue([]);
+  });
+
+  it("inserts a single student entry without requiring the full roster", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: students[0].id,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+      {
+        id: students[1].id,
+        displayName: "MARTIN Paul",
+        level: "green",
+      },
+    ]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([matrixRow]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit.mockResolvedValueOnce([]);
+      await callback(tx);
+    });
+
+    const { saveDictationStudentEntry } = await import("./dictation-save");
+    const result = await saveDictationStudentEntry(
+      classId,
+      dictationId,
+      students[0].id,
+      { ...emptyCounts, C: 2 }
+    );
+
+    expect(result).toEqual({ dictationId, entryCount: 1 });
+    expect(mockInsertValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dictationId,
+        studentId: students[0].id,
+        levelAtSave: "yellow",
+        wordDenominator: 50,
+        globalPercent: 96,
+        errorsC: 2,
+      })
+    );
+  });
+
+  it("updates an existing student entry using the frozen snapshot", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: students[0].id,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+    ]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: students[0].id,
+        displayName: "DUPONT Marie",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 55,
+        globalPercent: 90,
+        errorsC: 5,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit.mockResolvedValueOnce([]);
+      await callback(tx);
+    });
+
+    const { saveDictationStudentEntry } = await import("./dictation-save");
+    const result = await saveDictationStudentEntry(
+      classId,
+      dictationId,
+      students[0].id,
+      { ...emptyCounts, C: 3 }
+    );
+
+    expect(result).toEqual({ dictationId, entryCount: 1 });
+    expect(mockUpdateSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        globalPercent: 95,
+        errorsC: 3,
+      })
+    );
+  });
+
+  it("rejects invalid counts before writing", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: students[0].id,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+    ]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([matrixRow]);
+
+    const { saveDictationStudentEntry } = await import("./dictation-save");
+
+    await expect(
+      saveDictationStudentEntry(classId, dictationId, students[0].id, {
+        ...emptyCounts,
+        C: 51,
+      })
+    ).rejects.toThrow();
+    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects insert when no matching matrix row exists", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: students[0].id,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+    ]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([]);
+
+    const { saveDictationStudentEntry } = await import("./dictation-save");
+
+    await expect(
+      saveDictationStudentEntry(classId, dictationId, students[0].id, {
+        ...emptyCounts,
+        C: 1,
+      })
+    ).rejects.toThrow();
+    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+});
