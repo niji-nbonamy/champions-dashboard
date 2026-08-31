@@ -31,8 +31,13 @@ vi.mock("@/lib/services/count-pending-promotions", () => ({
   countPendingPromotionsForClass: mockCountPendingPromotionsForClass,
 }));
 
+vi.mock("@/components/dashboard/mobile-route-guard", () => ({
+  MobileRouteGuard: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 import DashboardLayout from "./layout";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { MobileRouteGuard } from "@/components/dashboard/mobile-route-guard";
 
 describe("dashboard layout", () => {
   it("redirects unauthenticated users to login", async () => {
@@ -75,7 +80,9 @@ describe("dashboard layout", () => {
         unassignedStudentCount={2}
         pendingPromotionCount={3}
       >
-        <div>child</div>
+        <MobileRouteGuard>
+          <div>child</div>
+        </MobileRouteGuard>
       </DashboardShell>
     );
     expect(mockCountUnassignedActiveStudents).toHaveBeenCalledWith(

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { MobileRouteGuard } from "@/components/dashboard/mobile-route-guard";
 import { countPendingPromotionsForClass } from "@/lib/services/count-pending-promotions";
 import { countUnassignedActiveStudents } from "@/lib/services/count-unassigned-active-students";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
@@ -33,7 +34,7 @@ export default async function DashboardLayout({
       unassignedStudentCount={unassignedStudentCount}
       pendingPromotionCount={pendingPromotionCount}
     >
-      {children}
+      <MobileRouteGuard>{children}</MobileRouteGuard>
     </DashboardShell>
   );
 }

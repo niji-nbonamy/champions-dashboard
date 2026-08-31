@@ -27,10 +27,12 @@ export function DashboardChrome({
   return (
     <div className="flex min-h-screen flex-col">
       <AppBar />
-      <NavTabs
-        unassignedStudentCount={unassignedStudentCount}
-        pendingPromotionCount={pendingPromotionCount}
-      />
+      <div className="hidden md:block">
+        <NavTabs
+          unassignedStudentCount={unassignedStudentCount}
+          pendingPromotionCount={pendingPromotionCount}
+        />
+      </div>
       <div className="flex flex-1 flex-col">{children}</div>
     </div>
   );

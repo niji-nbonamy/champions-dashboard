@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { EmptyRosterPreSetup } from "@/components/dashboard/empty-roster-pre-setup";
+import { MobileDictationHub } from "@/components/dictations/mobile-dictation-hub";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { formatDictationDateForDisplay } from "@/lib/domain/dictation";
@@ -13,6 +14,7 @@ import {
   UNLEVELED_STUDENTS_CTA_LABEL,
   UNLEVELED_STUDENTS_MESSAGE,
 } from "@/lib/domain/dictation-readiness";
+import { getDictationCompletionSummary } from "@/lib/services/get-dictation-completion-summary";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getYearStartWizardStatus } from "@/lib/services/get-year-start-wizard-status";
 import { listDictations } from "@/lib/services/list-dictations";
@@ -54,9 +56,15 @@ export default async function DictationsPage() {
     }));
 
   const matrixMissing = wizardStatus.matrixRowCount === 0;
+  const lastDictation = dictations[0];
+  const completionSummary = lastDictation
+    ? await getDictationCompletionSummary(teacherClass.id, lastDictation.id)
+    : undefined;
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-6">
+    <>
+      <div className="hidden flex-1 flex-col md:flex">
+        <div className="flex flex-1 flex-col gap-4 p-6">
       {isEmptyRoster ? (
         <>
           <h1 className="text-2xl font-semibold tracking-tight">Dictées</h1>
@@ -150,6 +158,14 @@ export default async function DictationsPage() {
           ) : null}
         </div>
       )}
-    </main>
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col md:hidden">
+        <MobileDictationHub
+          lastDictation={lastDictation}
+          completionSummary={completionSummary}
+        />
+      </div>
+    </>
   );
 }

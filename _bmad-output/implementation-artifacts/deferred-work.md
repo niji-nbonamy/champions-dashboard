@@ -1,5 +1,10 @@
 # Deferred Work
 
+## Deferred from: code review of spec-5-1-mobile-dictation-hub-g2.md (2026-08-31)
+
+- No `page.test.tsx` for `/dictations/[id]/mobile` Saisir stub — summary page has parallel auth/notFound coverage; stub regressions uncaught
+- Wizard-blocked / empty-roster guidance on mobile hub — spec Ask First default excludes G1 CTAs; static copy only when zero dictations
+
 ## Deferred from: code review of spec-4-6-alertes-promotion-queue-d2.md (2026-08-31)
 
 - Duplicate DB queries on /alerts page (layout count + page list) — perf acceptable for class size

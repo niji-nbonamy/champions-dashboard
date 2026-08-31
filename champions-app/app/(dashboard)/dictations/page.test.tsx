@@ -8,6 +8,7 @@ const {
   mockGetYearStartWizardStatus,
   mockListDictations,
   mockListWordCountMatrixRows,
+  mockGetDictationCompletionSummary,
 } = vi.hoisted(() => ({
   auth: vi.fn(),
   redirect: vi.fn((url: string): never => {
@@ -17,6 +18,7 @@ const {
   mockGetYearStartWizardStatus: vi.fn(),
   mockListDictations: vi.fn(),
   mockListWordCountMatrixRows: vi.fn(),
+  mockGetDictationCompletionSummary: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
@@ -41,6 +43,10 @@ vi.mock("@/lib/services/list-dictations", () => ({
 
 vi.mock("@/lib/services/list-word-count-matrix-rows", () => ({
   listWordCountMatrixRows: mockListWordCountMatrixRows,
+}));
+
+vi.mock("@/lib/services/get-dictation-completion-summary", () => ({
+  getDictationCompletionSummary: mockGetDictationCompletionSummary,
 }));
 
 import DictationsPage from "./page";
@@ -400,5 +406,53 @@ describe("DictationsPage", () => {
     ).toBeLessThan(
       html.indexOf('href="/dictations/880e8400-e29b-41d4-a716-446655440003"')
     );
+  });
+
+  it("renders the mobile hub alongside the hidden G1 section", async () => {
+    mockAuthenticatedClass({
+      dictations: [
+        {
+          id: "880e8400-e29b-41d4-a716-446655440003",
+          label: "Dictée 2",
+          dictationLabelKey: "dictée 2",
+          dictationDate: "2026-08-27",
+        },
+      ],
+      matrixRows: [
+        {
+          dictationLabelKey: "Dictée 2",
+          wordsYellow: 10,
+          wordsGreen: 12,
+          wordsViolet: 14,
+          wordsGold: 16,
+        },
+      ],
+    });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: true,
+      step: 3,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 2,
+      unassignedCount: 0,
+      matrixRowCount: 1,
+    });
+    mockGetDictationCompletionSummary.mockResolvedValueOnce({
+      enteredCount: 1,
+      totalLeveledCount: 2,
+      isComplete: false,
+    });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(html).toContain("hidden flex-1 flex-col md:flex");
+    expect(html).toContain("flex flex-1 flex-col md:hidden");
+    expect(html).toContain('aria-label="Hub dictée mobile"');
+    expect(html).toContain("Dictée 2");
+    expect(html).toContain('href="/dictations/880e8400-e29b-41d4-a716-446655440003/mobile"');
+    expect(html).toContain(
+      'href="/dictations/880e8400-e29b-41d4-a716-446655440003/mobile/summary"'
+    );
+    expect(html).toContain("Saisir");
+    expect(html).toContain("Voir");
   });
 });
