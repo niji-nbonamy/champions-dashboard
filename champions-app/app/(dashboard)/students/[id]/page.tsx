@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { buttonVariants } from "@/components/ui/button";
 import { LevelHistoryList } from "@/components/dossier/level-history-list";
 import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
 import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
@@ -91,13 +92,21 @@ export default async function StudentDossierPage({
         </Link>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <h1 className="text-display">{student.displayName}</h1>
-          {showArchiveAction ? (
-            <ArchiveStudentButton
-              studentId={id}
-              displayName={student.displayName}
-              filter="active"
-            />
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/students/${id}/present`}
+              className={buttonVariants({ variant: "accent" })}
+            >
+              RDV parents
+            </Link>
+            {showArchiveAction ? (
+              <ArchiveStudentButton
+                studentId={id}
+                displayName={student.displayName}
+                filter="active"
+              />
+            ) : null}
+          </div>
         </div>
         {student.level && isChampionsLevel(student.level) ? (
           <div className="mt-2 flex flex-col sm:flex-row sm:items-start">

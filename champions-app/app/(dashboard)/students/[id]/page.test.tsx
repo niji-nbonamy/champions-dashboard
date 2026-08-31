@@ -612,6 +612,25 @@ describe("StudentDossierPage", () => {
     expect(html).toContain("Assigné");
   });
 
+  it("renders the RDV parents accent link to the presentation route", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).toContain("RDV parents");
+    expect(html).toContain(`href="/students/${studentId}/present"`);
+    expect(html).toContain("border-accent");
+    expect(html).toContain("text-accent");
+  });
+
   it("still renders level history for archived students without override controls", async () => {
     mockAuthenticatedClass();
     mockGetClassStudent.mockResolvedValueOnce({

@@ -90,4 +90,35 @@ describe("DashboardShell", () => {
 
     expect(html).toContain("2 élèves prêts");
   });
+
+  it("hides app bar and navigation tabs on presentation routes", () => {
+    usePathname.mockReturnValueOnce(
+      "/students/770e8400-e29b-41d4-a716-446655440002/present"
+    );
+
+    const html = renderToStaticMarkup(
+      <DashboardShell>
+        <main>presentation content</main>
+      </DashboardShell>
+    );
+
+    expect(html).toContain("presentation content");
+    expect(html).toContain("min-h-screen");
+    expect(html).not.toContain('href="/dictations"');
+    expect(html).not.toContain('alt="La méthode CHAMPIONS"');
+  });
+
+  it("keeps app bar and navigation tabs visible on non-presentation routes", () => {
+    usePathname.mockReturnValueOnce("/students/770e8400-e29b-41d4-a716-446655440002");
+
+    const html = renderToStaticMarkup(
+      <DashboardShell>
+        <main>dossier content</main>
+      </DashboardShell>
+    );
+
+    expect(html).toContain('alt="La méthode CHAMPIONS"');
+    expect(html).toContain('href="/dictations"');
+    expect(html).toContain("dossier content");
+  });
 });

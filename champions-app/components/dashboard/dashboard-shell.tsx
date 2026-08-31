@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AppBar } from "@/components/dashboard/app-bar";
-import { NavTabs } from "@/components/dashboard/nav-tabs";
+import { DashboardChrome } from "@/components/dashboard/dashboard-chrome";
 
 type DashboardShellProps = {
   children: ReactNode;
@@ -15,13 +14,11 @@ export function DashboardShell({
   pendingPromotionCount = 0,
 }: DashboardShellProps) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <AppBar />
-      <NavTabs
-        unassignedStudentCount={unassignedStudentCount}
-        pendingPromotionCount={pendingPromotionCount}
-      />
-      <div className="flex flex-1 flex-col">{children}</div>
-    </div>
+    <DashboardChrome
+      unassignedStudentCount={unassignedStudentCount}
+      pendingPromotionCount={pendingPromotionCount}
+    >
+      {children}
+    </DashboardChrome>
   );
 }

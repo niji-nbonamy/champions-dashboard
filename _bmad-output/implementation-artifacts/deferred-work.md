@@ -230,6 +230,28 @@
 
 - Test navigation clavier `<details>` — comportement natif du navigateur ; focus ring CSS déjà présent sur `summary` (`dictation-history-table.tsx:28`)
 
+## Deferred from: code review of spec-4-7-presentation-mode-rdv-parents-c3.md (2026-08-31)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-7-presentation-mode-rdv-parents-c3.md`
+  summary: Explicit focus restoration on dossier link after exiting presentation mode.
+  evidence: AC asks sensible focus restore; Next.js navigation relies on browser default without `focus()` on RDV parents link.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-7-presentation-mode-rdv-parents-c3.md`
+  summary: Tighten chrome-hide path match beyond `endsWith("/present")`.
+  evidence: Review noted false-positive risk on unrelated future routes; current app has only student presentation path.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-7-presentation-mode-rdv-parents-c3.md`
+  summary: Flatten double `<details>` accordion for category errors in presentation mode.
+  evidence: Outer toggle wraps `DictationHistoryTable` which has per-dictation details; UX polish, spec required reuse.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-7-presentation-mode-rdv-parents-c3.md`
+  summary: Defensive newest-first sort inside `dossier-presentation` domain helpers.
+  evidence: Service contract is newest-first; duplicate sort adds cost for marginal safety.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-7-presentation-mode-rdv-parents-c3.md`
+  summary: Presentation page metadata / document title for browser tab.
+  evidence: Not in story AC; enhancement for bookmarking/history clarity.
+
 ## Deferred from: code review of spec-4-3-promotion-banner-on-dossier-d1.md (2026-08-28)
 
 - Actions grille (`validatePromotionAction` / `refusePromotionAction`) ne revalident pas `/students/[id]` — dossier ouvert peut afficher une bannière obsolète après mutation depuis la grille jusqu'à rechargement manuel ; pré-existant, hors scope story 4-3 (`dictations/actions.ts:152`)
