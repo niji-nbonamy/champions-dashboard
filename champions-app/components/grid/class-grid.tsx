@@ -320,7 +320,7 @@ export function ClassGrid({
 
     return {
       id: student.id,
-      firstName: student.firstName,
+      displayName: student.displayName,
       targetLevel: pending.targetLevel,
     };
   }, [pendingPromotionsByStudentId, promotionDialogStudentId, studentMeta]);
@@ -582,7 +582,7 @@ export function ClassGrid({
       {promotionDialogStudent ? (
         <PromotionDialog
           open={promotionDialogStudentId !== null}
-          studentFirstName={promotionDialogStudent.firstName}
+          studentDisplayName={promotionDialogStudent.displayName}
           targetLevel={promotionDialogStudent.targetLevel}
           pending={isPromotionPending}
           onClose={closePromotionDialog}
