@@ -194,4 +194,20 @@ describe("StudentPresentationPage", () => {
     expect(html).toContain('data-display-name="BERNARD Paul"');
     expect(html).toContain('data-level="yellow"');
   });
+
+  it("passes null level when the student level is not a champions level", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "red",
+      archived: false,
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentPresentationPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).toContain('data-level=""');
+  });
 });

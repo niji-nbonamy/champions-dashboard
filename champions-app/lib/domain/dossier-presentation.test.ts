@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  formatPresentationTrendLabel,
   getLastDictationPercent,
+  getPresentationTrendClassName,
   getPresentationTrendDelta,
 } from "./dossier-presentation";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
@@ -94,5 +96,32 @@ describe("getPresentationTrendDelta", () => {
     ];
 
     expect(getPresentationTrendDelta(history)).toBe(0);
+  });
+});
+
+describe("formatPresentationTrendLabel", () => {
+  it("returns an em dash when trend cannot be computed", () => {
+    expect(formatPresentationTrendLabel(null)).toBe("—");
+  });
+
+  it("returns Stable when the two most recent percents are equal", () => {
+    expect(formatPresentationTrendLabel(0)).toBe("Stable");
+  });
+
+  it("formats positive and negative deltas with a percent sign", () => {
+    expect(formatPresentationTrendLabel(4)).toBe("+4 %");
+    expect(formatPresentationTrendLabel(-12)).toBe("-12 %");
+  });
+});
+
+describe("getPresentationTrendClassName", () => {
+  it("returns no class when trend cannot be computed", () => {
+    expect(getPresentationTrendClassName(null)).toBe("");
+  });
+
+  it("maps delta signs to trend color tokens", () => {
+    expect(getPresentationTrendClassName(4)).toBe("text-trend-up");
+    expect(getPresentationTrendClassName(-12)).toBe("text-trend-down");
+    expect(getPresentationTrendClassName(0)).toBe("text-trend-flat");
   });
 });

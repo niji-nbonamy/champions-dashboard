@@ -101,6 +101,20 @@ context:
 - [x] [Review][Defer] Defensive sort in dossier-presentation domain — service contract is newest-first
 - [x] [Review][Defer] Presentation page document title / metadata — not in AC
 
+- [x] [Review][Decision] Tendance nulle : afficher « Stable » ou « 0 % » ? — **Résolu : garder « Stable »** (choix produit, 2026-08-31)
+- [x] [Review][Patch] Remplacer les classes inline par le token `text-data-lg` (UX-DR11) [`presentation-highlights.tsx:17`]
+- [x] [Review][Patch] Tester la présence de `GlobalSuccessCurve` quand `history.length > 0` [`presentation-mode.test.tsx:199`]
+- [x] [Review][Patch] Vérifier `dialog.close()` avant navigation (Esc / Fermer) [`presentation-mode.test.tsx:120`]
+- [x] [Review][Patch] Tester le filtre `isChampionsLevel` sur la page présentation (niveau invalide → `data-level=""`) [`present/page.test.tsx:134`]
+- [x] [Review][Patch] Tester le lien « RDV parents » sur dossier d'élève archivé [`page.test.tsx:378`]
+- [x] [Review][Patch] Assertion ciblée monospace/data-lg sur `LevelBadge` quand un niveau est défini [`presentation-highlights.test.tsx:35`]
+- [x] [Review][Patch] Vérifier l'absence du toggle « Détail par catégorie » quand `history=[]` [`presentation-mode.test.tsx:183`]
+- [x] [Review][Patch] Test NFR8 : aucun libellé de niveau scolaire (CE2, CM1…) en mode présentation [`presentation-mode.test.tsx`]
+- [x] [Review][Patch] Cleanup `dialog.close()` au démontage du composant [`presentation-mode.tsx:37`]
+- [x] [Review][Defer] Flash potentiel du chrome dashboard avant masquage client sur `/present` — [`dashboard-chrome.tsx:20`] — hydratation `usePathname`, impact visuel bref
+- [x] [Review][Defer] Test E2E flux dossier → présentation → retour — hors périmètre AC unitaires
+- [x] [Review][Defer] Spec Change Log vide après patches de review — hygiène documentation
+
 **Acceptance Criteria:**
 - Given I am on a student's dossier, when I tap « RDV parents », then a full-screen presentation mode opens with no app chrome (FR34, UX-DR16).
 - Given the student has dictation history, when presentation loads, then the global curve is dominant and three highlights show last %, trend delta, and current level badge in `data-lg` monospace (FR35, UX-DR11).
@@ -120,7 +134,7 @@ Presentation layout (laptop): vertical stack — student `text-display` name (op
 ```tsx
 // Trend display helper
 const delta = getPresentationTrendDelta(history);
-const trendLabel = delta === null ? "—" : `${delta > 0 ? "+" : ""}${delta} %`;
+const trendLabel = delta === null ? "—" : delta === 0 ? "Stable" : `${delta > 0 ? "+" : ""}${delta} %`;
 const trendClass =
   delta === null ? "" : delta > 0 ? "text-trend-up" : delta < 0 ? "text-trend-down" : "text-trend-flat";
 ```

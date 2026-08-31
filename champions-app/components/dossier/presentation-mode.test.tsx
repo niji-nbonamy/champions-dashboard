@@ -118,6 +118,8 @@ describe("PresentationMode", () => {
   });
 
   it("navigates back to the dossier when Escape is pressed", () => {
+    const closeSpy = vi.spyOn(HTMLDialogElement.prototype, "close");
+
     act(() => {
       root.render(
         <PresentationMode
@@ -138,10 +140,14 @@ describe("PresentationMode", () => {
       );
     });
 
+    expect(closeSpy).toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith(`/students/${studentId}`);
+    closeSpy.mockRestore();
   });
 
   it("navigates back to the dossier when Fermer is clicked", () => {
+    const closeSpy = vi.spyOn(HTMLDialogElement.prototype, "close");
+
     act(() => {
       root.render(
         <PresentationMode
@@ -161,7 +167,9 @@ describe("PresentationMode", () => {
       closeButton?.click();
     });
 
+    expect(closeSpy).toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith(`/students/${studentId}`);
+    closeSpy.mockRestore();
   });
 
   it("renders the presentation brand logo", () => {
@@ -194,6 +202,25 @@ describe("PresentationMode", () => {
 
     expect(container.querySelector('[data-testid="curve-placeholder"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="global-success-curve"]')).toBeNull();
+    expect(container.textContent).not.toContain("Détail par catégorie");
+  });
+
+  it("renders the global success curve when history is present", () => {
+    act(() => {
+      root.render(
+        <PresentationMode
+          studentId={studentId}
+          displayName="DUPONT Marie"
+          level="green"
+          history={[makeEntry({ globalPercent: 87 })]}
+        />
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="global-success-curve"]')
+    ).not.toBeNull();
+    expect(container.querySelector('[data-testid="curve-placeholder"]')).toBeNull();
   });
 
   it("renders presentation highlights in the shell", () => {
@@ -259,5 +286,47 @@ describe("PresentationMode", () => {
 
     expect(container.textContent).toContain("C");
     expect(container.textContent).toContain("2");
+  });
+
+  it("does not render school grade labels in presentation mode", () => {
+    const schoolGradeLabels = ["CE1", "CE2", "CM1", "CM2", "CP", "6ème", "6eme"];
+
+    act(() => {
+      root.render(
+        <PresentationMode
+          studentId={studentId}
+          displayName="DUPONT Marie"
+          level="green"
+          history={[makeEntry({ globalPercent: 87 })]}
+        />
+      );
+    });
+
+    const text = container.textContent ?? "";
+    for (const grade of schoolGradeLabels) {
+      expect(text).not.toContain(grade);
+    }
+  });
+
+  it("closes the dialog when the component unmounts", () => {
+    const closeSpy = vi.spyOn(HTMLDialogElement.prototype, "close");
+
+    act(() => {
+      root.render(
+        <PresentationMode
+          studentId={studentId}
+          displayName="DUPONT Marie"
+          level="green"
+          history={[makeEntry({ globalPercent: 87 })]}
+        />
+      );
+    });
+
+    act(() => {
+      root.unmount();
+    });
+
+    expect(closeSpy).toHaveBeenCalled();
+    closeSpy.mockRestore();
   });
 });

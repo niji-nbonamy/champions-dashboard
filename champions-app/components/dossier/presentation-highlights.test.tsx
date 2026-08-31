@@ -49,6 +49,20 @@ describe("PresentationHighlights", () => {
     expect(html).toContain("87 %");
     expect(html).toContain("Dernière dictée");
     expect(html).toContain("vert");
+    expect(html).toContain("text-data-lg");
+  });
+
+  it("renders the level badge in text-data-lg when a level is defined", () => {
+    const html = renderToStaticMarkup(
+      <PresentationHighlights
+        level="green"
+        history={[makeEntry({ globalPercent: 87 })]}
+      />
+    );
+
+    expect(html).toMatch(
+      /<span[^>]*text-data-lg[^>]*>[\s\S]*?vert[\s\S]*?<\/span>/
+    );
   });
 
   it("renders trend as an em dash when fewer than two dictations exist", () => {
@@ -105,8 +119,9 @@ describe("PresentationHighlights", () => {
     expect(positiveHtml).toContain("text-trend-up");
     expect(negativeHtml).toContain("-10 %");
     expect(negativeHtml).toContain("text-trend-down");
-    expect(flatHtml).toContain("0 %");
+    expect(flatHtml).toContain("Stable");
     expect(flatHtml).toContain("text-trend-flat");
+    expect(flatHtml).not.toContain("0 %");
   });
 
   it("renders em dashes for empty history and shows the current level badge", () => {

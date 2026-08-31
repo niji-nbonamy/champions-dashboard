@@ -252,6 +252,12 @@
   summary: Presentation page metadata / document title for browser tab.
   evidence: Not in story AC; enhancement for bookmarking/history clarity.
 
+## Deferred from: code review of spec-4-7-presentation-mode-rdv-parents-c3.md (2026-08-31)
+
+- Flash potentiel du chrome dashboard avant masquage client sur `/present` — hydratation `usePathname`, impact visuel bref (`dashboard-chrome.tsx:20`)
+- Test E2E flux dossier → présentation → retour — hors périmètre AC unitaires
+- Spec Change Log vide après patches de review — hygiène documentation
+
 ## Deferred from: code review of spec-4-3-promotion-banner-on-dossier-d1.md (2026-08-28)
 
 - Actions grille (`validatePromotionAction` / `refusePromotionAction`) ne revalident pas `/students/[id]` — dossier ouvert peut afficher une bannière obsolète après mutation depuis la grille jusqu'à rechargement manuel ; pré-existant, hors scope story 4-3 (`dictations/actions.ts:152`)

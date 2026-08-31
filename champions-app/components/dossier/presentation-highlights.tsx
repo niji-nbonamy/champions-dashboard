@@ -1,6 +1,8 @@
 import { LevelBadge } from "@/components/ui/level-badge";
 import {
+  formatPresentationTrendLabel,
   getLastDictationPercent,
+  getPresentationTrendClassName,
   getPresentationTrendDelta,
 } from "@/lib/domain/dossier-presentation";
 import type { ChampionsLevel } from "@/lib/design/tokens";
@@ -12,6 +14,8 @@ type PresentationHighlightsProps = {
   level: ChampionsLevel | null;
 };
 
+const highlightValueClassName = "text-data-lg";
+
 export function PresentationHighlights({
   history,
   level,
@@ -19,16 +23,9 @@ export function PresentationHighlights({
   const lastPercent = getLastDictationPercent(history);
   const delta = getPresentationTrendDelta(history);
   const lastPercentLabel = lastPercent === null ? "—" : `${lastPercent} %`;
-  const trendLabel =
-    delta === null ? "—" : `${delta > 0 ? "+" : ""}${delta} %`;
-  const trendClass =
-    delta === null
-      ? ""
-      : delta > 0
-        ? "text-trend-up"
-        : delta < 0
-          ? "text-trend-down"
-          : "text-trend-flat";
+  const trendLabel = formatPresentationTrendLabel(delta);
+  const trendClass = getPresentationTrendClassName(delta);
+  const trendIsNumeric = delta !== null && delta !== 0;
 
   return (
     <div
@@ -37,11 +34,21 @@ export function PresentationHighlights({
     >
       <div className="flex flex-col gap-1 rounded-lg border border-border p-4">
         <span className="text-sm text-muted-foreground">Dernière dictée</span>
-        <p className="text-data-lg tabular-nums">{lastPercentLabel}</p>
+        <p className={cn(highlightValueClassName, "tabular-nums")}>
+          {lastPercentLabel}
+        </p>
       </div>
       <div className="flex flex-col gap-1 rounded-lg border border-border p-4">
         <span className="text-sm text-muted-foreground">Tendance</span>
-        <p className={cn("text-data-lg tabular-nums", trendClass)}>{trendLabel}</p>
+        <p
+          className={cn(
+            highlightValueClassName,
+            trendIsNumeric && "tabular-nums",
+            trendClass
+          )}
+        >
+          {trendLabel}
+        </p>
       </div>
       <div className="flex flex-col gap-1 rounded-lg border border-border p-4">
         <span className="text-sm text-muted-foreground">Niveau actuel</span>
@@ -50,11 +57,14 @@ export function PresentationHighlights({
             <LevelBadge
               level={level}
               showDot
-              className="h-auto rounded-md px-3 py-1.5 font-mono text-data-lg font-semibold"
+              className={cn(
+                highlightValueClassName,
+                "h-auto rounded-md px-3 py-1.5"
+              )}
             />
           </div>
         ) : (
-          <p className="text-data-lg">—</p>
+          <p className={highlightValueClassName}>—</p>
         )}
       </div>
     </div>

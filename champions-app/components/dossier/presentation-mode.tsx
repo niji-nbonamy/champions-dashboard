@@ -39,6 +39,12 @@ export function PresentationMode({
     if (dialog && !dialog.open) {
       dialog.showModal();
     }
+
+    return () => {
+      if (dialog?.open) {
+        dialog.close();
+      }
+    };
   }, []);
 
   function handleClose() {

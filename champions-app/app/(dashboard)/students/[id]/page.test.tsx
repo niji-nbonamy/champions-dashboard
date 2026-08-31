@@ -631,6 +631,23 @@ describe("StudentDossierPage", () => {
     expect(html).toContain("text-accent");
   });
 
+  it("renders the RDV parents link for archived students", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "BERNARD Paul",
+      level: "green",
+      archived: true,
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).toContain("RDV parents");
+    expect(html).toContain(`href="/students/${studentId}/present"`);
+  });
+
   it("still renders level history for archived students without override controls", async () => {
     mockAuthenticatedClass();
     mockGetClassStudent.mockResolvedValueOnce({

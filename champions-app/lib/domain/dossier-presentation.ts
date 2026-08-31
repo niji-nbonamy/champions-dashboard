@@ -19,3 +19,35 @@ export function getPresentationTrendDelta(
 
   return history[0].globalPercent - history[1].globalPercent;
 }
+
+export function formatPresentationTrendLabel(delta: number | null): string {
+  if (delta === null) {
+    return "—";
+  }
+
+  if (delta > 0) {
+    return `+${delta} %`;
+  }
+
+  if (delta < 0) {
+    return `${delta} %`;
+  }
+
+  return "Stable";
+}
+
+export function getPresentationTrendClassName(delta: number | null): string {
+  if (delta === null) {
+    return "";
+  }
+
+  if (delta > 0) {
+    return "text-trend-up";
+  }
+
+  if (delta < 0) {
+    return "text-trend-down";
+  }
+
+  return "text-trend-flat";
+}
