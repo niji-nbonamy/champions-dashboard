@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { revalidatePromotionAffectedPaths } from "@/lib/revalidation/promotion-affected-paths";
 import {
   canCreateDictation,
   getCreateDictationBlockedMessage,
@@ -149,19 +150,11 @@ export async function validatePromotionAction(
 
   try {
     await validateStudentPromotion(teacherClass.id, studentId);
-    revalidatePath(`/dictations/${dictationId}`);
-    revalidatePath("/dictations");
-    revalidatePath("/students");
-    revalidatePath("/alerts");
-    revalidatePath("/alerts", "layout");
+    revalidatePromotionAffectedPaths(studentId, { dictationId });
     return { error: null };
   } catch (error) {
     if (error instanceof PendingPromotionNotFoundError) {
-      revalidatePath(`/dictations/${dictationId}`);
-      revalidatePath("/dictations");
-      revalidatePath("/students");
-      revalidatePath("/alerts");
-      revalidatePath("/alerts", "layout");
+      revalidatePromotionAffectedPaths(studentId, { dictationId });
       return { error: null };
     }
 
@@ -195,19 +188,11 @@ export async function refusePromotionAction(
 
   try {
     await refuseStudentPromotion(teacherClass.id, studentId);
-    revalidatePath(`/dictations/${dictationId}`);
-    revalidatePath("/dictations");
-    revalidatePath("/students");
-    revalidatePath("/alerts");
-    revalidatePath("/alerts", "layout");
+    revalidatePromotionAffectedPaths(studentId, { dictationId });
     return { error: null };
   } catch (error) {
     if (error instanceof PendingPromotionNotFoundError) {
-      revalidatePath(`/dictations/${dictationId}`);
-      revalidatePath("/dictations");
-      revalidatePath("/students");
-      revalidatePath("/alerts");
-      revalidatePath("/alerts", "layout");
+      revalidatePromotionAffectedPaths(studentId, { dictationId });
       return { error: null };
     }
 

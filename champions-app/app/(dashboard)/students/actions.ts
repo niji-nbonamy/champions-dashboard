@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { revalidatePromotionAffectedPaths } from "@/lib/revalidation/promotion-affected-paths";
 import { ASSIGN_STUDENT_LEVEL_GENERIC_ERROR, parseChampionsLevel } from "@/lib/domain/champions-level";
 import {
   STUDENT_ADD_SUCCESS_MESSAGE,
@@ -65,14 +66,6 @@ export type DossierPromotionActionResult = {
 };
 
 type RosterFilterParam = "active" | "archived" | "all";
-
-function revalidateDossierPromotionPaths(studentId: string) {
-  revalidatePath(`/students/${studentId}`);
-  revalidatePath("/students", "layout");
-  revalidatePath("/dictations");
-  revalidatePath("/alerts");
-  revalidatePath("/alerts", "layout");
-}
 
 function parseArchiveFilterParam(
   rawFilter: FormDataEntryValue | null
@@ -226,7 +219,7 @@ export async function overrideStudentLevelAction(
     );
 
     if (result.changed) {
-      revalidateDossierPromotionPaths(studentId);
+      revalidatePromotionAffectedPaths(studentId);
     }
 
     return { error: null, changed: result.changed };
@@ -314,11 +307,11 @@ export async function validateDossierPromotionAction(
 
   try {
     await validateStudentPromotion(teacherClass.id, normalizedStudentId);
-    revalidateDossierPromotionPaths(normalizedStudentId);
+    revalidatePromotionAffectedPaths(normalizedStudentId);
     return { error: null };
   } catch (error) {
     if (error instanceof PendingPromotionNotFoundError) {
-      revalidateDossierPromotionPaths(normalizedStudentId);
+      revalidatePromotionAffectedPaths(normalizedStudentId);
       return { error: null };
     }
 
@@ -352,11 +345,11 @@ export async function refuseDossierPromotionAction(
 
   try {
     await refuseStudentPromotion(teacherClass.id, normalizedStudentId);
-    revalidateDossierPromotionPaths(normalizedStudentId);
+    revalidatePromotionAffectedPaths(normalizedStudentId);
     return { error: null };
   } catch (error) {
     if (error instanceof PendingPromotionNotFoundError) {
-      revalidateDossierPromotionPaths(normalizedStudentId);
+      revalidatePromotionAffectedPaths(normalizedStudentId);
       return { error: null };
     }
 

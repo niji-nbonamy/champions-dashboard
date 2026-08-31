@@ -349,8 +349,9 @@ describe("validatePromotionAction", () => {
       studentId
     );
     expect(revalidatePath).toHaveBeenCalledWith(`/dictations/${dictationId}`);
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
-    expect(revalidatePath).toHaveBeenCalledWith("/students");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts", "layout");
   });
@@ -369,6 +370,8 @@ describe("validatePromotionAction", () => {
 
     expect(result).toEqual({ error: null });
     expect(revalidatePath).toHaveBeenCalledWith(`/dictations/${dictationId}`);
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts", "layout");
   });
@@ -403,7 +406,9 @@ describe("refusePromotionAction", () => {
     expect(result).toEqual({ error: null });
     expect(mockRefuseStudentPromotion).toHaveBeenCalledWith(classId, studentId);
     expect(revalidatePath).toHaveBeenCalledWith(`/dictations/${dictationId}`);
-    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts", "layout");
   });
@@ -422,6 +427,8 @@ describe("refusePromotionAction", () => {
 
     expect(result).toEqual({ error: null });
     expect(revalidatePath).toHaveBeenCalledWith(`/dictations/${dictationId}`);
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts", "layout");
   });

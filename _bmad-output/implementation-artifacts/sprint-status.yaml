@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-31-2026 14:35
+last_updated: 08-31-2026 14:54
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -75,7 +75,7 @@ development_status:
   4-5-promotion-detection-rules: done
   4-6-alertes-promotion-queue-d2: done
   4-7-presentation-mode-rdv-parents-c3: done
-  epic-4-retrospective: optional
+  epic-4-retrospective: done
 
   epic-5: backlog
   5-1-mobile-dictation-hub-g2: backlog
@@ -201,3 +201,42 @@ action_items:
     owner: "dev"
     status: open
     ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
+  - id: "epic-4-retro-item-19-add-revalidatepath-for-students-id-and-a"
+    epic: 4
+    action: "Add revalidatePath for /students/[id] and /alerts to grid validatePromotionAction/refusePromotionAction
+      in dictations/actions.ts"
+    owner: "dev"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
+  - id: "epic-4-retro-item-20-extend-e2e-smoke-élèves-dossier-rdv-pare"
+    epic: 4
+    action: "Extend E2E smoke: Élèves → dossier → RDV parents → exit (pilot gate)"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
+  - id: "epic-4-retro-item-21-add-integration-test-for-savedictation-t"
+    epic: 4
+    action: "Add integration test for saveDictation transaction rollback and promotion
+      insert (Epic 3 item 16)"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
+  - id: "epic-4-retro-item-22-extract-promotion-row-ui-from-class-grid"
+    epic: 4
+    action: "Extract promotion row UI from class-grid.tsx before Epic 5 mobile surfaces"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
+  - id: "epic-4-retro-item-23-shared-usepromotionaction-hook-to-dedupe"
+    epic: 4
+    action: "Shared usePromotionAction hook to dedupe validate/refuse client logic
+      across surfaces"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
+  - id: "epic-4-retro-item-24-schedule-accessibility-pass-d3-tab-order"
+    epic: 4
+    action: "Schedule accessibility pass: D3+ Tab order + presentation focus restoration"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
