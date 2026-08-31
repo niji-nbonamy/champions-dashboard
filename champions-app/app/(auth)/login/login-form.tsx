@@ -7,7 +7,11 @@ import { LoginFormFields } from "./login-form-fields";
 
 const initialState: LoginActionState = { error: null };
 
-export function LoginForm() {
+export type LoginFormProps = {
+  callbackUrl: string;
+};
+
+export function LoginForm({ callbackUrl }: LoginFormProps) {
   const [state, formAction, pending] = useActionState(
     loginAction,
     initialState
@@ -18,6 +22,7 @@ export function LoginForm() {
       state={state}
       formAction={formAction}
       pending={pending}
+      callbackUrl={callbackUrl}
     />
   );
 }

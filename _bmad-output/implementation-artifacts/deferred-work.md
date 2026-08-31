@@ -37,15 +37,15 @@
 ## Deferred from: code review of spec-1-2-teacher-registration.md (2026-08-25)
 
 - Formulaire ne conserve pas l'email après erreur — UX mineure, hors AC story 1.2 (`register-form.tsx`)
-- Pas de rate limiting sur l'inscription — endpoint public ; à traiter en story sécurité/infra ultérieure (`register-teacher.ts`)
+- ~~Pas de rate limiting sur l'inscription~~ — **resolved 2026-08-31** : fenêtre glissante par IP dans `register/actions.ts` + `lib/services/auth-rate-limit.ts`
 - Erreurs DB silencieuses côté serveur (pas de log) — NFR9 impose message générique UI ; observabilité à ajouter plus tard (`register-teacher.ts:678-683`)
 
 ## Deferred from: code review of spec-1-3-teacher-login-session-management.md (2026-08-25)
 
-- Pas de `callbackUrl` après redirect login — l'utilisateur atterrit toujours sur `/dictations` (`middleware.ts`, `login/actions.ts`)
+- ~~Pas de `callbackUrl` après redirect login~~ — **resolved 2026-08-31** : `lib/domain/auth-redirect.ts`, middleware + `login/actions.ts`
 - Pas de `trustHost` / `AUTH_URL` documentés pour déploiement Vercel Auth.js v5 (`auth.ts`, `.env.example`)
 - Fuite timing NFR9 : pas de hash bcrypt quand l'email login est inconnu (`authenticate-teacher.ts`) — **fixed in code review 2026-08-25**
-- Pas de rate limiting sur le login (`login/actions.ts`)
+- ~~Pas de rate limiting sur le login~~ — **resolved 2026-08-31** : fenêtre glissante par IP dans `login/actions.ts` + `lib/services/auth-rate-limit.ts`
 - Pas de flux `signOut` UI — hors AC explicites mais titre « Session Management » (`auth.ts`)
 - Utilisateur authentifié peut encore accéder à `/register` (`middleware.ts`)
 - Page `/dictations` sans garde `auth()` serveur — protection middleware uniquement (`dictations/page.tsx`)

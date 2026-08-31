@@ -17,20 +17,39 @@ describe("middleware policy", () => {
     expect(isDashboardRoute("/")).toBe(false);
   });
 
-  it("redirects unauthenticated dashboard access to login", () => {
-    expect(getAuthRedirectPath("/dictations", false)).toBe("/login");
-    expect(getAuthRedirectPath("/config/settings", false)).toBe("/login");
+  it("redirects unauthenticated dashboard access to login with callbackUrl", () => {
+    expect(getAuthRedirectPath("/dictations", false)).toBe(
+      "/login?callbackUrl=%2Fdictations"
+    );
+    expect(getAuthRedirectPath("/config/settings", false)).toBe(
+      "/login?callbackUrl=%2Fconfig%2Fsettings"
+    );
   });
 
-  it("redirects unauthenticated onboarding access to login", () => {
+  it("redirects unauthenticated onboarding access to login with callbackUrl", () => {
     expect(isOnboardingRoute("/onboarding/class")).toBe(true);
-    expect(getAuthRedirectPath("/onboarding/class", false)).toBe("/login");
+    expect(getAuthRedirectPath("/onboarding/class", false)).toBe(
+      "/login?callbackUrl=%2Fonboarding%2Fclass"
+    );
   });
 
   it("redirects authenticated users away from login, register, and home", () => {
     expect(getAuthRedirectPath("/login", true)).toBe("/dictations");
     expect(getAuthRedirectPath("/register", true)).toBe("/dictations");
     expect(getAuthRedirectPath("/", true)).toBe("/dictations");
+  });
+
+  it("honors callbackUrl when authenticated users visit login", () => {
+    expect(
+      getAuthRedirectPath(
+        "/login",
+        true,
+        "?callbackUrl=%2Fstudents%2Fabc"
+      )
+    ).toBe("/students/abc");
+    expect(
+      getAuthRedirectPath("/login", true, "?callbackUrl=https://evil.example")
+    ).toBe("/dictations");
   });
 
   it("allows public routes without redirect", () => {

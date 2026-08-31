@@ -2,18 +2,24 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { sanitizeCallbackUrl } from "@/lib/domain/auth-redirect";
 
 import { LoginForm } from "./login-form";
 
 export default async function LoginPage({
   searchParams,
 }: PageProps<"/login">) {
+  const params = await searchParams;
+  const callbackParam = params?.callbackUrl;
+  const callbackUrl = sanitizeCallbackUrl(
+    Array.isArray(callbackParam) ? callbackParam[0] : callbackParam
+  );
+
   const session = await auth();
   if (session) {
-    redirect("/dictations");
+    redirect(callbackUrl);
   }
 
-  const params = await searchParams;
   const registered = params?.registered;
   const registeredValue = Array.isArray(registered) ? registered[0] : registered;
   const showRegistrationSuccess = registeredValue === "1";
@@ -36,7 +42,7 @@ export default async function LoginPage({
         </p>
       ) : null}
 
-      <LoginForm />
+      <LoginForm callbackUrl={callbackUrl} />
 
       <p className="text-sm text-muted-foreground">
         Besoin d&apos;un compte ?{" "}

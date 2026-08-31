@@ -7,12 +7,14 @@ export type LoginFormFieldsProps = {
   state: LoginActionState;
   formAction: (payload: FormData) => void;
   pending: boolean;
+  callbackUrl: string;
 };
 
 export function LoginFormFields({
   state,
   formAction,
   pending,
+  callbackUrl,
 }: LoginFormFieldsProps) {
   return (
     <form
@@ -20,6 +22,7 @@ export function LoginFormFields({
       noValidate
       className="flex w-full max-w-sm flex-col gap-4"
     >
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
       <div className="flex flex-col gap-1.5">
         <label htmlFor="email" className="text-sm font-medium">
           Email

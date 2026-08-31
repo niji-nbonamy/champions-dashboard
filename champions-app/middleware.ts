@@ -7,7 +7,12 @@ import { authConfig } from "./auth.config";
 const { auth } = NextAuth(authConfig);
 
 export default auth((req) =>
-  runAuthMiddleware(req.nextUrl.pathname, !!req.auth, req.nextUrl)
+  runAuthMiddleware(
+    req.nextUrl.pathname,
+    !!req.auth,
+    req.nextUrl,
+    req.nextUrl.search
+  )
 );
 
 export const config = {

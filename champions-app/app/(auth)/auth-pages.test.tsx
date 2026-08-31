@@ -85,6 +85,19 @@ describe("auth pages", () => {
     expect(html).toContain("Afficher le mot de passe");
   });
 
+  it("redirects authenticated users to callbackUrl when provided", async () => {
+    auth.mockResolvedValueOnce({
+      user: { id: "teacher-id", email: "teacher@example.com" },
+      expires: "2099-01-01T00:00:00.000Z",
+    });
+
+    await expect(
+      LoginPage({
+        searchParams: Promise.resolve({ callbackUrl: "/students/abc" }),
+      })
+    ).rejects.toThrow("NEXT_REDIRECT:/students/abc");
+  });
+
   it("redirects authenticated users away from login", async () => {
     auth.mockResolvedValueOnce({
       user: { id: "teacher-id", email: "teacher@example.com" },

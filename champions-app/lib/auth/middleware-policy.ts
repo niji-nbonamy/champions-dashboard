@@ -1,3 +1,9 @@
+import {
+  buildLoginRedirectPath,
+  DEFAULT_POST_AUTH_REDIRECT,
+  sanitizeCallbackUrl,
+} from "@/lib/domain/auth-redirect";
+
 export const DASHBOARD_ROUTE_PREFIXES = [
   "/dictations",
   "/students",
@@ -38,14 +44,23 @@ export function isOnboardingRoute(pathname: string): boolean {
 
 export function getAuthRedirectPath(
   pathname: string,
-  isLoggedIn: boolean
-): "/dictations" | "/login" | null {
-  if (isLoggedIn && (pathname === "/" || pathname === "/login" || pathname === "/register")) {
-    return "/dictations";
+  isLoggedIn: boolean,
+  search = ""
+): string | null {
+  if (
+    isLoggedIn &&
+    (pathname === "/" || pathname === "/login" || pathname === "/register")
+  ) {
+    if (pathname === "/login") {
+      const callbackUrl = new URLSearchParams(search).get("callbackUrl");
+      return sanitizeCallbackUrl(callbackUrl);
+    }
+
+    return DEFAULT_POST_AUTH_REDIRECT;
   }
 
   if (!isLoggedIn && (isDashboardRoute(pathname) || isOnboardingRoute(pathname))) {
-    return "/login";
+    return buildLoginRedirectPath(`${pathname}${search}`);
   }
 
   return null;

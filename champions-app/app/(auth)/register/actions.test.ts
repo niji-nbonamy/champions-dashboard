@@ -4,7 +4,7 @@ import { REGISTRATION_ERROR_MESSAGE } from "@/lib/domain/registration";
 
 const VALID_REGISTRATION_PASSWORD = "Password1!";
 
-const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken, isRecaptchaRequired } =
+const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken, isRecaptchaRequired, isAuthRateLimitAllowed } =
   vi.hoisted(() => {
     class MockRegistrationFailedError extends Error {
       constructor() {
@@ -24,6 +24,7 @@ const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken
       RegistrationFailedError: MockRegistrationFailedError,
       verifyRecaptchaToken: vi.fn(async () => true),
       isRecaptchaRequired: vi.fn(() => true),
+      isAuthRateLimitAllowed: vi.fn(async () => true),
     };
   });
 
@@ -44,6 +45,10 @@ vi.mock("@/lib/services/register-teacher", () => ({
 vi.mock("@/lib/services/recaptcha-verify", () => ({
   verifyRecaptchaToken,
   isRecaptchaRequired,
+}));
+
+vi.mock("@/lib/services/auth-rate-limit", () => ({
+  isAuthRateLimitAllowed,
 }));
 
 function buildFormData(overrides?: Partial<Record<string, string>>) {
@@ -122,6 +127,18 @@ describe("registerAction", () => {
     ).rejects.toThrow("NEXT_REDIRECT:/login?registered=1");
 
     expect(verifyRecaptchaToken).not.toHaveBeenCalled();
+  });
+
+  it("returns the generic registration error when rate limited", async () => {
+    isAuthRateLimitAllowed.mockResolvedValueOnce(false);
+
+    const { registerAction } = await import("./actions");
+
+    await expect(
+      registerAction({ error: null }, buildFormData())
+    ).resolves.toEqual({ error: REGISTRATION_ERROR_MESSAGE });
+
+    expect(registerTeacher).not.toHaveBeenCalled();
   });
 
   it("returns the generic registration error when registration fails", async () => {

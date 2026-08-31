@@ -7,6 +7,7 @@ import {
   passwordsMatch,
   REGISTRATION_ERROR_MESSAGE,
 } from "@/lib/domain/registration";
+import { isAuthRateLimitAllowed } from "@/lib/services/auth-rate-limit";
 import { registerTeacher } from "@/lib/services/register-teacher";
 import {
   isRecaptchaRequired,
@@ -27,6 +28,10 @@ export async function registerAction(
   const recaptchaToken = String(formData.get("recaptchaToken") ?? "");
 
   if (!passwordsMatch(password, confirmPassword)) {
+    return { error: REGISTRATION_ERROR_MESSAGE };
+  }
+
+  if (!(await isAuthRateLimitAllowed("register"))) {
     return { error: REGISTRATION_ERROR_MESSAGE };
   }
 

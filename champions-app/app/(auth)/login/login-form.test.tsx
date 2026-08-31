@@ -12,6 +12,7 @@ describe("LoginFormFields", () => {
         state={{ error: LOGIN_ERROR_MESSAGE }}
         formAction={vi.fn()}
         pending={false}
+        callbackUrl="/dictations"
       />
     );
 
@@ -25,6 +26,7 @@ describe("LoginFormFields", () => {
         state={{ error: null }}
         formAction={vi.fn()}
         pending={false}
+        callbackUrl="/dictations"
       />
     );
 
@@ -38,10 +40,13 @@ describe("LoginFormFields", () => {
         state={{ error: null }}
         formAction={vi.fn()}
         pending={false}
+        callbackUrl="/dictations"
       />
     );
 
     expect(html).toContain("Afficher le mot de passe");
     expect(html).toContain("Se connecter");
+    expect(html).toContain('name="callbackUrl"');
+    expect(html).toContain('value="/dictations"');
   });
 });

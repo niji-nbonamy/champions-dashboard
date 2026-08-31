@@ -5,11 +5,13 @@ import { runAuthMiddleware } from "./middleware-handler";
 describe("runAuthMiddleware", () => {
   const baseUrl = new URL("http://localhost:3000");
 
-  it("redirects unauthenticated dashboard access to login", () => {
+  it("redirects unauthenticated dashboard access to login with callbackUrl", () => {
     const response = runAuthMiddleware("/dictations", false, baseUrl);
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost:3000/login");
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/login?callbackUrl=%2Fdictations"
+    );
   });
 
   it("redirects authenticated users away from login, register, and home", () => {
