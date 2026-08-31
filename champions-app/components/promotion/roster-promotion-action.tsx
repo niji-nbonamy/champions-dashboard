@@ -104,7 +104,7 @@ export function RosterPromotionAction({
     <>
       <button
         type="button"
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-promotion-ready text-sm font-semibold text-promotion-ready-foreground outline-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+        className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-promotion-ready text-sm font-semibold text-promotion-ready-foreground outline-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
         aria-label={`Ouvrir la promotion pour ${firstName}`}
         disabled={isPending}
         onClick={() => setDialogOpen(true)}

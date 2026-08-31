@@ -6,6 +6,7 @@ const {
   redirect,
   notFound,
   mockGetTeacherClass,
+  mockGetYearStartWizardStatus,
   mockGetClassStudent,
   mockGetStudentDictationHistory,
   mockGetStudentLevelHistory,
@@ -19,6 +20,7 @@ const {
     throw new Error("NEXT_NOT_FOUND");
   }),
   mockGetTeacherClass: vi.fn(),
+  mockGetYearStartWizardStatus: vi.fn(),
   mockGetClassStudent: vi.fn(),
   mockGetStudentDictationHistory: vi.fn(),
   mockGetStudentLevelHistory: vi.fn(),
@@ -36,6 +38,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/services/get-teacher-class", () => ({
   getTeacherClass: mockGetTeacherClass,
+}));
+
+vi.mock("@/lib/services/get-year-start-wizard-status", () => ({
+  getYearStartWizardStatus: mockGetYearStartWizardStatus,
 }));
 
 vi.mock("@/lib/services/get-class-student", () => ({
@@ -69,6 +75,21 @@ vi.mock("../level-dot-picker", () => ({
       data-mode={mode ?? "assign"}
       data-current-level={currentLevel ?? ""}
     />
+  ),
+}));
+
+vi.mock("../archive-student-button", () => ({
+  ArchiveStudentButton: ({
+    studentId,
+    displayName,
+  }: {
+    studentId: string;
+    displayName: string;
+    filter: string;
+  }) => (
+    <button type="button" data-testid={`archive-student-${studentId}`}>
+      Archiver {displayName}
+    </button>
   ),
 }));
 
@@ -106,6 +127,14 @@ function mockAuthenticatedClass() {
     id: classId,
     teacherId,
     schoolYearLabel: "2025-2026",
+  });
+  mockGetYearStartWizardStatus.mockResolvedValueOnce({
+    completed: false,
+    step: 3,
+    activeStudentCount: 8,
+    leveledActiveStudentCount: 8,
+    unassignedCount: 0,
+    matrixRowCount: 5,
   });
 }
 
@@ -188,6 +217,49 @@ describe("StudentDossierPage", () => {
       classId,
       studentId
     );
+    expect(html).toContain("Archiver DUPONT Marie");
+  });
+
+  it("hides the archive action on archived dossiers", async () => {
+    mockAuthenticatedClass();
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: true,
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).toContain("Archivé");
+    expect(html).not.toContain("Archiver DUPONT Marie");
+  });
+
+  it("hides the archive action before year-start setup is complete", async () => {
+    mockAuthenticatedClass();
+    mockGetYearStartWizardStatus.mockReset();
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 1,
+      activeStudentCount: 1,
+      leveledActiveStudentCount: 0,
+      unassignedCount: 1,
+      matrixRowCount: 0,
+    });
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: null,
+      archived: false,
+    });
+
+    const html = renderToStaticMarkup(
+      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+    );
+
+    expect(html).not.toContain("Archiver DUPONT Marie");
   });
 
   it("renders the dossier curve and collapsed history table when dictations exist", async () => {

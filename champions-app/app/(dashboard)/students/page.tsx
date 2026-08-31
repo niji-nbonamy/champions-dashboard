@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { auth } from "@/auth";
+import { canArchiveStudents } from "@/lib/domain/year-start-readiness";
 import { STUDENT_ARCHIVE_SUCCESS_MESSAGE } from "@/lib/domain/student-display-name";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getYearStartWizardStatus } from "@/lib/services/get-year-start-wizard-status";
@@ -90,7 +91,9 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
         <RosterList
           students={students}
           filter={filter}
-          showArchiveAction={wizardStatus?.completed === true}
+          showArchiveAction={
+            wizardStatus !== null && canArchiveStudents(wizardStatus)
+          }
           pendingPromotionsByStudentId={pendingPromotionsByStudentId}
         />
       </section>

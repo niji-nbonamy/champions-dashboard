@@ -211,6 +211,39 @@ describe("students page", () => {
     expect(html).toContain("Archiver");
   });
 
+  it("shows archive buttons when setup is complete without wizard timestamp", async () => {
+    auth.mockResolvedValueOnce({
+      user: { id: teacherId, email: "t@example.com" },
+    });
+    mockGetTeacherClass.mockResolvedValueOnce({
+      id: classId,
+      teacherId,
+      schoolYearLabel: "2026-2027",
+    });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 3,
+      activeStudentCount: 8,
+      unassignedCount: 0,
+      matrixRowCount: 5,
+    });
+    mockListClassStudents.mockResolvedValueOnce([
+      {
+        id: "770e8400-e29b-41d4-a716-446655440002",
+        displayName: "DUPONT Marie",
+        level: "yellow",
+        archived: false,
+      },
+    ]);
+    mockListPendingPromotionsForStudents.mockResolvedValueOnce({});
+
+    const html = renderToStaticMarkup(
+      await StudentsPage({ searchParams: Promise.resolve({}) })
+    );
+
+    expect(html).toContain("Archiver");
+  });
+
   it("loads archived students when the archived filter is selected", async () => {
     mockClassContext();
     mockListClassStudents.mockResolvedValueOnce([]);

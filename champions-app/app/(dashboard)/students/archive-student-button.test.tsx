@@ -6,12 +6,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  STUDENT_ARCHIVE_CONFIRM_MESSAGE,
   STUDENT_ARCHIVE_GENERIC_ERROR,
   STUDENT_ARCHIVE_NOT_FOUND_ERROR,
+  formatStudentArchiveConfirmTitle,
 } from "@/lib/domain/student-display-name";
 
 const mockUseActionState = vi.fn();
-const mockConfirm = vi.fn();
 
 vi.mock("./actions", () => ({
   archiveStudentAction: vi.fn(),
@@ -42,7 +43,6 @@ describe("ArchiveStudentButton", () => {
   let root: Root;
 
   beforeEach(() => {
-    vi.stubGlobal("confirm", mockConfirm);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -55,7 +55,6 @@ describe("ArchiveStudentButton", () => {
     });
     container.remove();
     vi.clearAllMocks();
-    vi.unstubAllGlobals();
   });
 
   it("renders archive errors with alert semantics", () => {
@@ -75,6 +74,10 @@ describe("ArchiveStudentButton", () => {
 
     expect(html).toContain('role="alert"');
     expect(html).toContain(STUDENT_ARCHIVE_NOT_FOUND_ERROR);
+    expect(html).toContain(
+      formatStudentArchiveConfirmTitle("DUPONT Marie")
+    );
+    expect(html).toContain("retiré de la liste active");
   });
 
   it("renders generic archive errors with alert semantics", () => {
@@ -96,9 +99,7 @@ describe("ArchiveStudentButton", () => {
     expect(html).toContain(STUDENT_ARCHIVE_GENERIC_ERROR);
   });
 
-  it("asks for confirmation with the student name before archiving", () => {
-    mockConfirm.mockReturnValueOnce(true);
-
+  it("opens a confirmation dialog instead of submitting immediately", () => {
     act(() => {
       root.render(
         <ArchiveStudentButton
@@ -109,21 +110,27 @@ describe("ArchiveStudentButton", () => {
       );
     });
 
-    const submitButton = container.querySelector('button[type="submit"]');
-    expect(submitButton).not.toBeNull();
+    const openButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Archiver"
+    );
+    expect(openButton).toBeDefined();
 
     act(() => {
-      submitButton!.click();
+      openButton!.click();
     });
 
-    expect(mockConfirm).toHaveBeenCalledWith(
-      "Archiver DUPONT Marie ? L'élève sera retiré de la liste active."
+    const dialog = container.querySelector("dialog");
+    expect(dialog).not.toBeNull();
+    expect(dialog?.open).toBe(true);
+    expect(container.textContent).toContain(
+      formatStudentArchiveConfirmTitle("DUPONT Marie")
     );
+    expect(container.textContent).toContain(STUDENT_ARCHIVE_CONFIRM_MESSAGE);
+    expect(container.textContent).toContain("Confirmer l'archivage");
+    expect(container.textContent).toContain("Annuler");
   });
 
-  it("blocks submit when confirmation is declined", () => {
-    mockConfirm.mockReturnValueOnce(false);
-
+  it("closes the dialog when Annuler is clicked", () => {
     act(() => {
       root.render(
         <ArchiveStudentButton
@@ -134,17 +141,24 @@ describe("ArchiveStudentButton", () => {
       );
     });
 
-    const form = container.querySelector("form");
-    expect(form).not.toBeNull();
-
-    const submitEvent = new Event("submit", { bubbles: true, cancelable: true });
-    const preventDefault = vi.spyOn(submitEvent, "preventDefault");
+    const openButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Archiver"
+    );
 
     act(() => {
-      form!.dispatchEvent(submitEvent);
+      openButton!.click();
     });
 
-    expect(mockConfirm).toHaveBeenCalledOnce();
-    expect(preventDefault).toHaveBeenCalled();
+    const cancelButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Annuler"
+    );
+    expect(cancelButton).toBeDefined();
+
+    act(() => {
+      cancelButton!.click();
+    });
+
+    const dialog = container.querySelector("dialog");
+    expect(dialog?.open).toBe(false);
   });
 });

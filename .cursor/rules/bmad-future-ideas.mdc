@@ -1,0 +1,15 @@
+---
+description: Capture product ideas in future-ideas.md for later BMAD triage
+alwaysApply: true
+---
+
+# Future ideas backlog (BMAD)
+
+When the user wants to **save a product idea**, **feature wish**, or **enhancement for later** (not immediate implementation):
+
+1. Append a new entry to `_bmad-output/planning-artifacts/future-ideas.md` under **Ideas**, following the template in that file.
+2. Use the next `IDEA-NNN` id (scan existing entries for the highest number).
+3. Set **Status:** `captured` and today's date in the title.
+4. Do **not** use `deferred-work.md` for new product ideas — that file is for technical deferrals from Build and Code Review.
+
+When triaging or promoting an idea to the backlog, update its status in `future-ideas.md` and link **Promoted to** the epic/story key.

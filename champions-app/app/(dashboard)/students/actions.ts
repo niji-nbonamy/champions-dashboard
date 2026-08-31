@@ -270,6 +270,7 @@ export async function archiveStudentAction(
     await archiveStudent(teacherClass.id, studentId);
     revalidatePath("/students", "layout");
     revalidatePath("/students");
+    revalidatePath(`/students/${studentId}`);
     revalidatePath("/dictations");
     revalidatePath("/config");
     revalidatePath("/onboarding/year-start");

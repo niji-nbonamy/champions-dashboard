@@ -15,12 +15,15 @@ import { PromotionBanner } from "@/components/promotion/promotion-banner";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
 import { toCurvePoints } from "@/lib/domain/dossier-curve";
+import { canArchiveStudents } from "@/lib/domain/year-start-readiness";
 import { getClassStudent } from "@/lib/services/get-class-student";
 import { getStudentDictationHistory } from "@/lib/services/get-student-dictation-history";
 import { getStudentLevelHistory } from "@/lib/services/get-student-level-history";
+import { getYearStartWizardStatus } from "@/lib/services/get-year-start-wizard-status";
 import { listPendingPromotionsForStudents } from "@/lib/services/list-pending-promotions";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 
+import { ArchiveStudentButton } from "../archive-student-button";
 import { LevelDotPicker } from "../level-dot-picker";
 
 type StudentDossierPageProps = {
@@ -56,7 +59,12 @@ export default async function StudentDossierPage({
     notFound();
   }
 
-  const history = await getStudentDictationHistory(teacherClass.id, id);
+  const [history, wizardStatus] = await Promise.all([
+    getStudentDictationHistory(teacherClass.id, id),
+    getYearStartWizardStatus(teacherClass.id),
+  ]);
+  const showArchiveAction =
+    !student.archived && canArchiveStudents(wizardStatus);
   let levelHistory: Awaited<ReturnType<typeof getStudentLevelHistory>> = [];
 
   try {
@@ -81,7 +89,16 @@ export default async function StudentDossierPage({
         >
           Retour aux élèves
         </Link>
-        <h1 className="text-display">{student.displayName}</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <h1 className="text-display">{student.displayName}</h1>
+          {showArchiveAction ? (
+            <ArchiveStudentButton
+              studentId={id}
+              displayName={student.displayName}
+              filter="active"
+            />
+          ) : null}
+        </div>
         {student.level && isChampionsLevel(student.level) ? (
           <div className="mt-2 flex flex-col sm:flex-row sm:items-start">
             <div className="flex flex-col gap-2 pb-4 sm:pb-0 sm:pr-6">
