@@ -8,7 +8,10 @@ import {
   REGISTRATION_ERROR_MESSAGE,
 } from "@/lib/domain/registration";
 import { registerTeacher } from "@/lib/services/register-teacher";
-import { verifyRecaptchaToken } from "@/lib/services/recaptcha-verify";
+import {
+  isRecaptchaRequired,
+  verifyRecaptchaToken,
+} from "@/lib/services/recaptcha-verify";
 
 export type RegisterActionState = {
   error: string | null;
@@ -27,12 +30,14 @@ export async function registerAction(
     return { error: REGISTRATION_ERROR_MESSAGE };
   }
 
-  const recaptchaValid = await verifyRecaptchaToken(
-    recaptchaToken.length > 0 ? recaptchaToken : null
-  );
+  if (isRecaptchaRequired()) {
+    const recaptchaValid = await verifyRecaptchaToken(
+      recaptchaToken.length > 0 ? recaptchaToken : null
+    );
 
-  if (!recaptchaValid) {
-    return { error: REGISTRATION_ERROR_MESSAGE };
+    if (!recaptchaValid) {
+      return { error: REGISTRATION_ERROR_MESSAGE };
+    }
   }
 
   try {

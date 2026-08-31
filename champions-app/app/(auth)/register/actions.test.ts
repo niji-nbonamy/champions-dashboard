@@ -4,7 +4,7 @@ import { REGISTRATION_ERROR_MESSAGE } from "@/lib/domain/registration";
 
 const VALID_REGISTRATION_PASSWORD = "Password1!";
 
-const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken } =
+const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken, isRecaptchaRequired } =
   vi.hoisted(() => {
     class MockRegistrationFailedError extends Error {
       constructor() {
@@ -23,6 +23,7 @@ const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken
       registerTeacher: vi.fn(),
       RegistrationFailedError: MockRegistrationFailedError,
       verifyRecaptchaToken: vi.fn(async () => true),
+      isRecaptchaRequired: vi.fn(() => true),
     };
   });
 
@@ -42,6 +43,7 @@ vi.mock("@/lib/services/register-teacher", () => ({
 
 vi.mock("@/lib/services/recaptcha-verify", () => ({
   verifyRecaptchaToken,
+  isRecaptchaRequired,
 }));
 
 function buildFormData(overrides?: Partial<Record<string, string>>) {
@@ -91,6 +93,7 @@ describe("registerAction", () => {
   });
 
   it("returns the generic registration error when recaptcha verification fails", async () => {
+    isRecaptchaRequired.mockReturnValueOnce(true);
     verifyRecaptchaToken.mockResolvedValueOnce(false);
 
     const { registerAction } = await import("./actions");
@@ -100,6 +103,25 @@ describe("registerAction", () => {
     ).resolves.toEqual({ error: REGISTRATION_ERROR_MESSAGE });
 
     expect(registerTeacher).not.toHaveBeenCalled();
+  });
+
+  it("skips recaptcha verification when recaptcha is not configured", async () => {
+    isRecaptchaRequired.mockReturnValueOnce(false);
+    registerTeacher.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      email: "teacher@example.com",
+    });
+
+    const { registerAction } = await import("./actions");
+
+    await expect(
+      registerAction(
+        { error: null },
+        buildFormData({ recaptchaToken: "" })
+      )
+    ).rejects.toThrow("NEXT_REDIRECT:/login?registered=1");
+
+    expect(verifyRecaptchaToken).not.toHaveBeenCalled();
   });
 
   it("returns the generic registration error when registration fails", async () => {
