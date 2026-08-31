@@ -29,7 +29,7 @@ describe("PromotionDialog", () => {
       root.render(
         <PromotionDialog
           open
-          studentFirstName="Marie"
+          studentDisplayName="DUPONT Marie"
           targetLevel="green"
           pending={false}
           onClose={vi.fn()}
@@ -42,6 +42,26 @@ describe("PromotionDialog", () => {
     expect(container.textContent).toContain("Prêt à monter → vert");
   });
 
+  it("renders the full student display name in the body", () => {
+    act(() => {
+      root.render(
+        <PromotionDialog
+          open
+          studentDisplayName="DUPONT Marie"
+          targetLevel="green"
+          pending={false}
+          onClose={vi.fn()}
+          onValidate={vi.fn()}
+          onRefuse={vi.fn()}
+        />
+      );
+    });
+
+    expect(container.textContent).toContain(
+      "DUPONT Marie peut passer au niveau vert."
+    );
+  });
+
   it("calls onValidate when Valider is clicked", () => {
     const onValidate = vi.fn();
 
@@ -49,7 +69,7 @@ describe("PromotionDialog", () => {
       root.render(
         <PromotionDialog
           open
-          studentFirstName="Marie"
+          studentDisplayName="DUPONT Marie"
           targetLevel="green"
           pending={false}
           onClose={vi.fn()}
@@ -77,7 +97,7 @@ describe("PromotionDialog", () => {
       root.render(
         <PromotionDialog
           open
-          studentFirstName="Marie"
+          studentDisplayName="DUPONT Marie"
           targetLevel="green"
           pending={false}
           onClose={vi.fn()}
@@ -105,7 +125,7 @@ describe("PromotionDialog", () => {
       root.render(
         <PromotionDialog
           open
-          studentFirstName="Marie"
+          studentDisplayName="DUPONT Marie"
           targetLevel="green"
           pending={false}
           onClose={onClose}

@@ -260,6 +260,62 @@ describe("RosterList", () => {
     expect(html).not.toContain("Archiver");
   });
 
+  it("renders a level stripe for assigned students", () => {
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: "880e8400-e29b-41d4-a716-446655440003",
+            displayName: "MARTIN Lucas",
+            level: "yellow",
+            archived: false,
+          },
+        ]}
+        filter="active"
+      />
+    );
+
+    expect(html).toContain("bg-level-yellow");
+  });
+
+  it("renders a neutral stripe for unassigned students", () => {
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: "770e8400-e29b-41d4-a716-446655440002",
+            displayName: "DUPONT Marie",
+            level: null,
+            archived: false,
+          },
+        ]}
+        filter="active"
+      />
+    );
+
+    expect(html).toContain("bg-border");
+  });
+
+  it("reserves promotion button space on active rows", () => {
+    const studentId = "770e8400-e29b-41d4-a716-446655440002";
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: studentId,
+            displayName: "DUPONT Marie",
+            level: "yellow",
+            archived: false,
+          },
+        ]}
+        filter="active"
+      />
+    );
+
+    expect(html).toContain(`data-testid="roster-promotion-slot-${studentId}"`);
+    expect(html).not.toContain(`data-testid="roster-promotion-${studentId}"`);
+  });
+
   it("shows promotion indicators on roster rows when pending exists", () => {
     const studentId = "880e8400-e29b-41d4-a716-446655440003";
     const html = renderToStaticMarkup(
@@ -279,7 +335,7 @@ describe("RosterList", () => {
     );
 
     expect(html).not.toContain("⬆️");
-    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain(`data-testid="roster-promotion-slot-${studentId}"`);
     expect(html).toContain(`data-testid="roster-promotion-${studentId}"`);
     expect(html).toContain('data-target-level="green"');
   });

@@ -8,7 +8,7 @@ import type { ChampionsLevel } from "@/lib/design/tokens";
 
 type PromotionDialogProps = {
   open: boolean;
-  studentFirstName: string;
+  studentDisplayName: string;
   targetLevel: ChampionsLevel;
   pending: boolean;
   onClose: () => void;
@@ -18,7 +18,7 @@ type PromotionDialogProps = {
 
 export function PromotionDialog({
   open,
-  studentFirstName,
+  studentDisplayName,
   targetLevel,
   pending,
   onClose,
@@ -76,7 +76,7 @@ export function PromotionDialog({
           Prêt à monter → {getChampionsLevelFrenchLabel(targetLevel)}
         </h2>
         <p className="text-sm text-muted-foreground">
-          {studentFirstName} peut passer au niveau{" "}
+          {studentDisplayName} peut passer au niveau{" "}
           {getChampionsLevelFrenchLabel(targetLevel)}.
         </p>
         <div className="flex flex-wrap gap-2">
