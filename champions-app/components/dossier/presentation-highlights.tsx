@@ -40,14 +40,8 @@ export function PresentationHighlights({
       </div>
       <div className="flex flex-col gap-1 rounded-lg border border-border p-4">
         <span className="text-sm text-muted-foreground">Tendance</span>
-        <p
-          className={cn(
-            highlightValueClassName,
-            trendIsNumeric && "tabular-nums",
-            trendClass
-          )}
-        >
-          {trendLabel}
+        <p className={cn(highlightValueClassName, trendIsNumeric && "tabular-nums")}>
+          <span className={trendClass}>{trendLabel}</span>
         </p>
       </div>
       <div className="flex flex-col gap-1 rounded-lg border border-border p-4">

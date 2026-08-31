@@ -117,6 +117,9 @@ describe("PresentationHighlights", () => {
 
     expect(positiveHtml).toContain("+5 %");
     expect(positiveHtml).toContain("text-trend-up");
+    expect(positiveHtml).toMatch(
+      /Tendance[\s\S]*text-data-lg[\s\S]*\+5 %/
+    );
     expect(negativeHtml).toContain("-10 %");
     expect(negativeHtml).toContain("text-trend-down");
     expect(flatHtml).toContain("Stable");
