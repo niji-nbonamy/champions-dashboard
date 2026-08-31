@@ -17,6 +17,22 @@ describe("MobileDictationHub", () => {
     expect(html).toContain(
       "Créez votre première dictée depuis un ordinateur ou une tablette."
     );
+    expect(html).toContain('role="status"');
+    expect(html).not.toContain("Saisir");
+    expect(html).not.toContain("Voir");
+  });
+
+  it("renders class setup guidance when the roster is empty", () => {
+    const html = renderToStaticMarkup(
+      <MobileDictationHub isClassSetupBlocked />
+    );
+
+    expect(html).toContain(
+      "Utilisez un ordinateur ou une tablette pour configurer votre classe."
+    );
+    expect(html).not.toContain(
+      "Créez votre première dictée depuis un ordinateur ou une tablette."
+    );
     expect(html).not.toContain("Saisir");
     expect(html).not.toContain("Voir");
   });
@@ -59,5 +75,44 @@ describe("MobileDictationHub", () => {
     expect(html).toContain("Dictée complète");
     expect(html).toContain("Saisir");
     expect(html).toContain("Voir");
+  });
+
+  it("hides shortcuts when no leveled students are available", () => {
+    const html = renderToStaticMarkup(
+      <MobileDictationHub
+        lastDictation={lastDictation}
+        completionSummary={{
+          enteredCount: 0,
+          totalLeveledCount: 0,
+          isComplete: false,
+        }}
+      />
+    );
+
+    expect(html).toContain("Aucun élève nivelé actif.");
+    expect(html).toContain("Dictée 1");
+    expect(html).not.toContain("Saisir");
+    expect(html).not.toContain("Voir");
+  });
+
+  it("hides shortcuts when class setup is blocked but a dictation exists", () => {
+    const html = renderToStaticMarkup(
+      <MobileDictationHub
+        lastDictation={lastDictation}
+        isClassSetupBlocked
+        completionSummary={{
+          enteredCount: 1,
+          totalLeveledCount: 3,
+          isComplete: false,
+        }}
+      />
+    );
+
+    expect(html).toContain(
+      "Utilisez un ordinateur ou une tablette pour configurer votre classe."
+    );
+    expect(html).toContain("Dictée 1");
+    expect(html).not.toContain("Saisir");
+    expect(html).not.toContain("Voir");
   });
 });

@@ -3,7 +3,7 @@ title: '5-1 Mobile Dictation Hub (G2)'
 type: 'feature'
 created: '2026-08-31'
 status: 'done'
-review_loop_iteration: 0
+review_loop_iteration: 1
 baseline_commit: 'ec0ad77373582716d88f0b2fd8ee3220e7eedf8f'
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-5-context.md'
@@ -92,6 +92,19 @@ context:
 - Given I am on mobile, when I attempt to open Élèves, Config, Alertes, or the class grid, then I am redirected to the dictation hub without drawer navigation.
 - Given I am on a viewport `≥768px`, when I use the app, then G1 tabs and existing dictation workflows are unchanged.
 
+### Review Findings
+
+- [x] [Review][Patch] Guidance mobile roster vide / wizard bloqué (Ask First default) — `page.tsx` ne transmet pas `isEmptyRoster` / `wizardStatus` au hub ; afficher « Utilisez un ordinateur ou une tablette pour configurer votre classe. » et masquer Saisir/Voir quand la classe n'est pas prête [`page.tsx:163`](../../champions-app/app/(dashboard)/dictations/page.tsx#L163), [`mobile-dictation-hub.tsx:18`](../../champions-app/components/dictations/mobile-dictation-hub.tsx#L18)
+- [x] [Review][Patch] Landmark `<main>` absent sur la vue G1 desktop — le fragment remplace l'ancien `<main>` ; envelopper le bloc `hidden md:flex` dans `<main>` [`page.tsx:66`](../../champions-app/app/(dashboard)/dictations/page.tsx#L66)
+- [x] [Review][Patch] Test d'intégration `MobileRouteGuard` redirect — `mobile-route-guard.test.ts` ne couvre que `isBlockedMobilePath` ; ajouter test composant avec `matchMedia` + `router.replace` [`mobile-route-guard.tsx:38`](../../champions-app/components/dashboard/mobile-route-guard.tsx#L38)
+- [x] [Review][Patch] Hub sans message « Aucun élève nivelé actif. » quand `totalLeveledCount === 0` — incohérence avec summary ; masquer ou contextualiser Saisir/Voir [`mobile-dictation-hub.tsx:50`](../../champions-app/components/dictations/mobile-dictation-hub.tsx#L50)
+- [x] [Review][Patch] `page.test.tsx` ne vérifie pas le câblage `getDictationCompletionSummary` ni le badge « Dictée complète » [`page.test.tsx:411`](../../champions-app/app/(dashboard)/dictations/page.test.tsx#L411)
+- [x] [Review][Patch] État vide hub sans `role="status"` — cohérence avec badge complétion [`mobile-dictation-hub.tsx:24`](../../champions-app/components/dictations/mobile-dictation-hub.tsx#L24)
+- [x] [Review][Patch] Tests page hub mobile incomplets — pas de couverture état vide, complet, ni wizard-bloqué [`page.test.tsx:411`](../../champions-app/app/(dashboard)/dictations/page.test.tsx#L411)
+- [x] [Review][Defer] Pas de `page.test.tsx` pour stub Saisir `/dictations/[id]/mobile` — summary a couverture parallèle ; déjà dans deferred-work [`mobile/page.tsx:15`](../../champions-app/app/(dashboard)/dictations/[id]/mobile/page.tsx#L15)
+- [x] [Review][Defer] Flash contenu bloqué avant redirect `MobileRouteGuard` — trade-off client-side documenté dans Design Notes ; acceptable MVP [`mobile-route-guard.tsx:53`](../../champions-app/components/dashboard/mobile-route-guard.tsx#L53)
+- [x] [Review][Defer] Liens Saisir/Voir sans `aria-label` contextualisé — amélioration a11y hors AC [`mobile-dictation-hub.tsx:51`](../../champions-app/components/dictations/mobile-dictation-hub.tsx#L51)
+
 ## Design Notes
 
 Use CSS visibility (`hidden md:*` / `md:hidden`) for hub vs G1 list — avoids SSR viewport mismatch. Pair with client `MobileRouteGuard` only for deep-link blocking (users bookmarking `/students`).
@@ -109,7 +122,7 @@ Use CSS visibility (`hidden md:*` / `md:hidden`) for hub vs G1 list — avoids S
 
 ## Spec Change Log
 
-- Review loop 0: Added `mobile-route-guard.test.ts` for I/O matrix mobile/grid block paths; fixed duplicate `<main>` on `/dictations`; summary zero-leveled copy; `role="status"` on completion badge.
+- Review loop 1: Applied code review patches — mobile class setup guidance, G1 `<main>` landmark, hub zero-leveled state, `MobileRouteGuard` redirect tests, completion wiring tests.
 
 ## Suggested Review Order
 

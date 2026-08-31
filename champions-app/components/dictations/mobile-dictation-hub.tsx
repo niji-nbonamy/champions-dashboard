@@ -6,23 +6,37 @@ import type { DictationCompletionSummary } from "@/lib/services/get-dictation-co
 import type { DictationRecord } from "@/lib/services/list-dictations";
 import { cn } from "@/lib/utils";
 
+const MOBILE_EMPTY_DICTATION_MESSAGE =
+  "Créez votre première dictée depuis un ordinateur ou une tablette.";
+
+const MOBILE_CLASS_SETUP_MESSAGE =
+  "Utilisez un ordinateur ou une tablette pour configurer votre classe.";
+
+const MOBILE_NO_LEVELED_STUDENTS_MESSAGE = "Aucun élève nivelé actif.";
+
 type MobileDictationHubProps = {
   lastDictation?: DictationRecord;
   completionSummary?: DictationCompletionSummary;
+  isClassSetupBlocked?: boolean;
 };
 
 export function MobileDictationHub({
   lastDictation,
   completionSummary,
+  isClassSetupBlocked = false,
 }: MobileDictationHubProps) {
   if (!lastDictation) {
+    const statusMessage = isClassSetupBlocked
+      ? MOBILE_CLASS_SETUP_MESSAGE
+      : MOBILE_EMPTY_DICTATION_MESSAGE;
+
     return (
       <main
         className="flex flex-1 flex-col gap-4 p-6"
         aria-label="Hub dictée mobile"
       >
-        <p className="text-sm text-muted-foreground">
-          Créez votre première dictée depuis un ordinateur ou une tablette.
+        <p className="text-sm text-muted-foreground" role="status">
+          {statusMessage}
         </p>
       </main>
     );
@@ -30,6 +44,8 @@ export function MobileDictationHub({
 
   const formattedDate = formatDictationDateForDisplay(lastDictation.dictationDate);
   const isComplete = completionSummary?.isComplete ?? false;
+  const hasNoLeveledStudents = (completionSummary?.totalLeveledCount ?? 0) === 0;
+  const showShortcuts = !isClassSetupBlocked && !hasNoLeveledStudents;
 
   return (
     <main
@@ -47,23 +63,33 @@ export function MobileDictationHub({
         </h1>
         <p className="text-sm text-muted-foreground">{formattedDate}</p>
       </div>
-      <div className="flex flex-col gap-3">
-        <Link
-          href={`/dictations/${lastDictation.id}/mobile`}
-          className={cn(buttonVariants({ size: "lg" }), "min-h-11 w-full")}
-        >
-          Saisir
-        </Link>
-        <Link
-          href={`/dictations/${lastDictation.id}/mobile/summary`}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "min-h-11 w-full"
-          )}
-        >
-          Voir
-        </Link>
-      </div>
+      {isClassSetupBlocked ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          {MOBILE_CLASS_SETUP_MESSAGE}
+        </p>
+      ) : hasNoLeveledStudents ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          {MOBILE_NO_LEVELED_STUDENTS_MESSAGE}
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <Link
+            href={`/dictations/${lastDictation.id}/mobile`}
+            className={cn(buttonVariants({ size: "lg" }), "min-h-11 w-full")}
+          >
+            Saisir
+          </Link>
+          <Link
+            href={`/dictations/${lastDictation.id}/mobile/summary`}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "min-h-11 w-full"
+            )}
+          >
+            Voir
+          </Link>
+        </div>
+      )}
     </main>
   );
 }

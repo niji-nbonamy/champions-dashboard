@@ -3,7 +3,8 @@
 ## Deferred from: code review of spec-5-1-mobile-dictation-hub-g2.md (2026-08-31)
 
 - No `page.test.tsx` for `/dictations/[id]/mobile` Saisir stub — summary page has parallel auth/notFound coverage; stub regressions uncaught
-- Wizard-blocked / empty-roster guidance on mobile hub — spec Ask First default excludes G1 CTAs; static copy only when zero dictations
+- Flash contenu bloqué avant redirect `MobileRouteGuard` — trade-off client-side documenté dans Design Notes ; acceptable MVP (`mobile-route-guard.tsx:53`)
+- Liens Saisir/Voir sans `aria-label` contextualisé — amélioration a11y hors AC (`mobile-dictation-hub.tsx:51`)
 
 ## Deferred from: code review of spec-4-6-alertes-promotion-queue-d2.md (2026-08-31)
 

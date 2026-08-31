@@ -454,5 +454,96 @@ describe("DictationsPage", () => {
     );
     expect(html).toContain("Saisir");
     expect(html).toContain("Voir");
+    expect(mockGetDictationCompletionSummary).toHaveBeenCalledWith(
+      classId,
+      "880e8400-e29b-41d4-a716-446655440003"
+    );
+  });
+
+  it("shows the mobile hub completion badge when the last dictation is complete", async () => {
+    mockAuthenticatedClass({
+      dictations: [
+        {
+          id: "880e8400-e29b-41d4-a716-446655440003",
+          label: "Dictée 2",
+          dictationLabelKey: "dictée 2",
+          dictationDate: "2026-08-27",
+        },
+      ],
+      matrixRows: [
+        {
+          dictationLabelKey: "Dictée 2",
+          wordsYellow: 10,
+          wordsGreen: 12,
+          wordsViolet: 14,
+          wordsGold: 16,
+        },
+      ],
+    });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: true,
+      step: 3,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 2,
+      unassignedCount: 0,
+      matrixRowCount: 1,
+    });
+    mockGetDictationCompletionSummary.mockResolvedValueOnce({
+      enteredCount: 2,
+      totalLeveledCount: 2,
+      isComplete: true,
+    });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(html).toContain("Dictée complète");
+    expect(mockGetDictationCompletionSummary).toHaveBeenCalledWith(
+      classId,
+      "880e8400-e29b-41d4-a716-446655440003"
+    );
+  });
+
+  it("renders the mobile hub empty state when the class is ready but has no dictations", async () => {
+    mockGetDictationCompletionSummary.mockClear();
+    mockAuthenticatedClass();
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: true,
+      step: 3,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 2,
+      unassignedCount: 0,
+      matrixRowCount: 1,
+    });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(html).toContain(
+      "Créez votre première dictée depuis un ordinateur ou une tablette."
+    );
+    expect(html).toContain('aria-label="Hub dictée mobile"');
+    expect(html).not.toContain("Saisir");
+    expect(html).not.toContain("Voir");
+    expect(mockGetDictationCompletionSummary).not.toHaveBeenCalled();
+  });
+
+  it("renders mobile class setup guidance when the roster is empty", async () => {
+    mockAuthenticatedClass();
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: false,
+      step: 1,
+      activeStudentCount: 0,
+      leveledActiveStudentCount: 0,
+      unassignedCount: 0,
+      matrixRowCount: 0,
+    });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(html).toContain(
+      "Utilisez un ordinateur ou une tablette pour configurer votre classe."
+    );
+    expect(html).toContain("<main");
+    expect(html).not.toContain("Saisir");
+    expect(html).not.toContain("Voir");
   });
 });

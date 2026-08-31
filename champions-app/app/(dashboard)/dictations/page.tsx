@@ -56,6 +56,7 @@ export default async function DictationsPage() {
     }));
 
   const matrixMissing = wizardStatus.matrixRowCount === 0;
+  const isClassSetupBlocked = isEmptyRoster || !canCreate;
   const lastDictation = dictations[0];
   const completionSummary = lastDictation
     ? await getDictationCompletionSummary(teacherClass.id, lastDictation.id)
@@ -63,7 +64,7 @@ export default async function DictationsPage() {
 
   return (
     <>
-      <div className="hidden flex-1 flex-col md:flex">
+      <main className="hidden flex-1 flex-col md:flex">
         <div className="flex flex-1 flex-col gap-4 p-6">
       {isEmptyRoster ? (
         <>
@@ -159,11 +160,12 @@ export default async function DictationsPage() {
         </div>
       )}
         </div>
-      </div>
+      </main>
       <div className="flex flex-1 flex-col md:hidden">
         <MobileDictationHub
           lastDictation={lastDictation}
           completionSummary={completionSummary}
+          isClassSetupBlocked={isClassSetupBlocked}
         />
       </div>
     </>
