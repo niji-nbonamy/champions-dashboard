@@ -6,6 +6,7 @@ import {
 } from "drizzle-orm/neon-serverless";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
+import { createLocalPgDatabase } from "./create-local-pg-database";
 import { isLocalPostgresUrl } from "./is-local-postgres-url";
 import * as schema from "./schema";
 
@@ -25,9 +26,6 @@ function getDatabaseUrl(): string {
 
 function createDatabase(connectionString: string): Database {
   if (isLocalPostgresUrl(connectionString)) {
-    const { createLocalPgDatabase } =
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("./create-local-pg-database") as typeof import("./create-local-pg-database");
     return createLocalPgDatabase(connectionString);
   }
 
