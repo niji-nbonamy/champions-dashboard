@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-31-2026 14:54
+last_updated: 08-31-2026 15:20
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -67,7 +67,7 @@ development_status:
   3-6-inline-promotion-indicators-on-grid-d3-d3: done
   epic-3-retrospective: done
 
-  epic-4: in-progress
+  epic-4: done
   4-1-auto-generated-student-dossier: done
   4-2-hero-curve-collapsed-dictation-table-c1: done
   4-3-promotion-banner-on-dossier-d1: done
@@ -131,14 +131,14 @@ action_items:
     epic: 1
     action: "Add E2E smoke test: register to login to onboarding to dashboard tabs"
     owner: "dev"
-    status: in-progress
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-08-26-2026.md"
   - id: "epic-2-retro-item-9-add-e2e-smoke-test-register-to-onboardin"
     epic: 2
     action: "Add E2E smoke test: register to onboarding to CSV import to wizard to
       dashboard tabs (Epic 3 pilot gate)"
     owner: "dev"
-    status: in-progress
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-08-27-2026.md"
   - id: "epic-2-retro-item-10-document-auth_url-and-trusthost-for-auth"
     epic: 2
@@ -180,7 +180,7 @@ action_items:
     epic: 3
     action: "Extend E2E smoke: dictation create → grid entry → save"
     owner: "dev"
-    status: open
+    status: done
     ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
   - id: "epic-3-retro-item-16-add-integration-test-for-savedictation-t"
     epic: 3
@@ -212,7 +212,7 @@ action_items:
     epic: 4
     action: "Extend E2E smoke: Élèves → dossier → RDV parents → exit (pilot gate)"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
   - id: "epic-4-retro-item-21-add-integration-test-for-savedictation-t"
     epic: 4
