@@ -33,6 +33,35 @@ describe("database client", () => {
     const Pool = vi.fn(() => ({}));
     const drizzle = vi.fn(() => ({ execute }));
 
+    vi.doMock("pg", () => ({
+      Pool,
+    }));
+    vi.doMock("drizzle-orm/node-postgres", () => ({
+      drizzle,
+    }));
+
+    const { checkDatabaseConnection } = await import("./index");
+    await checkDatabaseConnection();
+
+    expect(Pool).toHaveBeenCalledWith({
+      connectionString: databaseUrl,
+      max: 10,
+    });
+    expect(drizzle).toHaveBeenCalledWith(expect.any(Object), {
+      schema: expect.any(Object),
+    });
+    expect(execute).toHaveBeenCalled();
+  });
+
+  it("uses the Neon driver for remote database URLs", async () => {
+    const databaseUrl =
+      "postgresql://user:pass@ep-xxx.eu-central-1.aws.neon.tech/neondb";
+    vi.stubEnv("DATABASE_URL", databaseUrl);
+
+    const execute = vi.fn().mockResolvedValue({ rows: [{ "?column?": 1 }] });
+    const Pool = vi.fn(() => ({}));
+    const drizzle = vi.fn(() => ({ execute }));
+
     vi.doMock("@neondatabase/serverless", () => ({
       Pool,
     }));

@@ -92,7 +92,7 @@ CI uses the same `AUTH_SECRET` and a placeholder `DATABASE_URL` as unit tests �
 
 ## Database
 
-- **ORM:** Drizzle with `@neondatabase/serverless` (`Pool` + `drizzle-orm/neon-serverless` for WebSocket transactions)
+- **ORM:** Drizzle with `@neondatabase/serverless` (`Pool` + `drizzle-orm/neon-serverless` for WebSocket transactions on Neon); `pg` + `drizzle-orm/node-postgres` when `DATABASE_URL` points to `localhost` / `127.0.0.1` (CI E2E)
 - **Schema:** `lib/db/schema.ts` (empty scaffold — tables added in later stories)
 - **Client:** `lib/db/index.ts` — lazy-initialized via `getDb()`
 - **Connectivity check:** `checkDatabaseConnection()` runs `SELECT 1`
