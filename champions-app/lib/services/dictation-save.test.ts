@@ -7,6 +7,7 @@ import {
 } from "./dictation-save";
 
 const matrixRow = {
+  dictationLabelKey: "dictée 1",
   wordsYellow: 50,
   wordsGreen: 60,
   wordsViolet: 70,
@@ -65,7 +66,10 @@ mockInsertValues.mockReturnValue({
 });
 mockInsertOnConflict.mockResolvedValue(undefined);
 mockSelect.mockReturnValue({ from: mockSelectFrom });
-mockSelectFrom.mockReturnValue({ innerJoin: mockSelectInnerJoin });
+mockSelectFrom.mockReturnValue({
+  innerJoin: mockSelectInnerJoin,
+  where: mockSelectWhere,
+});
 mockSelectInnerJoin.mockReturnValue({
   innerJoin: mockSelectInnerJoin,
   where: mockSelectWhere,
@@ -270,11 +274,11 @@ describe("saveDictation edit path", () => {
         select: mockSelect,
       };
       mockSelectLimit
+        .mockResolvedValueOnce([])
         .mockResolvedValueOnce([
           { levelAtSave: "yellow", globalPercent: 96 },
           { levelAtSave: "yellow", globalPercent: 92 },
-        ])
-        .mockResolvedValueOnce([]);
+        ]);
       await callback(tx);
     });
 
@@ -329,10 +333,12 @@ describe("saveDictation edit path", () => {
         insert: mockInsert,
         select: mockSelect,
       };
-      mockSelectLimit.mockResolvedValueOnce([
-        { levelAtSave: "yellow", globalPercent: 70 },
-        { levelAtSave: "yellow", globalPercent: 96 },
-      ]);
+      mockSelectLimit
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { levelAtSave: "yellow", globalPercent: 70 },
+          { levelAtSave: "yellow", globalPercent: 96 },
+        ]);
       await callback(tx);
     });
 
@@ -460,10 +466,12 @@ describe("saveDictation edit path", () => {
         insert: mockInsert,
         select: mockSelect,
       };
-      mockSelectLimit.mockResolvedValueOnce([
-        { levelAtSave: "yellow", globalPercent: 96 },
-        { levelAtSave: "yellow", globalPercent: 92 },
-      ]);
+      mockSelectLimit
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { levelAtSave: "yellow", globalPercent: 96 },
+          { levelAtSave: "yellow", globalPercent: 92 },
+        ]);
       await callback(tx);
     });
 
@@ -473,7 +481,7 @@ describe("saveDictation edit path", () => {
     });
 
     expect(mockDelete).toHaveBeenCalledTimes(1);
-    expect(mockSelectLimit).toHaveBeenCalledTimes(1);
+    expect(mockSelectLimit).toHaveBeenCalledTimes(2);
   });
 
   it("does not insert pending promotion when student has only one dictation", async () => {
@@ -508,9 +516,11 @@ describe("saveDictation edit path", () => {
         insert: mockInsert,
         select: mockSelect,
       };
-      mockSelectLimit.mockResolvedValueOnce([
-        { levelAtSave: "yellow", globalPercent: 96 },
-      ]);
+      mockSelectLimit
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { levelAtSave: "yellow", globalPercent: 96 },
+        ]);
       await callback(tx);
     });
 
@@ -521,5 +531,92 @@ describe("saveDictation edit path", () => {
 
     expect(mockDeleteWhere).toHaveBeenCalled();
     expect(mockInsertValues).not.toHaveBeenCalled();
+  });
+});
+
+describe("saveDictation first-save path", () => {
+  const classId = "660e8400-e29b-41d4-a716-446655440001";
+  const dictationId = "880e8400-e29b-41d4-a716-446655440004";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    mockSelectLimit.mockReset();
+    mockSelectLimit.mockResolvedValue([]);
+  });
+
+  it("creates pending promotion via cascade when second consecutive dictation qualifies", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce(students.slice(0, 1));
+    mockListWordCountMatrixRows.mockResolvedValueOnce([matrixRow]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { levelAtSave: "yellow", globalPercent: 96 },
+          { levelAtSave: "yellow", globalPercent: 92 },
+        ]);
+      await callback(tx);
+    });
+
+    const { saveDictation } = await import("./dictation-save");
+    const result = await saveDictation(classId, dictationId, {
+      [students[0].id]: { ...emptyCounts, C: 2 },
+    });
+
+    expect(result).toEqual({ dictationId, entryCount: 1 });
+    expect(mockInsertValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        studentId: students[0].id,
+        targetLevel: "green",
+      })
+    );
+  });
+
+  it("does not create pending promotion when only one dictation exists after first save", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce(students.slice(0, 1));
+    mockListWordCountMatrixRows.mockResolvedValueOnce([matrixRow]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { levelAtSave: "yellow", globalPercent: 96 },
+        ]);
+      await callback(tx);
+    });
+
+    const { saveDictation } = await import("./dictation-save");
+    await saveDictation(classId, dictationId, {
+      [students[0].id]: { ...emptyCounts, C: 2 },
+    });
+
+    expect(mockDeleteWhere).toHaveBeenCalled();
+    expect(mockInsertValues).not.toHaveBeenCalledWith(
+      expect.objectContaining({ targetLevel: expect.any(String) })
+    );
   });
 });

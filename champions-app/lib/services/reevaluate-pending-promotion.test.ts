@@ -6,7 +6,7 @@ const mockLimit = vi.fn();
 const mockOrderBy = vi.fn(() => ({ limit: mockLimit }));
 const mockWhereSelect = vi.fn(() => ({ orderBy: mockOrderBy }));
 const mockInnerJoin = vi.fn(() => ({ where: mockWhereSelect }));
-const mockFromSelect = vi.fn(() => ({ innerJoin: mockInnerJoin }));
+const mockFromSelect = vi.fn(() => ({ innerJoin: mockInnerJoin, where: mockWhereSelect }));
 const mockSelect = vi.fn(() => ({ from: mockFromSelect }));
 
 const mockOnConflictDoNothing = vi.fn();
@@ -29,8 +29,9 @@ const mockTransaction = vi.fn(
     })
 );
 
-const { mockEq } = vi.hoisted(() => ({
+const { mockEq, mockGt } = vi.hoisted(() => ({
   mockEq: vi.fn(),
+  mockGt: vi.fn(),
 }));
 
 vi.mock("drizzle-orm", async (importOriginal) => {
@@ -40,6 +41,10 @@ vi.mock("drizzle-orm", async (importOriginal) => {
     eq: (...args: Parameters<typeof actual.eq>) => {
       mockEq(...args);
       return actual.eq(...args);
+    },
+    gt: (...args: Parameters<typeof actual.gt>) => {
+      mockGt(...args);
+      return actual.gt(...args);
     },
   };
 });
@@ -52,6 +57,12 @@ vi.mock("@/lib/db/index", () => ({
   getDb,
 }));
 
+function mockNoRefusalThenDictations(
+  dictationRows: Array<{ levelAtSave?: string; globalPercent: number }>
+) {
+  mockLimit.mockResolvedValueOnce([]).mockResolvedValueOnce(dictationRows);
+}
+
 describe("reevaluatePendingPromotionForCurrentLevel", () => {
   const classId = "660e8400-e29b-41d4-a716-446655440001";
   const studentId = "770e8400-e29b-41d4-a716-446655440002";
@@ -61,7 +72,7 @@ describe("reevaluatePendingPromotionForCurrentLevel", () => {
   });
 
   it("creates a pending promotion when recent dictations qualify from the new level", async () => {
-    mockLimit.mockResolvedValueOnce([
+    mockNoRefusalThenDictations([
       { globalPercent: 92 },
       { globalPercent: 91 },
     ]);
@@ -90,7 +101,7 @@ describe("reevaluatePendingPromotionForCurrentLevel", () => {
   });
 
   it("clears pending promotion when recent dictations do not qualify", async () => {
-    mockLimit.mockResolvedValueOnce([
+    mockNoRefusalThenDictations([
       { globalPercent: 90 },
       { globalPercent: 91 },
     ]);
@@ -112,6 +123,31 @@ describe("reevaluatePendingPromotionForCurrentLevel", () => {
     expect(mockDelete).toHaveBeenCalledOnce();
     expect(mockInsert).not.toHaveBeenCalled();
   });
+
+  it("does not recreate pending promotion from pre-refuse dictations (FR31)", async () => {
+    const refusalDate = new Date("2026-03-15T12:00:00Z");
+    mockLimit
+      .mockResolvedValueOnce([{ occurredAt: refusalDate }])
+      .mockResolvedValueOnce([]);
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+
+    const { reevaluatePendingPromotionForCurrentLevel } = await import(
+      "./reevaluate-pending-promotion"
+    );
+
+    await getDb().transaction(async (tx) => {
+      await reevaluatePendingPromotionForCurrentLevel(
+        tx,
+        classId,
+        studentId,
+        "yellow"
+      );
+    });
+
+    expect(mockGt).toHaveBeenCalled();
+    expect(mockDelete).toHaveBeenCalledOnce();
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
 });
 
 describe("reevaluatePendingPromotionFromDictationHistory", () => {
@@ -123,7 +159,7 @@ describe("reevaluatePendingPromotionFromDictationHistory", () => {
   });
 
   it("uses levelAtSave from the most recent dictation entry", async () => {
-    mockLimit.mockResolvedValueOnce([
+    mockNoRefusalThenDictations([
       { levelAtSave: "yellow", globalPercent: 96 },
       { levelAtSave: "yellow", globalPercent: 95 },
     ]);
@@ -148,8 +184,157 @@ describe("reevaluatePendingPromotionFromDictationHistory", () => {
     });
   });
 
+  it("promotes green to violet when two post-refuse dictations qualify", async () => {
+    mockNoRefusalThenDictations([
+      { levelAtSave: "green", globalPercent: 92 },
+      { levelAtSave: "green", globalPercent: 91 },
+    ]);
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+    mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+
+    const { reevaluatePendingPromotionFromDictationHistory } = await import(
+      "./reevaluate-pending-promotion"
+    );
+
+    await getDb().transaction(async (tx) => {
+      await reevaluatePendingPromotionFromDictationHistory(
+        tx,
+        classId,
+        studentId
+      );
+    });
+
+    expect(mockValues).toHaveBeenCalledWith({
+      studentId,
+      targetLevel: "violet",
+    });
+  });
+
   it("clears pending promotion when fewer than two dictations exist", async () => {
-    mockLimit.mockResolvedValueOnce([{ levelAtSave: "yellow", globalPercent: 96 }]);
+    mockNoRefusalThenDictations([{ levelAtSave: "yellow", globalPercent: 96 }]);
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+
+    const { reevaluatePendingPromotionFromDictationHistory } = await import(
+      "./reevaluate-pending-promotion"
+    );
+
+    await getDb().transaction(async (tx) => {
+      await reevaluatePendingPromotionFromDictationHistory(
+        tx,
+        classId,
+        studentId
+      );
+    });
+
+    expect(mockDelete).toHaveBeenCalledOnce();
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("does not recreate pending promotion from pre-refuse dictations (FR31)", async () => {
+    const refusalDate = new Date("2026-03-15T12:00:00Z");
+    mockLimit
+      .mockResolvedValueOnce([{ occurredAt: refusalDate }])
+      .mockResolvedValueOnce([]);
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+
+    const { reevaluatePendingPromotionFromDictationHistory } = await import(
+      "./reevaluate-pending-promotion"
+    );
+
+    await getDb().transaction(async (tx) => {
+      await reevaluatePendingPromotionFromDictationHistory(
+        tx,
+        classId,
+        studentId
+      );
+    });
+
+    expect(mockGt).toHaveBeenCalled();
+    expect(mockDelete).toHaveBeenCalledOnce();
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("recreates pending promotion after two new post-refuse qualifying dictations", async () => {
+    mockLimit
+      .mockResolvedValueOnce([{ occurredAt: new Date("2026-03-15T12:00:00Z") }])
+      .mockResolvedValueOnce([
+        { levelAtSave: "yellow", globalPercent: 92 },
+        { levelAtSave: "yellow", globalPercent: 91 },
+      ]);
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+    mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+
+    const { reevaluatePendingPromotionFromDictationHistory } = await import(
+      "./reevaluate-pending-promotion"
+    );
+
+    await getDb().transaction(async (tx) => {
+      await reevaluatePendingPromotionFromDictationHistory(
+        tx,
+        classId,
+        studentId
+      );
+    });
+
+    expect(mockValues).toHaveBeenCalledWith({
+      studentId,
+      targetLevel: "green",
+    });
+  });
+
+  it("promotes violet to gold when two consecutive scores exceed 95%", async () => {
+    mockNoRefusalThenDictations([
+      { levelAtSave: "violet", globalPercent: 96 },
+      { levelAtSave: "violet", globalPercent: 97 },
+    ]);
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+    mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+
+    const { reevaluatePendingPromotionFromDictationHistory } = await import(
+      "./reevaluate-pending-promotion"
+    );
+
+    await getDb().transaction(async (tx) => {
+      await reevaluatePendingPromotionFromDictationHistory(
+        tx,
+        classId,
+        studentId
+      );
+    });
+
+    expect(mockValues).toHaveBeenCalledWith({
+      studentId,
+      targetLevel: "gold",
+    });
+  });
+
+  it("never creates pending promotion for gold students", async () => {
+    mockNoRefusalThenDictations([
+      { levelAtSave: "gold", globalPercent: 100 },
+      { levelAtSave: "gold", globalPercent: 100 },
+    ]);
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+
+    const { reevaluatePendingPromotionFromDictationHistory } = await import(
+      "./reevaluate-pending-promotion"
+    );
+
+    await getDb().transaction(async (tx) => {
+      await reevaluatePendingPromotionFromDictationHistory(
+        tx,
+        classId,
+        studentId
+      );
+    });
+
+    expect(mockDelete).toHaveBeenCalledOnce();
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("does not promote with only one post-refuse dictation", async () => {
+    mockLimit
+      .mockResolvedValueOnce([{ occurredAt: new Date("2026-03-15T12:00:00Z") }])
+      .mockResolvedValueOnce([{ levelAtSave: "yellow", globalPercent: 92 }]);
     mockDeleteWhere.mockResolvedValueOnce(undefined);
 
     const { reevaluatePendingPromotionFromDictationHistory } = await import(

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 import {
@@ -11,7 +11,6 @@ import {
   validateGridRow,
   type CategoryErrorCounts,
 } from "@/lib/domain/grid-validation";
-import { evaluatePendingPromotion } from "@/lib/domain/promotion";
 import { reevaluatePendingPromotionFromDictationHistory } from "@/lib/services/reevaluate-pending-promotion";
 import { calculateGlobalPercent } from "@/lib/domain/scoring";
 import {
@@ -20,11 +19,7 @@ import {
 } from "@/lib/domain/word-count-matrix";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import { getDb } from "@/lib/db";
-import {
-  dictationEntries,
-  dictations,
-  pendingPromotions,
-} from "@/lib/db/schema";
+import { dictationEntries } from "@/lib/db/schema";
 
 import {
   DICTATION_SAVE_GENERIC_ERROR,
@@ -332,53 +327,6 @@ export async function saveDictation(
 
   const studentIds = students.map((student) => student.id);
 
-  const existingPendingRows =
-    studentIds.length > 0
-      ? await db
-          .select({
-            studentId: pendingPromotions.studentId,
-          })
-          .from(pendingPromotions)
-          .where(inArray(pendingPromotions.studentId, studentIds))
-      : [];
-
-  const studentsWithPendingPromotion = new Set(
-    existingPendingRows.map((row) => row.studentId)
-  );
-
-  const recentPercentsByStudentId = new Map<string, number[]>();
-
-  if (studentIds.length > 0) {
-    const priorEntries = await db
-      .select({
-        studentId: dictationEntries.studentId,
-        globalPercent: dictationEntries.globalPercent,
-        dictationDate: dictations.dictationDate,
-        createdAt: dictations.createdAt,
-      })
-      .from(dictationEntries)
-      .innerJoin(dictations, eq(dictationEntries.dictationId, dictations.id))
-      .where(
-        and(
-          eq(dictations.classId, classId),
-          inArray(dictationEntries.studentId, studentIds)
-        )
-      )
-      .orderBy(
-        desc(dictations.dictationDate),
-        desc(dictations.createdAt),
-        asc(dictationEntries.createdAt)
-      );
-
-    for (const row of priorEntries) {
-      const existing = recentPercentsByStudentId.get(row.studentId) ?? [];
-      if (existing.length < 1) {
-        existing.push(row.globalPercent);
-        recentPercentsByStudentId.set(row.studentId, existing);
-      }
-    }
-  }
-
   await db.transaction(async (tx) => {
     const [existingEntry] = await tx
       .select({ id: dictationEntries.id })
@@ -399,32 +347,9 @@ export async function saveDictation(
         globalPercent: entry.globalPercent,
         ...entry.errorColumns,
       });
-
-      const recentPercents = [
-        entry.globalPercent,
-        ...(recentPercentsByStudentId.get(entry.studentId) ?? []),
-      ];
-
-      const promotion = evaluatePendingPromotion(
-        entry.levelAtSave,
-        recentPercents
-      );
-
-      if (
-        promotion.eligible &&
-        promotion.targetLevel &&
-        !studentsWithPendingPromotion.has(entry.studentId)
-      ) {
-        await tx
-          .insert(pendingPromotions)
-          .values({
-            studentId: entry.studentId,
-            targetLevel: promotion.targetLevel,
-          })
-          .onConflictDoNothing({ target: pendingPromotions.studentId });
-        studentsWithPendingPromotion.add(entry.studentId);
-      }
     }
+
+    await cascadePromotionReevaluation(tx, classId, studentIds);
   });
 
   return {

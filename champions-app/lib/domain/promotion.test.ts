@@ -41,6 +41,20 @@ describe("evaluatePendingPromotion", () => {
     });
   });
 
+  it("promotes green to violet when two consecutive scores exceed 90%", () => {
+    expect(evaluatePendingPromotion("green", [92, 91])).toEqual({
+      eligible: true,
+      targetLevel: "violet",
+    });
+  });
+
+  it("rejects green to violet when a score is at the 90% boundary", () => {
+    expect(evaluatePendingPromotion("green", [91, 90])).toEqual({
+      eligible: false,
+      targetLevel: null,
+    });
+  });
+
   it("rejects when only one dictation exists", () => {
     expect(evaluatePendingPromotion("yellow", [100])).toEqual({
       eligible: false,

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, gt } from "drizzle-orm";
 
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 import { evaluatePendingPromotion } from "@/lib/domain/promotion";
@@ -7,6 +7,7 @@ import { getDb } from "@/lib/db";
 import {
   dictationEntries,
   dictations,
+  levelHistoryEntries,
   pendingPromotions,
 } from "@/lib/db/schema";
 
@@ -14,23 +15,54 @@ type DbTransaction = Parameters<
   Parameters<ReturnType<typeof getDb>["transaction"]>[0]
 >[0];
 
-async function getRecentDictationPercentsForStudent(
+type RecentDictationSnapshot = {
+  levelAtSave: string;
+  globalPercent: number;
+};
+
+async function getLatestRefusalOccurredAt(
+  tx: DbTransaction,
+  studentId: string
+): Promise<Date | null> {
+  const [row] = await tx
+    .select({ occurredAt: levelHistoryEntries.occurredAt })
+    .from(levelHistoryEntries)
+    .where(
+      and(
+        eq(levelHistoryEntries.studentId, studentId),
+        eq(levelHistoryEntries.action, "refused")
+      )
+    )
+    .orderBy(desc(levelHistoryEntries.occurredAt))
+    .limit(1);
+
+  return row?.occurredAt ?? null;
+}
+
+async function getRecentDictationSnapshotsForStudent(
   tx: DbTransaction,
   classId: string,
-  studentId: string
-): Promise<number[]> {
+  studentId: string,
+  refusalCutoff: Date | null
+): Promise<RecentDictationSnapshot[]> {
+  const conditions = [
+    eq(dictations.classId, classId),
+    eq(dictationEntries.studentId, studentId),
+  ];
+
+  if (refusalCutoff) {
+    // FR31: only dictations saved strictly after the refusal count toward the streak.
+    conditions.push(gt(dictationEntries.createdAt, refusalCutoff));
+  }
+
   const recentEntries = await tx
     .select({
+      levelAtSave: dictationEntries.levelAtSave,
       globalPercent: dictationEntries.globalPercent,
     })
     .from(dictationEntries)
     .innerJoin(dictations, eq(dictationEntries.dictationId, dictations.id))
-    .where(
-      and(
-        eq(dictations.classId, classId),
-        eq(dictationEntries.studentId, studentId)
-      )
-    )
+    .where(and(...conditions))
     .orderBy(
       desc(dictations.dictationDate),
       desc(dictations.createdAt),
@@ -38,7 +70,7 @@ async function getRecentDictationPercentsForStudent(
     )
     .limit(2);
 
-  return recentEntries.map((entry) => entry.globalPercent);
+  return recentEntries;
 }
 
 async function upsertPendingPromotionFromEvaluation(
@@ -74,11 +106,14 @@ export async function reevaluatePendingPromotionForCurrentLevel(
   studentId: string,
   evaluationLevel: ChampionsLevel
 ): Promise<void> {
-  const recentPercents = await getRecentDictationPercentsForStudent(
+  const refusalCutoff = await getLatestRefusalOccurredAt(tx, studentId);
+  const recentEntries = await getRecentDictationSnapshotsForStudent(
     tx,
     classId,
-    studentId
+    studentId,
+    refusalCutoff
   );
+  const recentPercents = recentEntries.map((entry) => entry.globalPercent);
 
   await upsertPendingPromotionFromEvaluation(
     tx,
@@ -93,25 +128,13 @@ export async function reevaluatePendingPromotionFromDictationHistory(
   classId: string,
   studentId: string
 ): Promise<void> {
-  const recentEntries = await tx
-    .select({
-      levelAtSave: dictationEntries.levelAtSave,
-      globalPercent: dictationEntries.globalPercent,
-    })
-    .from(dictationEntries)
-    .innerJoin(dictations, eq(dictationEntries.dictationId, dictations.id))
-    .where(
-      and(
-        eq(dictations.classId, classId),
-        eq(dictationEntries.studentId, studentId)
-      )
-    )
-    .orderBy(
-      desc(dictations.dictationDate),
-      desc(dictations.createdAt),
-      asc(dictationEntries.createdAt)
-    )
-    .limit(2);
+  const refusalCutoff = await getLatestRefusalOccurredAt(tx, studentId);
+  const recentEntries = await getRecentDictationSnapshotsForStudent(
+    tx,
+    classId,
+    studentId,
+    refusalCutoff
+  );
 
   if (recentEntries.length < 2) {
     await tx
