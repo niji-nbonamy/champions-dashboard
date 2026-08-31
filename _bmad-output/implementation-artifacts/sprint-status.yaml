@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-31-2026 11:11
+last_updated: 08-31-2026 11:40
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -73,7 +73,7 @@ development_status:
   4-3-promotion-banner-on-dossier-d1: done
   4-4-manual-level-override-level-history: done
   4-5-promotion-detection-rules: done
-  4-6-alertes-promotion-queue-d2: backlog
+  4-6-alertes-promotion-queue-d2: review
   4-7-presentation-mode-rdv-parents-c3: backlog
   epic-4-retrospective: optional
 

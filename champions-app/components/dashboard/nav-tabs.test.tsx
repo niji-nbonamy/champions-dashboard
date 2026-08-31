@@ -121,4 +121,44 @@ describe("NavTabs", () => {
     expect(html).not.toMatch(/href="\/config"[^>]*2 élèves sans niveau/);
     expect(html).not.toMatch(/href="\/alerts"[^>]*2 élèves sans niveau/);
   });
+
+  it("shows a promotion-ready count on the Alertes tab when pending promotions exist", () => {
+    usePathname.mockReturnValue("/dictations");
+
+    const html = renderToStaticMarkup(<NavTabs pendingPromotionCount={3} />);
+
+    expect(html).toContain("3");
+    expect(html).toContain("3 élèves prêts");
+    expect(html).toContain("bg-promotion-ready");
+  });
+
+  it("hides the promotion badge when no pending promotions exist", () => {
+    usePathname.mockReturnValue("/dictations");
+
+    const html = renderToStaticMarkup(<NavTabs pendingPromotionCount={0} />);
+
+    expect(html).not.toContain("élève prêt");
+    expect(html).not.toContain("élèves prêts");
+  });
+
+  it("uses singular French copy for one pending promotion", () => {
+    usePathname.mockReturnValue("/dictations");
+
+    const html = renderToStaticMarkup(<NavTabs pendingPromotionCount={1} />);
+
+    expect(html).toContain("1 élève prêt");
+    expect(html).not.toContain("1 élèves prêts");
+  });
+
+  it("does not show the promotion badge on other tabs", () => {
+    usePathname.mockReturnValue("/dictations");
+
+    const html = renderToStaticMarkup(<NavTabs pendingPromotionCount={2} />);
+
+    expect(html).toContain('href="/alerts"');
+    expect(html).toContain("2 élèves prêts");
+    expect(html).not.toMatch(/href="\/dictations"[^>]*2 élèves prêts/);
+    expect(html).not.toMatch(/href="\/students"[^>]*2 élèves prêts/);
+    expect(html).not.toMatch(/href="\/config"[^>]*2 élèves prêts/);
+  });
 });

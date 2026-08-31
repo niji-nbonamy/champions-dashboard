@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { countPendingPromotionsForClass } from "@/lib/services/count-pending-promotions";
 import { countUnassignedActiveStudents } from "@/lib/services/count-unassigned-active-students";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 
@@ -22,12 +23,16 @@ export default async function DashboardLayout({
     redirect("/onboarding/class");
   }
 
-  const unassignedStudentCount = await countUnassignedActiveStudents(
-    teacherClass.id
-  );
+  const [unassignedStudentCount, pendingPromotionCount] = await Promise.all([
+    countUnassignedActiveStudents(teacherClass.id),
+    countPendingPromotionsForClass(teacherClass.id),
+  ]);
 
   return (
-    <DashboardShell unassignedStudentCount={unassignedStudentCount}>
+    <DashboardShell
+      unassignedStudentCount={unassignedStudentCount}
+      pendingPromotionCount={pendingPromotionCount}
+    >
       {children}
     </DashboardShell>
   );

@@ -70,6 +70,7 @@ function revalidateDossierPromotionPaths(studentId: string) {
   revalidatePath(`/students/${studentId}`);
   revalidatePath("/students", "layout");
   revalidatePath("/dictations");
+  revalidatePath("/alerts");
 }
 
 function parseArchiveFilterParam(

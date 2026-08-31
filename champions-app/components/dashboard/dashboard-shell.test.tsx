@@ -80,4 +80,14 @@ describe("DashboardShell", () => {
 
     expect(html).toContain("3 élèves sans niveau");
   });
+
+  it("forwards the pending promotion count to the Alertes tab badge", () => {
+    const html = renderToStaticMarkup(
+      <DashboardShell pendingPromotionCount={2}>
+        <main>page content</main>
+      </DashboardShell>
+    );
+
+    expect(html).toContain("2 élèves prêts");
+  });
 });

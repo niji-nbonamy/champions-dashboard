@@ -847,6 +847,7 @@ describe("validateDossierPromotionAction", () => {
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
     expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts");
   });
 
   it("treats a missing pending promotion as idempotent success", async () => {
@@ -865,6 +866,7 @@ describe("validateDossierPromotionAction", () => {
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
     expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts");
   });
 
   it("returns a generic error for blank student ids", async () => {
@@ -938,6 +940,7 @@ describe("refuseDossierPromotionAction", () => {
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
     expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts");
   });
 
   it("treats a missing pending promotion as idempotent success", async () => {
@@ -956,6 +959,7 @@ describe("refuseDossierPromotionAction", () => {
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
     expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts");
   });
 
   it("returns a generic error for blank student ids", async () => {

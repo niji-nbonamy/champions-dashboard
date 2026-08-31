@@ -16,9 +16,13 @@ function isActiveTab(pathname: string, href: string): boolean {
 
 type NavTabsProps = {
   unassignedStudentCount?: number;
+  pendingPromotionCount?: number;
 };
 
-export function NavTabs({ unassignedStudentCount = 0 }: NavTabsProps) {
+export function NavTabs({
+  unassignedStudentCount = 0,
+  pendingPromotionCount = 0,
+}: NavTabsProps) {
   const pathname = usePathname();
 
   return (
@@ -31,6 +35,8 @@ export function NavTabs({ unassignedStudentCount = 0 }: NavTabsProps) {
           const active = isActiveTab(pathname, tab.href);
           const showUnassignedBadge =
             tab.href === "/students" && unassignedStudentCount > 0;
+          const showPendingPromotionBadge =
+            tab.href === "/alerts" && pendingPromotionCount > 0;
 
           return (
             <li key={tab.href}>
@@ -52,6 +58,16 @@ export function NavTabs({ unassignedStudentCount = 0 }: NavTabsProps) {
                     className="ml-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white"
                   >
                     {unassignedStudentCount}
+                  </span>
+                ) : null}
+                {showPendingPromotionBadge ? (
+                  <span
+                    aria-label={`${pendingPromotionCount} élève${
+                      pendingPromotionCount > 1 ? "s" : ""
+                    } prêt${pendingPromotionCount > 1 ? "s" : ""}`}
+                    className="ml-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-promotion-ready px-1.5 text-xs font-semibold text-promotion-ready-foreground"
+                  >
+                    {pendingPromotionCount}
                   </span>
                 ) : null}
               </Link>
