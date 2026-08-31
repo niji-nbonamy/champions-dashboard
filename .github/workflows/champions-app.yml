@@ -67,8 +67,5 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
 
-      - name: Push database schema for E2E
-        run: npm run db:push
-
       - name: Run E2E smoke tests
         run: npm run test:e2e
