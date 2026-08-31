@@ -3,26 +3,21 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
-  refusePromotionAction,
   saveDictationAction,
-  validatePromotionAction,
 } from "@/app/(dashboard)/dictations/actions";
 import {
   DICTATION_SAVE_GENERIC_ERROR,
   DICTATION_SAVE_SUCCESS_MESSAGE,
 } from "@/lib/domain/dictation-save-messages";
-import {
-  PROMOTION_REFUSE_GENERIC_ERROR,
-  PROMOTION_VALIDATE_GENERIC_ERROR,
-} from "@/lib/domain/promotion-messages";
 
 import { Button } from "@/components/ui/button";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { PromotionDialog } from "@/components/promotion/promotion-dialog";
+import { useDictationPromotionDialog } from "@/components/promotion/use-dictation-promotion-dialog";
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 import {
   CHAMPIONS_ERROR_CATEGORIES,
@@ -38,6 +33,7 @@ import type { PendingPromotionByStudent } from "@/lib/services/list-pending-prom
 
 import { CategoryHeader } from "./category-header";
 import { GridCell } from "./grid-cell";
+import { GridPromotionCell } from "./grid-promotion-cell";
 
 type GridCounts = Record<string, Record<ChampionsErrorCategoryLetter, number>>;
 
@@ -92,10 +88,6 @@ export function ClassGrid({
     createInitialGridCounts(students, initialCounts)
   );
   const [isPending, startTransition] = useTransition();
-  const [isPromotionPending, startPromotionTransition] = useTransition();
-  const [promotionDialogStudentId, setPromotionDialogStudentId] = useState<
-    string | null
-  >(null);
   const inputRefs = useRef<Array<Array<HTMLInputElement | null>>>([]);
   const gridContainerRef = useRef<HTMLDivElement>(null);
 
@@ -108,6 +100,21 @@ export function ClassGrid({
       })),
     [students]
   );
+
+  const {
+    promotionDialogStudent,
+    promotionDialogStudentId,
+    isPromotionPending,
+    isPromotionBlocking,
+    openPromotionDialog,
+    closePromotionDialog,
+    handlePromotionValidate,
+    handlePromotionRefuse,
+  } = useDictationPromotionDialog({
+    dictationId,
+    studentMeta,
+    pendingPromotionsByStudentId,
+  });
 
   const rowValidation = useMemo(() => {
     const byStudentId: Record<
@@ -272,12 +279,7 @@ export function ClassGrid({
   );
 
   const handleSave = useCallback(() => {
-    if (
-      !allRowsValid ||
-      isPending ||
-      isPromotionPending ||
-      promotionDialogStudentId !== null
-    ) {
+    if (!allRowsValid || isPending || isPromotionBlocking) {
       return;
     }
 
@@ -300,107 +302,11 @@ export function ClassGrid({
         toast.error(DICTATION_SAVE_GENERIC_ERROR);
       }
     });
-  }, [allRowsValid, counts, dictationId, isPending, isPromotionPending, promotionDialogStudentId, readOnlyIds, router]);
-
-  const promotionDialogStudent = useMemo(() => {
-    if (!promotionDialogStudentId) {
-      return null;
-    }
-
-    const student = studentMeta.find(
-      (entry) => entry.id === promotionDialogStudentId
-    );
-    const pending = pendingPromotionsByStudentId[promotionDialogStudentId];
-
-    if (!student || !pending) {
-      return null;
-    }
-
-    return {
-      id: student.id,
-      displayName: student.displayName,
-      targetLevel: pending.targetLevel,
-    };
-  }, [pendingPromotionsByStudentId, promotionDialogStudentId, studentMeta]);
-
-  useEffect(() => {
-    if (promotionDialogStudentId && !promotionDialogStudent) {
-      setPromotionDialogStudentId(null);
-    }
-  }, [promotionDialogStudent, promotionDialogStudentId]);
-
-  const closePromotionDialog = useCallback(() => {
-    if (isPromotionPending) {
-      return;
-    }
-
-    setPromotionDialogStudentId(null);
-  }, [isPromotionPending]);
-
-  const handlePromotionValidate = useCallback(() => {
-    if (!promotionDialogStudentId || isPromotionPending) {
-      return;
-    }
-
-    startPromotionTransition(async () => {
-      try {
-        const result = await validatePromotionAction(
-          promotionDialogStudentId,
-          dictationId
-        );
-
-        if (result.error) {
-          toast.error(result.error);
-          router.refresh();
-          return;
-        }
-
-        toast.success("Niveau mis à jour.");
-        setPromotionDialogStudentId(null);
-        router.refresh();
-      } catch {
-        toast.error(PROMOTION_VALIDATE_GENERIC_ERROR);
-        router.refresh();
-      }
-    });
-  }, [dictationId, isPromotionPending, promotionDialogStudentId, router]);
-
-  const handlePromotionRefuse = useCallback(() => {
-    if (!promotionDialogStudentId || isPromotionPending) {
-      return;
-    }
-
-    startPromotionTransition(async () => {
-      try {
-        const result = await refusePromotionAction(
-          promotionDialogStudentId,
-          dictationId
-        );
-
-        if (result.error) {
-          toast.error(result.error);
-          router.refresh();
-          return;
-        }
-
-        toast.success("Promotion refusée.");
-        setPromotionDialogStudentId(null);
-        router.refresh();
-      } catch {
-        toast.error(PROMOTION_REFUSE_GENERIC_ERROR);
-        router.refresh();
-      }
-    });
-  }, [dictationId, isPromotionPending, promotionDialogStudentId, router]);
+  }, [allRowsValid, counts, dictationId, isPending, isPromotionBlocking, readOnlyIds, router]);
 
   const handleContainerKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (
-        event.key !== "Enter" ||
-        !allRowsValid ||
-        isPending ||
-        promotionDialogStudentId !== null
-      ) {
+      if (event.key !== "Enter" || !allRowsValid || isPending || isPromotionBlocking) {
         return;
       }
 
@@ -412,7 +318,7 @@ export function ClassGrid({
       event.preventDefault();
       handleSave();
     },
-    [allRowsValid, handleSave, isPending, promotionDialogStudentId]
+    [allRowsValid, handleSave, isPending, isPromotionBlocking]
   );
 
   if (students.length === 0) {
@@ -524,17 +430,14 @@ export function ClassGrid({
                     />
                   ))}
                   <td className="px-2 py-2 text-center">
-                    {pendingPromotion && !isReadOnlyRow ? (
-                      <button
-                        type="button"
-                        className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full bg-promotion-ready text-sm font-semibold text-promotion-ready-foreground outline-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label={`Ouvrir la promotion pour ${student.firstName}`}
-                        disabled={isPending || isPromotionPending}
-                        onClick={() => setPromotionDialogStudentId(student.id)}
-                      >
-                        +
-                      </button>
-                    ) : null}
+                    <GridPromotionCell
+                      studentId={student.id}
+                      firstName={student.firstName}
+                      pendingPromotion={pendingPromotion}
+                      isReadOnlyRow={isReadOnlyRow}
+                      disabled={isPending || isPromotionPending}
+                      onOpen={openPromotionDialog}
+                    />
                   </td>
                 </tr>
               );
@@ -547,8 +450,7 @@ export function ClassGrid({
         disabled={
           !allRowsValid ||
           isPending ||
-          isPromotionPending ||
-          promotionDialogStudentId !== null
+          isPromotionBlocking
         }
         onClick={handleSave}
       >

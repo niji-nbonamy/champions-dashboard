@@ -13,6 +13,7 @@ import type { ChampionsLevel } from "@/lib/design/tokens";
 import { PROMOTION_REFUSE_GENERIC_ERROR, PROMOTION_VALIDATE_GENERIC_ERROR } from "@/lib/domain/promotion-messages";
 
 import { PromotionDialog } from "./promotion-dialog";
+import { PromotionPlusButton } from "./promotion-plus-button";
 
 type RosterPromotionActionProps = {
   studentId: string;
@@ -97,15 +98,11 @@ export function RosterPromotionAction({
 
   return (
     <>
-      <button
-        type="button"
-        className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-promotion-ready text-sm font-semibold text-promotion-ready-foreground outline-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-        aria-label={`Ouvrir la promotion pour ${displayName}`}
+      <PromotionPlusButton
+        ariaLabel={`Ouvrir la promotion pour ${displayName}`}
         disabled={isPending}
         onClick={() => setDialogOpen(true)}
-      >
-        +
-      </button>
+      />
       <PromotionDialog
         open={dialogOpen}
         studentDisplayName={displayName}

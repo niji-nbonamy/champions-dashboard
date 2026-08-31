@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-31-2026 15:26
+last_updated: 08-31-2026 16:39
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -193,7 +193,7 @@ action_items:
     epic: 3
     action: "Extract promotion row UI from class-grid.tsx before Epic 4 dossier surfaces"
     owner: "dev"
-    status: open
+    status: done
     ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
   - id: "epic-3-retro-item-18-schedule-accessibility-pass-d3-button-in"
     epic: 3
@@ -225,7 +225,7 @@ action_items:
     epic: 4
     action: "Extract promotion row UI from class-grid.tsx before Epic 5 mobile surfaces"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
   - id: "epic-4-retro-item-23-shared-usepromotionaction-hook-to-dedupe"
     epic: 4
