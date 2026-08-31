@@ -138,7 +138,8 @@ describe("MobileStudentEntryPage", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("Marie");
+    expect(html).toContain("DUPONT Marie");
+    expect(html).toContain("Marie, Conjugaison, 2 erreurs");
     expect(html).toContain("Enregistrer");
     expect(html).toContain("Retour à la liste");
   });

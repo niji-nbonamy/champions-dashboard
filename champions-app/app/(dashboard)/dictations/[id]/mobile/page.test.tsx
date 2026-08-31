@@ -94,7 +94,59 @@ describe("MobileDictationPage", () => {
     expect(html).toContain("Dictée 1");
     expect(html).toContain("1 restant");
     expect(html).toContain("saisi");
-    expect(html).toContain("Marie");
-    expect(html).toContain("Paul");
+    expect(html).toContain("DUPONT Marie");
+    expect(html).toContain("MARTIN Paul");
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    auth.mockResolvedValueOnce(null);
+
+    await expect(
+      MobileDictationPage({
+        params: Promise.resolve({ id: dictationId }),
+      })
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
+  it("returns notFound for an invalid dictation id", async () => {
+    await expect(
+      MobileDictationPage({
+        params: Promise.resolve({ id: "not-a-uuid" }),
+      })
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("shows the empty roster message when no leveled students exist", async () => {
+    mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+
+    const page = await MobileDictationPage({
+      params: Promise.resolve({ id: dictationId }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain("Aucun élève nivelé actif.");
+  });
+
+  it("ignores archived entries when deriving saisi state", async () => {
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: "770e8400-e29b-41d4-a716-446655440002",
+        archived: true,
+      },
+      {
+        studentId: "770e8400-e29b-41d4-a716-446655440004",
+        archived: false,
+      },
+    ]);
+
+    const page = await MobileDictationPage({
+      params: Promise.resolve({ id: dictationId }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain("1 restant");
+    expect(html).toContain("Saisir les erreurs pour DUPONT Marie");
+    expect(html).toContain("MARTIN Paul, saisi");
   });
 });

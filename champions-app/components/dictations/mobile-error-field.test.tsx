@@ -12,6 +12,7 @@ describe("MobileErrorField", () => {
   const onChange = vi.fn();
 
   beforeEach(() => {
+    vi.useFakeTimers();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -24,6 +25,7 @@ describe("MobileErrorField", () => {
     });
     container.remove();
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   function renderField(value: number) {
@@ -61,6 +63,16 @@ describe("MobileErrorField", () => {
     expect(onChange).toHaveBeenCalledWith("C", 0);
   });
 
+  it("enters the quick-tap cycle from values greater than 3", () => {
+    renderField(7);
+
+    act(() => {
+      getCycleButton()!.click();
+    });
+
+    expect(onChange).toHaveBeenCalledWith("C", 1);
+  });
+
   it("exposes an accessible label for the current value", () => {
     renderField(2);
 
@@ -81,5 +93,45 @@ describe("MobileErrorField", () => {
     });
 
     expect(container.querySelector('input[inputmode="numeric"]')).not.toBeNull();
+  });
+
+  it("opens manual numeric input after a long press", () => {
+    renderField(1);
+
+    act(() => {
+      getCycleButton()!.dispatchEvent(
+        new PointerEvent("pointerdown", { bubbles: true })
+      );
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(container.querySelector('input[inputmode="numeric"]')).not.toBeNull();
+  });
+
+  it("propagates manual numeric values of four or greater", () => {
+    renderField(1);
+
+    const manualButton = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent === "Saisir un nombre"
+    );
+
+    act(() => {
+      manualButton!.click();
+    });
+
+    const input = container.querySelector(
+      'input[inputmode="numeric"]'
+    ) as HTMLInputElement;
+    const setNativeValue = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value"
+    )?.set;
+
+    act(() => {
+      setNativeValue?.call(input, "7");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    expect(onChange).toHaveBeenCalledWith("C", 7);
   });
 });

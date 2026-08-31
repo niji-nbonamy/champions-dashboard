@@ -36,8 +36,8 @@ describe("MobileStudentPicker", () => {
 
     expect(html).toContain("1 restant");
     expect(html).toContain("saisi");
-    expect(html).toContain("Marie");
-    expect(html).toContain("Paul");
+    expect(html).toContain("DUPONT Marie");
+    expect(html).toContain("MARTIN Paul");
     expect(html).toContain(
       `href="/dictations/${dictationId}/mobile/${students[1].id}"`
     );
@@ -68,5 +68,29 @@ describe("MobileStudentPicker", () => {
     );
 
     expect(html).toContain("Tous les élèves sont saisis");
+  });
+
+  it("wraps long display names without squeezing badge layout", () => {
+    const longName =
+      "Nicolas JEPOSSEDE-UNNOMCOMPOSE-VRAIMENTSUPERLONG";
+
+    const html = renderToStaticMarkup(
+      <MobileStudentPicker
+        dictationId={dictationId}
+        students={[
+          {
+            id: "770e8400-e29b-41d4-a716-446655440099",
+            displayName: longName,
+            level: "green",
+          },
+        ]}
+        enteredStudentIds={["770e8400-e29b-41d4-a716-446655440099"]}
+        remainingCount={0}
+      />
+    );
+
+    expect(html).toContain(longName);
+    expect(html).toContain("break-words");
+    expect(html).toContain("shrink-0");
   });
 });

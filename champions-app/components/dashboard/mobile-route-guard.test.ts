@@ -24,6 +24,11 @@ describe("isBlockedMobilePath", () => {
     expect(isBlockedMobilePath(`/dictations/${dictationId}/mobile/summary`)).toBe(
       false
     );
+    expect(
+      isBlockedMobilePath(
+        `/dictations/${dictationId}/mobile/770e8400-e29b-41d4-a716-446655440002`
+      )
+    ).toBe(false);
   });
 
   it("allows unrelated dashboard routes", () => {

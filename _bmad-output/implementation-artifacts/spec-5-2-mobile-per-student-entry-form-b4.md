@@ -3,7 +3,6 @@ title: '5-2 Mobile Per-Student Entry Form (B4)'
 type: 'feature'
 created: '2026-08-31'
 status: 'done'
-review_loop_iteration: 1
 baseline_commit: '433c6610eb0476808c508bc1f79cdfafbd6a8d08'
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-5-context.md'
@@ -24,18 +23,19 @@ context:
 - Picker lists only leveled, non-archived active students via `listLeveledActiveStudents` (same denominator as `getDictationCompletionSummary`).
 - « saisi » derived from persisted `DictationEntry` for the dictation — no separate tracking entity.
 - Picker subtitle shows remaining count (e.g. « 3 restants ») = `totalLeveledCount - enteredCount`.
-- Nine full-width fields from `CHAMPIONS_ERROR_CATEGORIES`; min 48px height (`min-h-12`), `inputMode="numeric"`, min 44px touch targets.
+- Nine error-category fields from `CHAMPIONS_ERROR_CATEGORIES` (label + value side-by-side per field, full row width); min 48px height (`min-h-12`), `inputMode="numeric"` on manual input, min 44px touch targets.
 - Pre-fill fields when an entry exists (`dbColumnsToCategoryErrors` on existing entry).
 - Quick-tap: tap cycles 0→1→2→3 per field (FR38). Values ≥4 via long-press **or** a dedicated numeric input affordance on the field.
 - « Enregistrer » saves one student, then navigates back to picker with updated counts.
-- Prev/next arrow buttons on the form navigate between leveled students in roster sort order (no swipe).
+- Prev/next **arrow icon buttons** (← / →) on the form navigate between leveled students in roster sort order (no swipe).
 - New `saveDictationStudentEntry` service: insert for new entry (word denominator from matrix + current level), update for existing (immutable `levelAtSave` + `wordDenominator` snapshot). Reuse `normalizeCategoryCounts`, `validateGridRow`, `calculateGlobalPercent`, `categoryErrorsToDbColumns`, `cascadePromotionReevaluation`.
 - Server Action wraps service; `revalidatePath` for `/dictations`, `/dictations/{id}/mobile`, `/dictations/{id}/mobile/summary`.
 - French microcopy. Auth + class scope unchanged. No schema changes. No student names in server logs.
 
 **Ask First:**
 - Long-press vs explicit « Saisir un nombre » text input for values ≥4 — default **both**: long-press opens native numeric input overlay; tap still cycles 0–3.
-- Show student first name only (`getStudentFirstName`) vs full `displayName` in picker rows — default **first name** for mobile brevity.
+- Show student first name only (`getStudentFirstName`) vs full `displayName` in picker rows — **resolved: full `displayName`** (code review 2026-08-31, choice 1B).
+- Field layout full-width stacked vs label/value side-by-side — **resolved: side-by-side** (code review 2026-08-31, choice 2B).
 
 **Never:**
 - Unleveled-student block UI (story 5.3) — unleveled students are excluded from picker entirely.
@@ -123,6 +123,7 @@ Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or ex
 ## Spec Change Log
 
 - Review loop 1: Matrix-missing case shows inline alert on student form page instead of `notFound()`; added picker page integration test.
+- Code review 2026-08-31: Resolved Ask First — keep full `displayName` (1B), keep label/value side-by-side layout (2B), adopt arrow icon prev/next (3A).
 
 ## Suggested Review Order
 
@@ -160,3 +161,28 @@ Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or ex
 
 - Picker, field, form, and page integration tests for B4 flows.
   [`mobile/page.test.tsx:58`](../../champions-app/app/(dashboard)/dictations/[id]/mobile/page.test.tsx#L58)
+
+### Review Findings
+
+- [x] [Review][Decision] Affichage prénom vs nom complet — **Résolu 1B** : garder `displayName` complet ; spec mise à jour.
+- [x] [Review][Decision] Layout champs pleine largeur empilés — **Résolu 2B** : garder layout label/valeur côte à côte ; spec mise à jour.
+- [x] [Review][Patch] Navigation prev/next : remplacer texte par icônes flèches ← / → — **Résolu 3A** [`mobile-per-student-form.tsx:135`]
+
+- [x] [Review][Patch] Tap cycle remet à 0 les valeurs ≥ 4 [`mobile-error-field.tsx:65`]
+- [x] [Review][Patch] Cible tactile « Saisir un nombre » < 44 px [`mobile-error-field.tsx:146`]
+- [x] [Review][Patch] Pas d’indicateur de chargement sur Enregistrer pendant `isPending` [`mobile-per-student-form.tsx:188`]
+- [x] [Review][Patch] Navigation prev/next active pendant `isPending` (abandon silencieux de la sauvegarde) [`mobile-per-student-form.tsx:135`]
+- [x] [Review][Patch] Timer long-press non nettoyé au démontage du composant [`mobile-error-field.tsx:48`]
+- [x] [Review][Patch] Tests manquants — long-press et propagation saisie manuelle ≥ 4 [`mobile-error-field.test.tsx`]
+- [x] [Review][Patch] Tests manquants — erreur serveur après Enregistrer et Suivant désactivé sur dernier élève [`mobile-per-student-form.test.tsx`]
+- [x] [Review][Patch] Tests manquants — `saveDictationStudentEntryAction` et `revalidatePath` [`actions.test.ts`]
+- [x] [Review][Patch] Tests manquants — assertion préremplissage sur page élève [`[studentId]/page.test.tsx`]
+- [x] [Review][Patch] Tests manquants — picker page auth, notFound, roster vide [`mobile/page.test.tsx`]
+- [x] [Review][Patch] Tests manquants — entrées archivées exclues du décompte + route guard `/mobile/[studentId]` [`mobile/page.test.tsx`, `mobile-route-guard.test.ts`]
+- [x] [Review][Patch] Tests manquants — cascade promotion sur `saveDictationStudentEntry` [`dictation-save.test.ts`]
+- [x] [Review][Patch] Tests manquants — edge cases service (dictation introuvable, élève absent) [`dictation-save.test.ts`]
+
+- [x] [Review][Defer] Mises à jour concurrentes last-write-wins — même pattern que `saveDictation` batch [`dictation-save.ts:410`] — deferred, pre-existing
+- [x] [Review][Defer] Brouillon perdu sans confirmation sur navigation prev/next — hors spec MVP [`mobile-per-student-form.tsx:135`] — deferred, pre-existing
+- [x] [Review][Defer] `saveDictationAction` sans tests action dédiés — trou pré-existant [`actions.test.ts`] — deferred, pre-existing
+- [x] [Review][Defer] Incohérence statut spec `done` vs sprint `review` — hygiène artefact [`spec-5-2-*.md`, `sprint-status.yaml`] — deferred, pre-existing

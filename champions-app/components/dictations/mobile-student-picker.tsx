@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { LevelBadge } from "@/components/ui/level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
-import { getStudentFirstName } from "@/lib/domain/student-display-name";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +68,6 @@ export function MobileStudentPicker({
       </p>
       <ul className="divide-y divide-border rounded-lg border border-border">
         {students.map((student) => {
-          const firstName = getStudentFirstName(student.displayName);
           const isEntered = enteredSet.has(student.id);
           const level = isChampionsLevel(student.level) ? student.level : null;
 
@@ -84,15 +82,17 @@ export function MobileStudentPicker({
               />
               <Link
                 href={`/dictations/${dictationId}/mobile/${student.id}`}
-                className="flex min-h-12 min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3"
+                className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-4 py-3"
                 aria-label={
                   isEntered
-                    ? `${firstName}, saisi`
-                    : `Saisir les erreurs pour ${firstName}`
+                    ? `${student.displayName}, saisi`
+                    : `Saisir les erreurs pour ${student.displayName}`
                 }
               >
-                <span className="text-base font-medium">{firstName}</span>
-                <div className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 break-words text-base font-medium leading-snug">
+                  {student.displayName}
+                </span>
+                <div className="flex shrink-0 items-center gap-2 self-center">
                   {level ? <LevelBadge level={level} /> : null}
                   {isEntered ? (
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">

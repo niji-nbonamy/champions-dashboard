@@ -753,6 +753,7 @@ describe("saveDictationStudentEntry", () => {
         errorsC: 2,
       })
     );
+    expect(mockSelectLimit).toHaveBeenCalled();
   });
 
   it("updates an existing student entry using the frozen snapshot", async () => {
@@ -864,6 +865,44 @@ describe("saveDictationStudentEntry", () => {
         C: 1,
       })
     ).rejects.toThrow();
+    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it("throws when the dictation does not exist", async () => {
+    mockGetDictationById.mockResolvedValueOnce(null);
+
+    const { saveDictationStudentEntry, DictationNotFoundError } = await import(
+      "./dictation-save"
+    );
+
+    await expect(
+      saveDictationStudentEntry(classId, dictationId, students[0].id, {
+        ...emptyCounts,
+        C: 1,
+      })
+    ).rejects.toBeInstanceOf(DictationNotFoundError);
+    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it("throws when the student is not in the leveled roster", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+
+    const { saveDictationStudentEntry, InvalidGridSaveError } = await import(
+      "./dictation-save"
+    );
+
+    await expect(
+      saveDictationStudentEntry(
+        classId,
+        dictationId,
+        students[0].id,
+        emptyCounts
+      )
+    ).rejects.toBeInstanceOf(InvalidGridSaveError);
     expect(mockTransaction).not.toHaveBeenCalled();
   });
 });

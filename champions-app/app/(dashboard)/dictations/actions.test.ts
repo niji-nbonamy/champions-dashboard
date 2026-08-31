@@ -18,6 +18,7 @@ const {
   mockCreateDictation,
   mockValidateStudentPromotion,
   mockRefuseStudentPromotion,
+  mockSaveDictationStudentEntry,
 } = vi.hoisted(() => ({
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
@@ -29,6 +30,7 @@ const {
   mockCreateDictation: vi.fn(),
   mockValidateStudentPromotion: vi.fn(),
   mockRefuseStudentPromotion: vi.fn(),
+  mockSaveDictationStudentEntry: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -83,6 +85,16 @@ vi.mock("@/lib/services/refuse-student-promotion", async () => {
   return {
     ...actual,
     refuseStudentPromotion: mockRefuseStudentPromotion,
+  };
+});
+
+vi.mock("@/lib/services/dictation-save", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/services/dictation-save")
+  >("@/lib/services/dictation-save");
+  return {
+    ...actual,
+    saveDictationStudentEntry: mockSaveDictationStudentEntry,
   };
 });
 
@@ -449,5 +461,103 @@ describe("refusePromotionAction", () => {
     const result = await refusePromotionAction(studentId, dictationId);
 
     expect(result.error).toBe(PROMOTION_REFUSE_GENERIC_ERROR);
+  });
+});
+
+describe("saveDictationStudentEntryAction", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { saveDictationStudentEntryAction } = await import("./actions");
+
+    await expect(
+      saveDictationStudentEntryAction(dictationId, studentId, {
+        C: 0,
+        H: 0,
+        A: 0,
+        M: 0,
+        P: 0,
+        I: 0,
+        O: 0,
+        N: 0,
+        S: 0,
+      })
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
+  it("saves a student entry and revalidates mobile dictation routes", async () => {
+    mockAuthenticatedTeacherClass();
+    mockSaveDictationStudentEntry.mockResolvedValueOnce({
+      dictationId,
+      entryCount: 1,
+    });
+
+    const { saveDictationStudentEntryAction } = await import("./actions");
+    const counts = {
+      C: 2,
+      H: 0,
+      A: 0,
+      M: 0,
+      P: 0,
+      I: 0,
+      O: 0,
+      N: 0,
+      S: 0,
+    };
+    const result = await saveDictationStudentEntryAction(
+      dictationId,
+      studentId,
+      counts
+    );
+
+    expect(result).toEqual({ error: null });
+    expect(mockSaveDictationStudentEntry).toHaveBeenCalledWith(
+      classId,
+      dictationId,
+      studentId,
+      counts
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(`/dictations/${dictationId}`);
+    expect(revalidatePath).toHaveBeenCalledWith(
+      `/dictations/${dictationId}/mobile`
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(
+      `/dictations/${dictationId}/mobile/summary`
+    );
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+  });
+
+  it("returns a service error without revalidating paths", async () => {
+    mockAuthenticatedTeacherClass();
+    const { DictationNotFoundError } = await import(
+      "@/lib/services/dictation-save"
+    );
+    mockSaveDictationStudentEntry.mockRejectedValueOnce(
+      new DictationNotFoundError()
+    );
+
+    const { saveDictationStudentEntryAction } = await import("./actions");
+    const result = await saveDictationStudentEntryAction(
+      dictationId,
+      studentId,
+      {
+        C: 0,
+        H: 0,
+        A: 0,
+        M: 0,
+        P: 0,
+        I: 0,
+        O: 0,
+        N: 0,
+        S: 0,
+      }
+    );
+
+    expect(result.error).toBeTruthy();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

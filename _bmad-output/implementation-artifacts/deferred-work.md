@@ -1,5 +1,12 @@
 # Deferred Work
 
+## Deferred from: code review of spec-5-2-mobile-per-student-entry-form-b4.md (2026-08-31)
+
+- Mises à jour concurrentes last-write-wins sur `saveDictationStudentEntry` — même pattern que `saveDictation` batch ; acceptable MVP (AD-9 stale counts)
+- Brouillon perdu sans confirmation sur navigation prev/next — hors spec MVP ; amélioration UX future
+- `saveDictationAction` sans tests action dédiés — trou pré-existant, hors périmètre story 5-2
+- Incohérence statut spec `done` vs sprint `review` — hygiène artefact à corriger au merge
+
 ## Deferred from: code review of spec-5-1-mobile-dictation-hub-g2.md (2026-08-31)
 
 - No `page.test.tsx` for `/dictations/[id]/mobile` Saisir stub — summary page has parallel auth/notFound coverage; stub regressions uncaught

@@ -79,7 +79,7 @@ describe("MobilePerStudentForm", () => {
   it("pre-fills counts and enables prev/next navigation links", () => {
     renderForm();
 
-    expect(container.textContent).toContain("Paul");
+    expect(container.textContent).toContain("MARTIN Paul");
     expect(container.textContent).toContain("2");
 
     const previousLink = container.querySelector(
@@ -90,17 +90,29 @@ describe("MobilePerStudentForm", () => {
     );
 
     expect(previousLink).not.toBeNull();
+    expect(previousLink?.getAttribute("aria-label")).toBe("Élève précédent");
     expect(nextLink).not.toBeNull();
+    expect(nextLink?.getAttribute("aria-label")).toBe("Élève suivant");
   });
 
   it("disables previous navigation on the first student", () => {
     renderForm(studentIds[0]);
 
-    const disabledPrevious = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent === "Précédent"
+    const disabledPrevious = container.querySelector(
+      'button[aria-label="Élève précédent"]'
     );
 
     expect(disabledPrevious?.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("disables next navigation on the last student", () => {
+    renderForm(studentIds[2]);
+
+    const disabledNext = container.querySelector(
+      'button[aria-label="Élève suivant"]'
+    );
+
+    expect(disabledNext?.hasAttribute("disabled")).toBe(true);
   });
 
   it("saves and returns to the picker on success", async () => {
@@ -124,6 +136,25 @@ describe("MobilePerStudentForm", () => {
       `/dictations/${dictationId}/mobile`
     );
     expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  it("shows a server error and stays on the form when save fails", async () => {
+    mockSaveDictationStudentEntryAction.mockResolvedValueOnce({
+      error: "Impossible d'enregistrer la saisie.",
+    });
+    renderForm();
+
+    const saveButton = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent === "Enregistrer"
+    );
+
+    await act(async () => {
+      saveButton!.click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("Impossible d'enregistrer la saisie.");
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("shows a validation message when counts exceed the word total", () => {

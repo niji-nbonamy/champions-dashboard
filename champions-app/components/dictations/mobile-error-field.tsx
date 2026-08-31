@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   formatGridCellAriaLabel,
@@ -45,6 +45,12 @@ export function MobileErrorField({
   const longPressTriggeredRef = useRef(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    return () => {
+      clearLongPressTimer();
+    };
+  }, []);
+
   function clearLongPressTimer() {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
@@ -62,7 +68,7 @@ export function MobileErrorField({
       return;
     }
 
-    const nextValue = value >= 3 ? 0 : value + 1;
+    const nextValue = value > 3 ? 1 : value >= 3 ? 0 : value + 1;
     onChange(categoryLetter, nextValue);
   }
 
@@ -124,7 +130,7 @@ export function MobileErrorField({
             pattern="[0-9]*"
             autoFocus
             className={cn(
-              "min-h-12 min-w-16 rounded-lg border border-border bg-background px-3 text-center text-2xl font-semibold tabular-nums",
+              "min-h-12 w-1/2 shrink-0 rounded-lg border border-border bg-background px-3 text-center text-2xl font-semibold tabular-nums",
               hasValidationError && "border-destructive"
             )}
             aria-label={`${ariaLabel}, saisie manuelle`}
@@ -145,7 +151,7 @@ export function MobileErrorField({
         {!showManualInput ? (
           <button
             type="button"
-            className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+            className="min-h-11 min-w-11 text-xs font-medium text-primary underline-offset-4 hover:underline"
             onClick={() => setShowManualInput(true)}
           >
             Saisir un nombre
