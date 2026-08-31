@@ -153,6 +153,7 @@ export async function validatePromotionAction(
     revalidatePath("/dictations");
     revalidatePath("/students");
     revalidatePath("/alerts");
+    revalidatePath("/alerts", "layout");
     return { error: null };
   } catch (error) {
     if (error instanceof PendingPromotionNotFoundError) {
@@ -160,6 +161,7 @@ export async function validatePromotionAction(
       revalidatePath("/dictations");
       revalidatePath("/students");
       revalidatePath("/alerts");
+      revalidatePath("/alerts", "layout");
       return { error: null };
     }
 
@@ -197,6 +199,7 @@ export async function refusePromotionAction(
     revalidatePath("/dictations");
     revalidatePath("/students");
     revalidatePath("/alerts");
+    revalidatePath("/alerts", "layout");
     return { error: null };
   } catch (error) {
     if (error instanceof PendingPromotionNotFoundError) {
@@ -204,6 +207,7 @@ export async function refusePromotionAction(
       revalidatePath("/dictations");
       revalidatePath("/students");
       revalidatePath("/alerts");
+      revalidatePath("/alerts", "layout");
       return { error: null };
     }
 

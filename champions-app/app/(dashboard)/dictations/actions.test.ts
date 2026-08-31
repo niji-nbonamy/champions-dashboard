@@ -352,6 +352,7 @@ describe("validatePromotionAction", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/dictations");
     expect(revalidatePath).toHaveBeenCalledWith("/students");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts", "layout");
   });
 
   it("treats a missing pending promotion as idempotent success", async () => {
@@ -369,6 +370,7 @@ describe("validatePromotionAction", () => {
     expect(result).toEqual({ error: null });
     expect(revalidatePath).toHaveBeenCalledWith(`/dictations/${dictationId}`);
     expect(revalidatePath).toHaveBeenCalledWith("/alerts");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts", "layout");
   });
 
   it("returns a generic error for other promotion failures", async () => {
@@ -403,6 +405,7 @@ describe("refusePromotionAction", () => {
     expect(revalidatePath).toHaveBeenCalledWith(`/dictations/${dictationId}`);
     expect(revalidatePath).toHaveBeenCalledWith("/students");
     expect(revalidatePath).toHaveBeenCalledWith("/alerts");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts", "layout");
   });
 
   it("treats a missing pending promotion as idempotent success", async () => {
@@ -420,6 +423,7 @@ describe("refusePromotionAction", () => {
     expect(result).toEqual({ error: null });
     expect(revalidatePath).toHaveBeenCalledWith(`/dictations/${dictationId}`);
     expect(revalidatePath).toHaveBeenCalledWith("/alerts");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts", "layout");
   });
 
   it("returns a generic error for other promotion failures", async () => {

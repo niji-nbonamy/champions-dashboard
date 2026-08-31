@@ -38,7 +38,10 @@ describe("countPendingPromotionsForClass", () => {
   });
 
   it("returns the count of active non-archived pending promotions", async () => {
-    mockWhere.mockResolvedValueOnce([{ count: 2 }]);
+    mockWhere.mockResolvedValueOnce([
+      { targetLevel: "green" },
+      { targetLevel: "violet" },
+    ]);
 
     const { countPendingPromotionsForClass } = await import(
       "./count-pending-promotions"
@@ -53,6 +56,20 @@ describe("countPendingPromotionsForClass", () => {
     );
     expect(mockEq).toHaveBeenCalledWith(students.classId, classId);
     expect(mockEq).toHaveBeenCalledWith(students.archived, false);
+  });
+
+  it("skips rows with invalid target levels", async () => {
+    mockWhere.mockResolvedValueOnce([
+      { targetLevel: "green" },
+      { targetLevel: "not-a-level" },
+    ]);
+
+    const { countPendingPromotionsForClass } = await import(
+      "./count-pending-promotions"
+    );
+    const result = await countPendingPromotionsForClass(classId);
+
+    expect(result).toBe(1);
   });
 
   it("returns zero when no pending promotions exist", async () => {

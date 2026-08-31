@@ -1,5 +1,13 @@
 # Deferred Work
 
+## Deferred from: code review of spec-4-6-alertes-promotion-queue-d2.md (2026-08-31)
+
+- Duplicate DB queries on /alerts page (layout count + page list) — perf acceptable for class size
+- No loading.tsx skeleton for Alertes page — enhancement
+- No E2E test for badge decrement after validate/refuse — unit tests cover plumbing
+- Spec Change Log left empty — documentation hygiene
+- Duplicated validate/refuse client logic vs roster-promotion-action — pre-existing pattern
+
 ## Deferred from: code review of spec-4-4-manual-level-override-level-history.md (2026-08-28)
 
 - Pas de pagination sur l'historique des niveaux — volume attendu faible pour une classe CE2 ; à traiter si perf observée (`get-student-level-history.ts`)

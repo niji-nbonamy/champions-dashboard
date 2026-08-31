@@ -91,6 +91,18 @@ context:
 - Given I validate or refuse from any surface first, when I refresh another surface, then the queue, badge, grid indicators, and dossier banner reflect the cleared pending state (FR30).
 - Given no pending promotions exist, when I open Alertes, then I see an empty state and no badge on the tab.
 
+### Review Findings
+
+- [x] [Review][Patch] Badge count diverges from queue on invalid target levels [`count-pending-promotions.ts:8`]
+- [x] [Review][Patch] Promotion mutations omit layout revalidation for tab badge [`students/actions.ts:70`]
+- [x] [Review][Patch] AlertsPromotionQueue error paths untested [`alerts-promotion-queue.test.tsx:1`]
+- [x] [Review][Patch] ClassGrid promotion dialog displayName wiring unasserted [`class-grid.test.tsx:910`]
+- [x] [Review][Defer] Duplicate DB queries on /alerts page (layout count + page list) — deferred, perf acceptable for class size
+- [x] [Review][Defer] No loading.tsx skeleton for Alertes page — deferred, enhancement
+- [x] [Review][Defer] No E2E test for badge decrement after validate/refuse — deferred, unit tests cover plumbing
+- [x] [Review][Defer] Spec Change Log left empty — deferred, documentation hygiene
+- [x] [Review][Defer] Duplicated validate/refuse client logic vs roster-promotion-action — deferred, pre-existing pattern
+
 ## Design Notes
 
 Queue row content: student `displayName` + target level label via `getChampionsLevelFrenchLabel`, optional `LevelBadge` for current level if useful — keep rows compact like roster list.

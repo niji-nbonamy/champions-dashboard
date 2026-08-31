@@ -71,6 +71,7 @@ function revalidateDossierPromotionPaths(studentId: string) {
   revalidatePath("/students", "layout");
   revalidatePath("/dictations");
   revalidatePath("/alerts");
+  revalidatePath("/alerts", "layout");
 }
 
 function parseArchiveFilterParam(

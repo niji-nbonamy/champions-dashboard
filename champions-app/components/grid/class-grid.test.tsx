@@ -928,6 +928,9 @@ describe("ClassGrid", () => {
     const dialog = container.querySelector("dialog");
     expect(dialog?.open).toBe(true);
     expect(container.textContent).toContain("Prêt à monter → vert");
+    expect(container.textContent).toContain(
+      "DUPONT Marie peut passer au niveau vert."
+    );
   });
 
   it("validates promotion from the dialog and refreshes the grid", async () => {

@@ -71,8 +71,16 @@ describe("AlertsPromotionQueue", () => {
     root = createRoot(container);
     mockValidateDossierPromotionAction.mockResolvedValue({ error: null });
     mockRefuseDossierPromotionAction.mockResolvedValue({ error: null });
-    HTMLDialogElement.prototype.showModal = vi.fn();
-    HTMLDialogElement.prototype.close = vi.fn();
+    HTMLDialogElement.prototype.showModal = vi.fn(function showModal(
+      this: HTMLDialogElement
+    ) {
+      this.open = true;
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function closeDialog(
+      this: HTMLDialogElement
+    ) {
+      this.open = false;
+    });
   });
 
   afterEach(() => {
@@ -215,5 +223,69 @@ describe("AlertsPromotionQueue", () => {
       resolveValidate?.({ error: null });
       await flushPromises();
     });
+  });
+
+  it("keeps the dialog open when validation returns an error", async () => {
+    mockValidateDossierPromotionAction.mockResolvedValueOnce({
+      error: "Validation impossible. Réessayez.",
+    });
+
+    act(() => {
+      root.render(<AlertsPromotionQueue items={items} />);
+    });
+
+    const rowButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("Alice Martin")
+    );
+
+    act(() => {
+      rowButton?.click();
+    });
+
+    const validateButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Valider"
+    );
+
+    await act(async () => {
+      validateButton?.click();
+      await flushPromises();
+    });
+
+    expect(mockToastError).toHaveBeenCalledWith(
+      "Validation impossible. Réessayez."
+    );
+    expect(container.querySelector("dialog")?.open).toBe(true);
+    expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  it("keeps the dialog open when refusal returns an error", async () => {
+    mockRefuseDossierPromotionAction.mockResolvedValueOnce({
+      error: "Refus impossible. Réessayez.",
+    });
+
+    act(() => {
+      root.render(<AlertsPromotionQueue items={items} />);
+    });
+
+    const rowButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("Bruno Dupont")
+    );
+
+    act(() => {
+      rowButton?.click();
+    });
+
+    const refuseButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Refuser"
+    );
+
+    await act(async () => {
+      refuseButton?.click();
+      await flushPromises();
+    });
+
+    expect(mockToastError).toHaveBeenCalledWith("Refus impossible. Réessayez.");
+    expect(container.querySelector("dialog")?.open).toBe(true);
+    expect(mockRefresh).toHaveBeenCalled();
   });
 });
