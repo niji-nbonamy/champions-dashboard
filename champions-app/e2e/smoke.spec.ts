@@ -20,10 +20,12 @@ test.describe("public auth smoke", () => {
     await expect(page.getByRole("link", { name: "Se connecter" })).toBeVisible();
   });
 
-  test("redirects unauthenticated dashboard access to login", async ({ page }) => {
+  test("redirects unauthenticated dashboard access to login with callbackUrl", async ({
+    page,
+  }) => {
     await page.goto("/dictations");
 
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fdictations$/);
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
   });
 });
