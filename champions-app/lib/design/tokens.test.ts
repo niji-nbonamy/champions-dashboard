@@ -56,6 +56,13 @@ describe("design tokens", () => {
     expect(SPACING.navTabsHeight).toBe("41px");
     expect(SPACING.dashboardChromeHeight).toBe("105px");
     expect(SPACING.dashboardChromeHeightMobile).toBe("64px");
+    expect(
+      parseInt(SPACING.dashboardChromeHeight, 10)
+    ).toBe(
+      parseInt(SPACING.appBarMinHeight, 10) +
+        parseInt(SPACING.navTabsHeight, 10)
+    );
+    expect(SPACING.dashboardChromeHeightMobile).toBe(SPACING.appBarMinHeight);
   });
 
   it("defines display and data-lg typography scales", () => {

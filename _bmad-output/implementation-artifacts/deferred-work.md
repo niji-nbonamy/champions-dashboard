@@ -1,5 +1,11 @@
 # Deferred Work
 
+## Deferred from: code review of spec-6-3-sticky-app-bar-navigation-tabs.md (2026-09-01)
+
+- Grid column z-index stacking vs shell untested — z-20 > z-10 correct by construction; visual/E2E defer (`class-grid.tsx:395`)
+- AppBar `border-b` may leave ~1px heading overlap under scroll-mt — cosmetic; token uses min-height only (`app-bar.tsx:7`)
+- iOS safe-area inset not applied to sticky `top-0` — device polish; out of MVP scope (`dashboard-chrome.tsx:29`)
+
 ## Deferred from: code review of spec-6-2-category-header-hover-title-only.md (2026-09-01)
 
 - `ux-decisions.md` still documents name+definition hover — pre-existing doc drift; update when Epic 6 docs are reconciled

@@ -89,6 +89,10 @@ context:
 - [x] [Review][Defer] Responsive mobile scroll-mt on Config anchors — `/config` blocked on mobile by `MobileRouteGuard`
 - [x] [Review][Defer] `dashboardChromeHeight` literal vs CSS calc drift — mitigated by globals mirror test
 - [x] [Review][Defer] NavTabs multi-row wrap exceeding 41px token — typical tab bar is single row at md+
+- [x] [Review][Patch] Assert TS chrome-height literal equals appBar + navTabs sum [`tokens.test.ts:56`]
+- [x] [Review][Defer] Grid column z-index stacking vs shell untested — z-20 > z-10 correct by construction; visual/E2E defer [`class-grid.tsx:395`]
+- [x] [Review][Defer] AppBar `border-b` may leave ~1px heading overlap under scroll-mt — cosmetic; token uses min-height only [`app-bar.tsx:7`]
+- [x] [Review][Defer] iOS safe-area inset not applied to sticky `top-0` — device polish; out of MVP scope [`dashboard-chrome.tsx:29`]
 
 ## Design Notes
 
