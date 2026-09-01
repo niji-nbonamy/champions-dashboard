@@ -48,6 +48,11 @@ export function formatStudentDuplicateError(existingName: string): string {
   return `Un élève avec ce nom existe déjà : ${existingName}.`;
 }
 
+export function formatUnleveledMobileBlockMessage(displayName: string): string {
+  const firstName = getStudentFirstName(displayName);
+  return `Niveau requis pour ${firstName}. Assignez le niveau depuis un ordinateur.`;
+}
+
 export function getStudentFirstName(displayName: string): string {
   const trimmed = normalizeDisplayName(displayName);
   const lastSpaceIndex = trimmed.lastIndexOf(" ");

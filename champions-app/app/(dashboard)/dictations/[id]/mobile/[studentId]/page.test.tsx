@@ -7,6 +7,7 @@ const {
   notFound,
   mockGetTeacherClass,
   mockGetDictationById,
+  mockGetClassStudent,
   mockListLeveledActiveStudents,
   mockGetDictationEntriesByDictationId,
   mockListWordCountMatrixRows,
@@ -20,6 +21,7 @@ const {
   }),
   mockGetTeacherClass: vi.fn(),
   mockGetDictationById: vi.fn(),
+  mockGetClassStudent: vi.fn(),
   mockListLeveledActiveStudents: vi.fn(),
   mockGetDictationEntriesByDictationId: vi.fn(),
   mockListWordCountMatrixRows: vi.fn(),
@@ -44,6 +46,10 @@ vi.mock("@/lib/services/get-teacher-class", () => ({
 
 vi.mock("@/lib/services/list-dictations", () => ({
   getDictationById: mockGetDictationById,
+}));
+
+vi.mock("@/lib/services/get-class-student", () => ({
+  getClassStudent: mockGetClassStudent,
 }));
 
 vi.mock("@/lib/services/list-leveled-active-students", () => ({
@@ -74,6 +80,12 @@ describe("MobileStudentEntryPage", () => {
       id: dictationId,
       label: "Dictée 1",
       dictationLabelKey: "dictée 1",
+    });
+    mockGetClassStudent.mockResolvedValue({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: false,
     });
     mockListLeveledActiveStudents.mockResolvedValue([
       {
@@ -123,13 +135,49 @@ describe("MobileStudentEntryPage", () => {
   });
 
   it("returns notFound for an unknown student", async () => {
-    mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+    mockGetClassStudent.mockResolvedValueOnce(null);
 
     await expect(
       MobileStudentEntryPage({
         params: Promise.resolve({ id: dictationId, studentId }),
       })
     ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("returns notFound for an archived student", async () => {
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: "yellow",
+      archived: true,
+    });
+
+    await expect(
+      MobileStudentEntryPage({
+        params: Promise.resolve({ id: dictationId, studentId }),
+      })
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("blocks unleveled students with the FR39 message", async () => {
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: studentId,
+      displayName: "DUPONT Marie",
+      level: null,
+      archived: false,
+    });
+
+    const page = await MobileStudentEntryPage({
+      params: Promise.resolve({ id: dictationId, studentId }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain(
+      "Niveau requis pour Marie. Assignez le niveau depuis un ordinateur."
+    );
+    expect(html).toContain('role="alert"');
+    expect(html).not.toContain("Enregistrer");
+    expect(html).not.toContain('href="/students"');
   });
 
   it("renders the per-student form with pre-filled counts", async () => {

@@ -31,6 +31,7 @@ describe("MobileStudentPicker", () => {
         students={students}
         enteredStudentIds={[students[0].id, students[2].id]}
         remainingCount={1}
+        leveledStudentCount={students.length}
       />
     );
 
@@ -50,10 +51,11 @@ describe("MobileStudentPicker", () => {
         students={[]}
         enteredStudentIds={[]}
         remainingCount={0}
+        leveledStudentCount={0}
       />
     );
 
-    expect(html).toContain("Aucun élève nivelé actif.");
+    expect(html).toContain("Aucun élève actif.");
     expect(html).toContain('role="status"');
   });
 
@@ -64,6 +66,7 @@ describe("MobileStudentPicker", () => {
         students={students}
         enteredStudentIds={students.map((student) => student.id)}
         remainingCount={0}
+        leveledStudentCount={students.length}
       />
     );
 
@@ -86,11 +89,61 @@ describe("MobileStudentPicker", () => {
         ]}
         enteredStudentIds={["770e8400-e29b-41d4-a716-446655440099"]}
         remainingCount={0}
+        leveledStudentCount={1}
       />
     );
 
     expect(html).toContain(longName);
     expect(html).toContain("break-words");
     expect(html).toContain("shrink-0");
+  });
+
+  it("renders required level badge and link for unleveled students", () => {
+    const unleveledId = "770e8400-e29b-41d4-a716-446655440008";
+
+    const html = renderToStaticMarkup(
+      <MobileStudentPicker
+        dictationId={dictationId}
+        students={[
+          ...students,
+          {
+            id: unleveledId,
+            displayName: "PETIT Lucas",
+            level: null,
+          },
+        ]}
+        enteredStudentIds={[students[0].id]}
+        remainingCount={2}
+        leveledStudentCount={students.length}
+      />
+    );
+
+    expect(html).toContain("niveau requis");
+    expect(html).toContain("PETIT Lucas");
+    expect(html).toContain(
+      `href="/dictations/${dictationId}/mobile/${unleveledId}"`
+    );
+    expect(html).toContain("2 restants");
+  });
+
+  it("shows a leveled-only subtitle when no leveled students exist", () => {
+    const html = renderToStaticMarkup(
+      <MobileStudentPicker
+        dictationId={dictationId}
+        students={[
+          {
+            id: "770e8400-e29b-41d4-a716-446655440008",
+            displayName: "PETIT Lucas",
+            level: null,
+          },
+        ]}
+        enteredStudentIds={[]}
+        remainingCount={0}
+        leveledStudentCount={0}
+      />
+    );
+
+    expect(html).toContain("Aucun élève nivelé pour saisir.");
+    expect(html).not.toContain("Tous les élèves sont saisis");
   });
 });

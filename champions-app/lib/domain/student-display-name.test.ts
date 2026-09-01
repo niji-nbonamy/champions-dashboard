@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatStudentDuplicateError,
+  formatUnleveledMobileBlockMessage,
   getStudentFirstName,
   normalizeDisplayName,
   normalizeDuplicateKey,
@@ -57,6 +58,20 @@ describe("getStudentFirstName", () => {
 
   it("returns the full name when no whitespace is present", () => {
     expect(getStudentFirstName("Mononym")).toBe("Mononym");
+  });
+});
+
+describe("formatUnleveledMobileBlockMessage", () => {
+  it("uses the first name from a compound display name", () => {
+    expect(formatUnleveledMobileBlockMessage("DUPONT Marie")).toBe(
+      "Niveau requis pour Marie. Assignez le niveau depuis un ordinateur."
+    );
+  });
+
+  it("uses the full name when no whitespace is present", () => {
+    expect(formatUnleveledMobileBlockMessage("Mononym")).toBe(
+      "Niveau requis pour Mononym. Assignez le niveau depuis un ordinateur."
+    );
   });
 });
 

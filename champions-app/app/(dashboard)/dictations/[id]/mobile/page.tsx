@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
+import { listActiveStudents } from "@/lib/services/list-active-students";
 import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
 import { getDictationById } from "@/lib/services/list-dictations";
 
@@ -41,18 +42,19 @@ export default async function MobileDictationPage({
     notFound();
   }
 
-  const [students, entries] = await Promise.all([
+  const [activeStudents, leveledStudents, entries] = await Promise.all([
+    listActiveStudents(teacherClass.id),
     listLeveledActiveStudents(teacherClass.id),
     getDictationEntriesByDictationId(teacherClass.id, id),
   ]);
 
-  const leveledStudentIds = new Set(students.map((student) => student.id));
+  const leveledStudentIds = new Set(leveledStudents.map((student) => student.id));
   const enteredStudentIds = entries
     .filter(
       (entry) => !entry.archived && leveledStudentIds.has(entry.studentId)
     )
     .map((entry) => entry.studentId);
-  const remainingCount = students.length - enteredStudentIds.length;
+  const remainingCount = leveledStudents.length - enteredStudentIds.length;
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
@@ -70,9 +72,10 @@ export default async function MobileDictationPage({
       </div>
       <MobileStudentPicker
         dictationId={id}
-        students={students}
+        students={activeStudents}
         enteredStudentIds={enteredStudentIds}
         remainingCount={remainingCount}
+        leveledStudentCount={leveledStudents.length}
       />
     </main>
   );

@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 08-31-2026 17:43
+last_updated: 09-01-2026 09:35
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -80,7 +80,7 @@ development_status:
   epic-5: in-progress
   5-1-mobile-dictation-hub-g2: done
   5-2-mobile-per-student-entry-form-b4: done
-  5-3-unleveled-student-block-on-mobile: backlog
+  5-3-unleveled-student-block-on-mobile: review
   epic-5-retrospective: optional
 action_items:
   - id: "epic-1-retro-item-1-add-github-actions-workflow-npm-ci-npm-t"

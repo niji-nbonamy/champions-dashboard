@@ -5,12 +5,14 @@ import { MobilePerStudentForm } from "@/components/dictations/mobile-per-student
 import { auth } from "@/auth";
 import { dbColumnsToCategoryErrors } from "@/lib/domain/error-categories";
 import { findMatchingMatrixRow, isValidUuidV4 } from "@/lib/domain/dictation";
+import { formatUnleveledMobileBlockMessage } from "@/lib/domain/student-display-name";
 import {
   getWordCountForLevel,
   isCompleteMatrixRow,
 } from "@/lib/domain/word-count-matrix";
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 import type { CategoryErrorCounts } from "@/lib/domain/grid-validation";
+import { getClassStudent } from "@/lib/services/get-class-student";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
@@ -62,15 +64,34 @@ export default async function MobileStudentEntryPage({
     notFound();
   }
 
-  const [students, entries, matrixRows] = await Promise.all([
-    listLeveledActiveStudents(teacherClass.id),
-    getDictationEntriesByDictationId(teacherClass.id, id),
-    listWordCountMatrixRows(teacherClass.id),
-  ]);
+  const [classStudent, leveledStudents, entries, matrixRows] =
+    await Promise.all([
+      getClassStudent(teacherClass.id, studentId),
+      listLeveledActiveStudents(teacherClass.id),
+      getDictationEntriesByDictationId(teacherClass.id, id),
+      listWordCountMatrixRows(teacherClass.id),
+    ]);
 
-  const student = students.find((rosterStudent) => rosterStudent.id === studentId);
-  if (!student) {
+  if (!classStudent || classStudent.archived) {
     notFound();
+  }
+
+  const studentLevel = parseChampionsLevel(classStudent.level ?? "");
+
+  if (!studentLevel) {
+    return (
+      <main className="flex flex-1 flex-col gap-4 p-6">
+        <Link
+          href={`/dictations/${id}/mobile`}
+          className="text-sm text-primary underline-offset-4 hover:underline"
+        >
+          Retour à la liste
+        </Link>
+        <p className="text-sm text-destructive" role="alert">
+          {formatUnleveledMobileBlockMessage(classStudent.displayName)}
+        </p>
+      </main>
+    );
   }
 
   const existingEntry = entries.find(
@@ -94,13 +115,12 @@ export default async function MobileStudentEntryPage({
       errorsS: existingEntry.errorsS,
     });
   } else {
-    const level = parseChampionsLevel(student.level);
     const matchingMatrixRow = findMatchingMatrixRow(
       matrixRows.filter(isCompleteMatrixRow),
       dictation.dictationLabelKey
     );
 
-    if (!level || !matchingMatrixRow) {
+    if (!matchingMatrixRow) {
       return (
         <main className="flex flex-1 flex-col gap-4 p-6">
           <Link
@@ -117,7 +137,7 @@ export default async function MobileStudentEntryPage({
       );
     }
 
-    wordDenominator = getWordCountForLevel(matchingMatrixRow, level);
+    wordDenominator = getWordCountForLevel(matchingMatrixRow, studentLevel);
     initialCounts = { ...EMPTY_COUNTS };
   }
 
@@ -132,10 +152,12 @@ export default async function MobileStudentEntryPage({
       <MobilePerStudentForm
         dictationId={id}
         studentId={studentId}
-        displayName={student.displayName}
+        displayName={classStudent.displayName}
         wordDenominator={wordDenominator}
         initialCounts={initialCounts}
-        orderedStudentIds={students.map((rosterStudent) => rosterStudent.id)}
+        orderedStudentIds={leveledStudents.map(
+          (rosterStudent) => rosterStudent.id
+        )}
       />
     </main>
   );

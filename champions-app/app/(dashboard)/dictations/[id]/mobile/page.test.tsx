@@ -7,6 +7,7 @@ const {
   notFound,
   mockGetTeacherClass,
   mockGetDictationById,
+  mockListActiveStudents,
   mockListLeveledActiveStudents,
   mockGetDictationEntriesByDictationId,
 } = vi.hoisted(() => ({
@@ -19,6 +20,7 @@ const {
   }),
   mockGetTeacherClass: vi.fn(),
   mockGetDictationById: vi.fn(),
+  mockListActiveStudents: vi.fn(),
   mockListLeveledActiveStudents: vi.fn(),
   mockGetDictationEntriesByDictationId: vi.fn(),
 }));
@@ -38,6 +40,10 @@ vi.mock("@/lib/services/get-teacher-class", () => ({
 
 vi.mock("@/lib/services/list-dictations", () => ({
   getDictationById: mockGetDictationById,
+}));
+
+vi.mock("@/lib/services/list-active-students", () => ({
+  listActiveStudents: mockListActiveStudents,
 }));
 
 vi.mock("@/lib/services/list-leveled-active-students", () => ({
@@ -76,6 +82,23 @@ describe("MobileDictationPage", () => {
         level: "green",
       },
     ]);
+    mockListActiveStudents.mockResolvedValue([
+      {
+        id: "770e8400-e29b-41d4-a716-446655440002",
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+      {
+        id: "770e8400-e29b-41d4-a716-446655440004",
+        displayName: "MARTIN Paul",
+        level: "green",
+      },
+      {
+        id: "770e8400-e29b-41d4-a716-446655440008",
+        displayName: "PETIT Lucas",
+        level: null,
+      },
+    ]);
     mockGetDictationEntriesByDictationId.mockResolvedValue([
       {
         studentId: "770e8400-e29b-41d4-a716-446655440002",
@@ -96,6 +119,8 @@ describe("MobileDictationPage", () => {
     expect(html).toContain("saisi");
     expect(html).toContain("DUPONT Marie");
     expect(html).toContain("MARTIN Paul");
+    expect(html).toContain("PETIT Lucas");
+    expect(html).toContain("niveau requis");
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -116,8 +141,9 @@ describe("MobileDictationPage", () => {
     ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("shows the empty roster message when no leveled students exist", async () => {
+  it("shows the empty roster message when no active students exist", async () => {
     mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+    mockListActiveStudents.mockResolvedValueOnce([]);
     mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
 
     const page = await MobileDictationPage({
@@ -125,7 +151,7 @@ describe("MobileDictationPage", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("Aucun élève nivelé actif.");
+    expect(html).toContain("Aucun élève actif.");
   });
 
   it("ignores archived entries when deriving saisi state", async () => {
