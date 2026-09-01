@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { MobileStudentPicker } from "@/components/dictations/mobile-student-picker";
 import { auth } from "@/auth";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
+import { getUniqueEnteredLeveledStudentIds } from "@/lib/domain/dictation-entry-completion";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { listActiveStudents } from "@/lib/services/list-active-students";
@@ -48,12 +49,11 @@ export default async function MobileDictationPage({
     getDictationEntriesByDictationId(teacherClass.id, id),
   ]);
 
-  const leveledStudentIds = new Set(leveledStudents.map((student) => student.id));
-  const enteredStudentIds = entries
-    .filter(
-      (entry) => !entry.archived && leveledStudentIds.has(entry.studentId)
-    )
-    .map((entry) => entry.studentId);
+  const leveledStudentIds = leveledStudents.map((student) => student.id);
+  const enteredStudentIds = getUniqueEnteredLeveledStudentIds(
+    leveledStudentIds,
+    entries
+  );
   const remainingCount = leveledStudents.length - enteredStudentIds.length;
 
   return (

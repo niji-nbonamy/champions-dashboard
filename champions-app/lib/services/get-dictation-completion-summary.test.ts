@@ -160,4 +160,72 @@ describe("getDictationCompletionSummary", () => {
       isComplete: true,
     });
   });
+
+  it("counts duplicate active entries for the same student once", async () => {
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: studentA, displayName: "ÉLÈVE A", level: "yellow" },
+      { id: studentB, displayName: "ÉLÈVE B", level: "green" },
+    ]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: studentA,
+        displayName: "ÉLÈVE A",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 10,
+        globalPercent: 90,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+      {
+        studentId: studentA,
+        displayName: "ÉLÈVE A",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 10,
+        globalPercent: 88,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+      {
+        studentId: studentB,
+        displayName: "ÉLÈVE B",
+        archived: false,
+        levelAtSave: "green",
+        wordDenominator: 12,
+        globalPercent: 85,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+
+    const result = await getDictationCompletionSummary(classId, dictationId);
+
+    expect(result).toEqual({
+      enteredCount: 2,
+      totalLeveledCount: 2,
+      isComplete: true,
+    });
+  });
 });

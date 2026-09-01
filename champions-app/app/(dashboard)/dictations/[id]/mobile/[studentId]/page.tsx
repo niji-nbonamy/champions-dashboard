@@ -64,13 +64,7 @@ export default async function MobileStudentEntryPage({
     notFound();
   }
 
-  const [classStudent, leveledStudents, entries, matrixRows] =
-    await Promise.all([
-      getClassStudent(teacherClass.id, studentId),
-      listLeveledActiveStudents(teacherClass.id),
-      getDictationEntriesByDictationId(teacherClass.id, id),
-      listWordCountMatrixRows(teacherClass.id),
-    ]);
+  const classStudent = await getClassStudent(teacherClass.id, studentId);
 
   if (!classStudent || classStudent.archived) {
     notFound();
@@ -93,6 +87,12 @@ export default async function MobileStudentEntryPage({
       </main>
     );
   }
+
+  const [leveledStudents, entries, matrixRows] = await Promise.all([
+    listLeveledActiveStudents(teacherClass.id),
+    getDictationEntriesByDictationId(teacherClass.id, id),
+    listWordCountMatrixRows(teacherClass.id),
+  ]);
 
   const existingEntry = entries.find(
     (entry) => entry.studentId === studentId && !entry.archived

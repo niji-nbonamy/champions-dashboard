@@ -197,7 +197,12 @@ export function LevelDotPicker(props: LevelDotPickerProps) {
           {levelButtons}
         </fieldset>
       ) : (
-        levelButtons
+        <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
+          <legend className="text-sm font-medium text-muted-foreground">
+            Assigner un niveau
+          </legend>
+          {levelButtons}
+        </fieldset>
       )}
       {state.error && mode !== "override" ? (
         <p className="text-xs text-destructive" role="alert">

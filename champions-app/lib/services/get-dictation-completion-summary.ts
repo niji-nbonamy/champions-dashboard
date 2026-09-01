@@ -1,3 +1,5 @@
+import { countUniqueEnteredLeveledStudents } from "@/lib/domain/dictation-entry-completion";
+
 import { getDictationEntriesByDictationId } from "./get-dictation-entries";
 import { listLeveledActiveStudents } from "./list-leveled-active-students";
 
@@ -16,10 +18,11 @@ export async function getDictationCompletionSummary(
     getDictationEntriesByDictationId(classId, dictationId),
   ]);
 
-  const leveledStudentIds = new Set(students.map((student) => student.id));
-  const enteredCount = entries.filter((entry) =>
-    leveledStudentIds.has(entry.studentId)
-  ).length;
+  const leveledStudentIds = students.map((student) => student.id);
+  const enteredCount = countUniqueEnteredLeveledStudents(
+    leveledStudentIds,
+    entries
+  );
   const totalLeveledCount = students.length;
   const isComplete =
     totalLeveledCount > 0 && enteredCount === totalLeveledCount;

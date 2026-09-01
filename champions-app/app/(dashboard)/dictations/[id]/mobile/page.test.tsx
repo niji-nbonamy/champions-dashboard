@@ -176,6 +176,31 @@ describe("MobileDictationPage", () => {
     expect(html).toContain("niveau requis");
   });
 
+  it("deduplicates duplicate active entries when computing remaining count", async () => {
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: "770e8400-e29b-41d4-a716-446655440002",
+        archived: false,
+      },
+      {
+        studentId: "770e8400-e29b-41d4-a716-446655440002",
+        archived: false,
+      },
+      {
+        studentId: "770e8400-e29b-41d4-a716-446655440004",
+        archived: false,
+      },
+    ]);
+
+    const page = await MobileDictationPage({
+      params: Promise.resolve({ id: dictationId }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain("Tous les élèves sont saisis");
+    expect(html).not.toContain("restant");
+  });
+
   it("ignores archived entries when deriving saisi state", async () => {
     mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
       {

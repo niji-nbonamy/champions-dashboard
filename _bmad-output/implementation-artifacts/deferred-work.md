@@ -1,9 +1,22 @@
 # Deferred Work
 
+## Resolved technical debt batch (2026-09-01)
+
+- Unnecessary DB fetches before unleveled early return on mobile student page — **resolved** (`mobile/[studentId]/page.tsx`)
+- Duplicate entries skewing `remainingCount` / completion summary — **resolved** (`lib/domain/dictation-entry-completion.ts`, mobile picker + `get-dictation-completion-summary.ts`)
+- `saveDictationAction` sans tests — **resolved** (`dictations/actions.test.ts`)
+- Formulaire ne conserve pas l'email après erreur — **resolved** (`register-form.tsx` controlled email)
+- Groupe sémantique a11y sur picker de niveau mode assign — **resolved** (`level-dot-picker.tsx` fieldset/legend)
+- No `loading.tsx` skeleton for Alertes — **resolved** (`alerts/loading.tsx`)
+- Duplicated `next/image` and `next/link` mocks — **partially resolved** (`dashboard-shell.test.tsx`, `dashboard-chrome.test.tsx` → `test-utils/next-mocks.tsx`)
+- Utilisateur authentifié peut accéder à `/register` — **already resolved** (`middleware-policy.ts` redirects to `/dictations`; covered by `middleware-policy.test.ts`)
+- Fuite timing NFR9 login email inconnu — **already resolved** (`authenticate-teacher.ts` dummy hash)
+- Duplicated validate/refuse client logic — **resolved in tier-3 retro** (`use-promotion-action.ts`)
+
 ## Deferred from: code review of spec-5-3-unleveled-student-block-on-mobile.md (2026-09-01)
 
-- Unnecessary DB fetches (`listLeveledActiveStudents`, entries, matrix) before unleveled early return — optimization only; functional path correct (`page.tsx:67`)
-- Duplicate non-archived entries for same leveled student can skew `remainingCount` — pre-existing from 5.2, not introduced by dual-query picker (`page.tsx:57`)
+- ~~Unnecessary DB fetches (`listLeveledActiveStudents`, entries, matrix) before unleveled early return~~ — **resolved 2026-09-01**
+- ~~Duplicate non-archived entries for same leveled student can skew `remainingCount`~~ — **resolved 2026-09-01**
 - Spec 5-2 still documents unleveled picker exclusion — **resolved 2026-09-01** (`spec-5-2-mobile-per-student-entry-form-b4.md` post-5.3 reconciliation)
 - Hub vs picker microcopy divergence for zero-leveled state — **resolved 2026-09-01** (`lib/domain/mobile-dictation-messages.ts`)
 
@@ -11,7 +24,7 @@
 
 - Mises à jour concurrentes last-write-wins sur `saveDictationStudentEntry` — même pattern que `saveDictation` batch ; acceptable MVP (AD-9 stale counts)
 - Brouillon perdu sans confirmation sur navigation prev/next — hors spec MVP ; amélioration UX future
-- `saveDictationAction` sans tests action dédiés — trou pré-existant, hors périmètre story 5-2
+- ~~`saveDictationAction` sans tests action dédiés~~ — **resolved 2026-09-01** (`dictations/actions.test.ts`)
 - Incohérence statut spec `done` vs sprint `review` — hygiène artefact à corriger au merge
 
 ## Deferred from: code review of spec-5-1-mobile-dictation-hub-g2.md (2026-08-31)
@@ -23,7 +36,7 @@
 ## Deferred from: code review of spec-4-6-alertes-promotion-queue-d2.md (2026-08-31)
 
 - Duplicate DB queries on /alerts page (layout count + page list) — perf acceptable for class size
-- No loading.tsx skeleton for Alertes page — enhancement
+- ~~No loading.tsx skeleton for Alertes page~~ — **resolved 2026-09-01** (`alerts/loading.tsx`)
 - No E2E test for badge decrement after validate/refuse — unit tests cover plumbing
 - Spec Change Log left empty — documentation hygiene
 - Duplicated validate/refuse client logic vs roster-promotion-action — pre-existing pattern
@@ -31,7 +44,7 @@
 ## Deferred from: code review of spec-4-4-manual-level-override-level-history.md (2026-08-28)
 
 - Pas de pagination sur l'historique des niveaux — volume attendu faible pour une classe CE2 ; à traiter si perf observée (`get-student-level-history.ts`)
-- Groupe sémantique accessibilité (`fieldset`/`role="group"`) sur le picker de niveau — amélioration a11y hors AC story 4-4 (`level-dot-picker.tsx`)
+- ~~Groupe sémantique accessibilité (`fieldset`/`role="group"`) sur le picker de niveau~~ — **resolved 2026-09-01** (`level-dot-picker.tsx` assign mode fieldset)
 - Mode `assign` sans toast/`router.refresh()` après succès — comportement E1 pré-existant, hors périmètre override (`level-dot-picker.tsx`)
 
 ## Deferred from: code review of spec-1-1-project-scaffold-development-environment.md (2026-08-25)
@@ -56,7 +69,7 @@
 
 ## Deferred from: code review of spec-1-2-teacher-registration.md (2026-08-25)
 
-- Formulaire ne conserve pas l'email après erreur — UX mineure, hors AC story 1.2 (`register-form.tsx`)
+- ~~Formulaire ne conserve pas l'email après erreur~~ — **resolved 2026-09-01** (`register-form.tsx`)
 - ~~Pas de rate limiting sur l'inscription~~ — **resolved 2026-08-31** : fenêtre glissante par IP dans `register/actions.ts` + `lib/services/auth-rate-limit.ts`
 - Erreurs DB silencieuses côté serveur (pas de log) — NFR9 impose message générique UI ; observabilité à ajouter plus tard (`register-teacher.ts:678-683`)
 
@@ -67,7 +80,7 @@
 - Fuite timing NFR9 : pas de hash bcrypt quand l'email login est inconnu (`authenticate-teacher.ts`) — **fixed in code review 2026-08-25**
 - ~~Pas de rate limiting sur le login~~ — **resolved 2026-08-31** : fenêtre glissante par IP dans `login/actions.ts` + `lib/services/auth-rate-limit.ts`
 - Pas de flux `signOut` UI — hors AC explicites mais titre « Session Management » (`auth.ts`)
-- Utilisateur authentifié peut encore accéder à `/register` (`middleware.ts`)
+- ~~Utilisateur authentifié peut encore accéder à `/register`~~ — **already resolved** (`middleware-policy.ts` → redirect `/dictations`)
 - Page `/dictations` sans garde `auth()` serveur — protection middleware uniquement (`dictations/page.tsx`)
 - Migration Next.js 16 `middleware` → `proxy` — avertissement build (`middleware.ts`)
 - Pas de tests E2E register → login → session → dashboard (`spec` manual checks only)
@@ -81,7 +94,7 @@
 
 - Tablet viewport (768–1023px) acceptance lacks browser/responsive tests — UX-DR26/AC3; static class-string tests sufficient for MVP (`nav-tabs.tsx:25`)
 - Client-side tab navigation without full reload not covered by integration/E2E tests — `next/link` mocked in unit tests; manual verification per spec (`nav-tabs.tsx:31`)
-- Duplicated `next/image` and `next/link` mocks across dashboard test files — refactor when shared test utils exist (`app-bar.test.tsx:6`)
+- ~~Duplicated `next/image` and `next/link` mocks across dashboard test files~~ — **partially resolved 2026-09-01** (`test-utils/next-mocks.tsx`; `dashboard-shell` + `dashboard-chrome` migrated)
 - `next/image` missing `sizes` attribute for responsive logo optimization — low impact with fixed height classes (`app-bar.tsx:7`)
 - Spec Change Log empty for story iteration decisions — documentation hygiene, non-blocking (`spec-1-6-app-shell-with-navigation-app-bar.md:116`)
 

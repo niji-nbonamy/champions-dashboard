@@ -181,6 +181,9 @@ describe("MobileStudentEntryPage", () => {
     expect(html).not.toContain('inputmode="numeric"');
     expect(html).not.toContain("Conjugaison");
     expect(html).not.toContain('href="/students"');
+    expect(mockListLeveledActiveStudents).not.toHaveBeenCalled();
+    expect(mockGetDictationEntriesByDictationId).not.toHaveBeenCalled();
+    expect(mockListWordCountMatrixRows).not.toHaveBeenCalled();
   });
 
   it("limits prev/next navigation to leveled students only", async () => {

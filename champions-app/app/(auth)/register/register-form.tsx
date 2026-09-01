@@ -32,6 +32,7 @@ export function RegisterForm({
     registerAction,
     initialState
   );
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
@@ -73,6 +74,8 @@ export function RegisterForm({
           inputMode="email"
           autoComplete="email"
           required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
           className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
       </div>
