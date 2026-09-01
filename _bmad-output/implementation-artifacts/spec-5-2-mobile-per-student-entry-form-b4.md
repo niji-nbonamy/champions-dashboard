@@ -20,9 +20,9 @@ context:
 
 **Always:**
 - Mobile-only surfaces (`<768px`); tablet/laptop grid and G1 workflows unchanged.
-- Picker lists only leveled, non-archived active students via `listLeveledActiveStudents` (same denominator as `getDictationCompletionSummary`).
-- « saisi » derived from persisted `DictationEntry` for the dictation — no separate tracking entity.
-- Picker subtitle shows remaining count (e.g. « 3 restants ») = `totalLeveledCount - enteredCount`.
+- Picker **displays** all active non-archived students via `listActiveStudents` (story 5.3); completion math (« saisi », `remainingCount`, prev/next order) uses **leveled** students only via `listLeveledActiveStudents` (same denominator as `getDictationCompletionSummary`).
+- « saisi » derived from persisted `DictationEntry` for the dictation — no separate tracking entity; unleveled students never count as entered.
+- Picker subtitle shows remaining count (e.g. « 3 restants ») = `totalLeveledCount - enteredCount` (leveled only); when `totalLeveledCount === 0`, subtitle is « Aucun élève nivelé pour saisir. »
 - Nine error-category fields from `CHAMPIONS_ERROR_CATEGORIES` (label + value side-by-side per field, full row width); min 48px height (`min-h-12`), `inputMode="numeric"` on manual input, min 44px touch targets.
 - Pre-fill fields when an entry exists (`dbColumnsToCategoryErrors` on existing entry).
 - Quick-tap: tap cycles 0→1→2→3 per field (FR38). Values ≥4 via long-press **or** a dedicated numeric input affordance on the field.
@@ -38,7 +38,7 @@ context:
 - Field layout full-width stacked vs label/value side-by-side — **resolved: side-by-side** (code review 2026-08-31, choice 2B).
 
 **Never:**
-- Unleveled-student block UI (story 5.3) — unleveled students are excluded from picker entirely.
+- Mobile level assignment (story 5.3 owns the unleveled **block** on the form route) — unleveled students **appear** in the picker with `RequiredLevelBadge`; selecting them renders the FR39 block instead of B4 fields. `saveDictationStudentEntry` still rejects unleveled ids server-side.
 - Full mobile class grid, promotion validate/refuse, dossier, presentation mode.
 - Calling `saveDictation` / `saveDictationAction` with partial roster counts.
 - Client-side authoritative score or promotion computation.
@@ -49,12 +49,14 @@ context:
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |----------|--------------|---------------------------|----------------|
 | Picker load | Valid dictation, 5 leveled students, 2 entries exist | 5 rows; 2 show « saisi »; subtitle « 3 restants » | Invalid UUID / dictation → `notFound()` |
+| Picker mixed roster | 3 leveled + 1 unleveled active | 4 rows; unleveled shows `RequiredLevelBadge`; subtitle counts leveled only | N/A |
 | New entry save | Student has no entry, valid counts | Insert with matrix word denominator + `levelAtSave`; redirect to picker; remaining count decrements | Validation fail → inline French message from `formatGridRowValidationMessage`; no DB write |
 | Edit entry save | Student has entry, changed counts | Update scores using frozen snapshot denominator; redirect to picker | Missing entry on update path → generic save error |
 | Quick-tap cycle | Field value 3, tap | Value becomes 0 | N/A |
 | High count | Long-press or numeric input, enter 7 | Field shows 7; save accepts if valid | Reject negative or non-integer |
 | Prev/next | Middle student in roster | Arrows navigate to adjacent leveled students without saving draft | First/last student disables prev/next respectively |
-| Empty roster | Zero leveled students | Picker shows status message; no student rows (align with hub zero-leveled copy) | N/A |
+| Empty roster | Zero active students | Picker shows « Aucun élève actif. » | N/A |
+| Zero leveled | 1+ active unleveled, zero leveled | Picker lists unleveled rows; subtitle « Aucun élève nivelé pour saisir. » | Hub hides « Saisir » (5.1) |
 | No matrix row | Dictation label has no matching matrix row | Save blocked with user-facing error | No insert |
 
 </frozen-after-approval>
@@ -64,7 +66,8 @@ context:
 - `champions-app/lib/services/dictation-save.ts` -- **EXTEND** add `saveDictationStudentEntry(classId, dictationId, studentId, counts)`; reuse L88–200 helpers (`normalizeCategoryCounts`, `prepareDictationEntries` single-student slice, `prepareDictationEntryUpdates` single snapshot, `cascadePromotionReevaluation` L206–217). Current `saveDictation` L303–320 blocks partial first save — do not modify batch contract.
 - `champions-app/lib/services/dictation-save.test.ts` -- **EXTEND** insert, update, validation reject, missing matrix row cases for single-student path.
 - `champions-app/app/(dashboard)/dictations/actions.ts` -- **EXTEND** `saveDictationStudentEntryAction` mirroring `saveDictationAction` L101–128 pattern with mobile path revalidation.
-- `champions-app/lib/services/list-leveled-active-students.ts` -- **REUSE** L13–41 roster query + `fr` sort for picker order.
+- `champions-app/lib/services/list-active-students.ts` -- **REUSE** (5.3) all active students for picker display rows.
+- `champions-app/lib/services/list-leveled-active-students.ts` -- **REUSE** L13–41 leveled roster for completion math, prev/next order, and save guard.
 - `champions-app/lib/services/get-dictation-entries.ts` -- **REUSE** L24–55 `getDictationEntriesByDictationId` for « saisi » set + pre-fill.
 - `champions-app/lib/domain/error-categories.ts` -- **REUSE** `CHAMPIONS_ERROR_CATEGORIES` L20–87, `dbColumnsToCategoryErrors` L141–167, `formatGridCellAriaLabel` L106–112.
 - `champions-app/lib/domain/grid-validation.ts` -- **REUSE** `validateGridRow`, `formatGridRowValidationMessage` L22–59.
@@ -137,8 +140,8 @@ Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or ex
 
 **Mobile B4 UI**
 
-- Picker lists leveled students with saisi badges and remaining count.
-  [`mobile-student-picker.tsx:49`](../../champions-app/components/dictations/mobile-student-picker.tsx#L49)
+- Picker lists all active students; saisi badges and remaining count use leveled-only math.
+  [`mobile-student-picker.tsx:57`](../../champions-app/components/dictations/mobile-student-picker.tsx#L57)
 
 - Quick-tap field cycles 0–3 with dedicated manual numeric affordance.
   [`mobile-error-field.tsx:36`](../../champions-app/components/dictations/mobile-error-field.tsx#L36)
@@ -189,4 +192,5 @@ Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or ex
 ## Spec Change Log
 
 - Post-delivery (2026-09-01): Mobile B4 validation and field aria-labels use full `displayName`; `getStudentFirstName` removed (picker already used full name per decision 1B).
+- Post-5.3 reconciliation (2026-09-01): Boundaries, I/O matrix, and code map updated — picker displays all active students (`listActiveStudents`); completion math and prev/next remain leveled-only. Unleveled block UI owned by spec 5-3.
 - [x] [Review][Defer] Incohérence statut spec `done` vs sprint `review` — hygiène artefact [`spec-5-2-*.md`, `sprint-status.yaml`] — deferred, pre-existing

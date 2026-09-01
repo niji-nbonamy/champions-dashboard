@@ -139,5 +139,5 @@ context:
 - [x] [Review][Patch] Fix inaccurate Suggested Review Order line anchors (e.g. `student-display-name.test.ts#L64`, `mobile-student-picker.tsx#L37`) [`spec-5-3-unleveled-student-block-on-mobile.md`]
 - [x] [Review][Defer] Unnecessary DB fetches (`listLeveledActiveStudents`, entries, matrix) before unleveled early return [`champions-app/app/(dashboard)/dictations/[id]/mobile/[studentId]/page.tsx:67`] — deferred, pre-existing optimization opportunity
 - [x] [Review][Defer] Duplicate non-archived entries for same leveled student can skew `remainingCount` [`champions-app/app/(dashboard)/dictations/[id]/mobile/page.tsx:57`] — deferred, pre-existing from 5.2
-- [x] [Review][Defer] Spec 5-2 still documents unleveled picker exclusion — doc sync needed across stories [`spec-5-2-mobile-per-student-entry-form-b4.md`] — deferred, pre-existing
+- [x] [Review][Defer] Spec 5-2 still documents unleveled picker exclusion — **resolved 2026-09-01** via spec-5-2 post-5.3 reconciliation
 - [x] [Review][Defer] Hub vs picker microcopy divergence for zero-leveled state (« Aucun élève nivelé actif. » vs « Aucun élève nivelé pour saisir. ») [`champions-app/components/dictations/mobile-dictation-hub.tsx`] — deferred, hub unchanged in 5-3

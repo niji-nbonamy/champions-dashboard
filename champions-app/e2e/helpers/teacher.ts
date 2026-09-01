@@ -104,15 +104,64 @@ export async function completeYearStartWizard(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/dictations/);
 }
 
-export async function createAndSaveDictation(page: Page): Promise<void> {
+export async function createDictationWithoutSave(page: Page): Promise<string> {
   await page.getByRole("button", { name: "Nouvelle dictée" }).click();
   await page.getByRole("button", { name: "Créer la dictée" }).click();
   await expect(page).toHaveURL(/\/dictations\/[0-9a-f-]+$/);
+
+  const dictationUrl = page.url();
+  const match = dictationUrl.match(/\/dictations\/([0-9a-f-]+)$/);
+  if (!match?.[1]) {
+    throw new Error(`Expected dictation id in URL, got ${dictationUrl}`);
+  }
+
+  return match[1];
+}
+
+export async function createAndSaveDictation(page: Page): Promise<void> {
+  await createDictationWithoutSave(page);
 
   const saveButton = page.getByRole("button", { name: "Enregistrer" });
   await expect(saveButton).toBeEnabled();
   await saveButton.click();
   await expect(page.getByText("Dictée enregistrée.")).toBeVisible();
+}
+
+export const MOBILE_VIEWPORT = { width: 375, height: 667 };
+
+export async function captureMobileDictationEntry(
+  page: Page,
+  studentName = E2E_STUDENT_NAME
+): Promise<void> {
+  await page.setViewportSize(MOBILE_VIEWPORT);
+  await page.goto("/dictations");
+
+  await expect(
+    page.getByRole("main", { name: "Hub dictée mobile" })
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Saisir" }).click();
+  await expect(page).toHaveURL(/\/dictations\/[0-9a-f-]+\/mobile$/);
+  await expect(page.getByText("1 restant")).toBeVisible();
+
+  await page
+    .getByRole("link", {
+      name: `Saisir les erreurs pour ${studentName}`,
+    })
+    .click();
+  await expect(page).toHaveURL(
+    /\/dictations\/[0-9a-f-]+\/mobile\/[0-9a-f-]+$/
+  );
+
+  await page
+    .getByRole("button", { name: new RegExp(`${studentName}, Conjugaison, 0 erreurs`) })
+    .click();
+
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page).toHaveURL(/\/dictations\/[0-9a-f-]+\/mobile$/);
+  await expect(page.getByText("Tous les élèves sont saisis")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: `${studentName}, saisi` })
+  ).toBeVisible();
 }
 
 export async function openDossierPresentation(page: Page): Promise<void> {

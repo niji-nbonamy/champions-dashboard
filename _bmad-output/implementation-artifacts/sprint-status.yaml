@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 09-01-2026 10:40
+last_updated: 09-01-2026 11:24
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -77,11 +77,11 @@ development_status:
   4-7-presentation-mode-rdv-parents-c3: done
   epic-4-retrospective: done
 
-  epic-5: in-progress
+  epic-5: done
   5-1-mobile-dictation-hub-g2: done
   5-2-mobile-per-student-entry-form-b4: done
   5-3-unleveled-student-block-on-mobile: done
-  epic-5-retrospective: optional
+  epic-5-retrospective: done
 action_items:
   - id: "epic-1-retro-item-1-add-github-actions-workflow-npm-ci-npm-t"
     epic: 1
@@ -240,3 +240,30 @@ action_items:
     owner: "dev"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
+  - id: "epic-5-retro-item-25-reconcile-spec-5-2-boundaries-for-5-3-du"
+    epic: 5
+    action: "Reconcile spec-5-2 Boundaries for 5-3 dual-query picker (all active students,
+      leveled-only completion math)"
+    owner: "pm"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
+    completed_note: "Resolved 2026-09-01 — spec-5-2 Boundaries, I/O matrix, and code map updated"
+  - id: "epic-5-retro-item-26-add-e2e-smoke-with-mobile-viewport-g2-hu"
+    epic: 5
+    action: "Add E2E smoke with mobile viewport: G2 hub → Saisir → picker → B4 save"
+    owner: "dev"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
+    completed_note: "Added champions-app/e2e/mobile-journey-smoke.spec.ts (375×667 viewport)"
+  - id: "epic-5-retro-item-27-align-hub-vs-picker-zero-leveled-microco"
+    epic: 5
+    action: "Align hub vs picker zero-leveled microcopy"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
+  - id: "epic-5-retro-item-28-add-contextual-aria-label-on-hub-saisir"
+    epic: 5
+    action: "Add contextual aria-label on hub Saisir/Voir links"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
