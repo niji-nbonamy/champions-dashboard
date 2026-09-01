@@ -3,6 +3,7 @@ import Link from "next/link";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { RequiredLevelBadge } from "@/components/ui/required-level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
+import { MOBILE_NO_LEVELED_STUDENTS_MESSAGE } from "@/lib/domain/mobile-dictation-messages";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +41,7 @@ function formatRemainingLabel(
   leveledStudentCount: number
 ): string {
   if (leveledStudentCount === 0) {
-    return "Aucun élève nivelé pour saisir.";
+    return MOBILE_NO_LEVELED_STUDENTS_MESSAGE;
   }
 
   if (remainingCount <= 0) {

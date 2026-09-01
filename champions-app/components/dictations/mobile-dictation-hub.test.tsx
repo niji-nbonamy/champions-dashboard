@@ -57,6 +57,8 @@ describe("MobileDictationHub", () => {
     );
     expect(html).toContain("Saisir");
     expect(html).toContain("Voir");
+    expect(html).toContain('aria-label="Saisir les erreurs pour Dictée 1"');
+    expect(html).toContain('aria-label="Voir le résumé de Dictée 1"');
     expect(html).not.toContain("Dictée complète");
   });
 
@@ -89,7 +91,7 @@ describe("MobileDictationHub", () => {
       />
     );
 
-    expect(html).toContain("Aucun élève nivelé actif.");
+    expect(html).toContain("Aucun élève nivelé pour saisir.");
     expect(html).toContain("Dictée 1");
     expect(html).not.toContain("Saisir");
     expect(html).not.toContain("Voir");

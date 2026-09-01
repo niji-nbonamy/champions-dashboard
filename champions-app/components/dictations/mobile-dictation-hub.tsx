@@ -2,6 +2,11 @@ import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
 import { formatDictationDateForDisplay } from "@/lib/domain/dictation";
+import {
+  formatMobileHubCaptureAriaLabel,
+  formatMobileHubSummaryAriaLabel,
+  MOBILE_NO_LEVELED_STUDENTS_MESSAGE,
+} from "@/lib/domain/mobile-dictation-messages";
 import type { DictationCompletionSummary } from "@/lib/services/get-dictation-completion-summary";
 import type { DictationRecord } from "@/lib/services/list-dictations";
 import { cn } from "@/lib/utils";
@@ -11,8 +16,6 @@ const MOBILE_EMPTY_DICTATION_MESSAGE =
 
 const MOBILE_CLASS_SETUP_MESSAGE =
   "Utilisez un ordinateur ou une tablette pour configurer votre classe.";
-
-const MOBILE_NO_LEVELED_STUDENTS_MESSAGE = "Aucun élève nivelé actif.";
 
 type MobileDictationHubProps = {
   lastDictation?: DictationRecord;
@@ -76,6 +79,7 @@ export function MobileDictationHub({
           <Link
             href={`/dictations/${lastDictation.id}/mobile`}
             className={cn(buttonVariants({ size: "lg" }), "min-h-11 w-full")}
+            aria-label={formatMobileHubCaptureAriaLabel(lastDictation.label)}
           >
             Saisir
           </Link>
@@ -85,6 +89,7 @@ export function MobileDictationHub({
               buttonVariants({ variant: "outline", size: "lg" }),
               "min-h-11 w-full"
             )}
+            aria-label={formatMobileHubSummaryAriaLabel(lastDictation.label)}
           >
             Voir
           </Link>

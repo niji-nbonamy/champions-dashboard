@@ -259,11 +259,13 @@ action_items:
     epic: 5
     action: "Align hub vs picker zero-leveled microcopy"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
+    completed_note: "Shared MOBILE_NO_LEVELED_STUDENTS_MESSAGE in lib/domain/mobile-dictation-messages.ts"
   - id: "epic-5-retro-item-28-add-contextual-aria-label-on-hub-saisir"
     epic: 5
     action: "Add contextual aria-label on hub Saisir/Voir links"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
+    completed_note: "formatMobileHubCaptureAriaLabel / formatMobileHubSummaryAriaLabel on hub links"

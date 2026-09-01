@@ -5,7 +5,7 @@
 - Unnecessary DB fetches (`listLeveledActiveStudents`, entries, matrix) before unleveled early return — optimization only; functional path correct (`page.tsx:67`)
 - Duplicate non-archived entries for same leveled student can skew `remainingCount` — pre-existing from 5.2, not introduced by dual-query picker (`page.tsx:57`)
 - Spec 5-2 still documents unleveled picker exclusion — **resolved 2026-09-01** (`spec-5-2-mobile-per-student-entry-form-b4.md` post-5.3 reconciliation)
-- Hub vs picker microcopy divergence for zero-leveled state — hub unchanged in 5-3 (`mobile-dictation-hub.tsx`)
+- Hub vs picker microcopy divergence for zero-leveled state — **resolved 2026-09-01** (`lib/domain/mobile-dictation-messages.ts`)
 
 ## Deferred from: code review of spec-5-2-mobile-per-student-entry-form-b4.md (2026-08-31)
 
@@ -18,7 +18,7 @@
 
 - No `page.test.tsx` for `/dictations/[id]/mobile` Saisir stub — summary page has parallel auth/notFound coverage; stub regressions uncaught
 - Flash contenu bloqué avant redirect `MobileRouteGuard` — trade-off client-side documenté dans Design Notes ; acceptable MVP (`mobile-route-guard.tsx:53`)
-- Liens Saisir/Voir sans `aria-label` contextualisé — amélioration a11y hors AC (`mobile-dictation-hub.tsx:51`)
+- Liens Saisir/Voir sans `aria-label` contextualisé — **resolved 2026-09-01** (`mobile-dictation-hub.tsx`, `lib/domain/mobile-dictation-messages.ts`)
 
 ## Deferred from: code review of spec-4-6-alertes-promotion-queue-d2.md (2026-08-31)
 

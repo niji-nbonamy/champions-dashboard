@@ -139,7 +139,11 @@ export async function captureMobileDictationEntry(
   await expect(
     page.getByRole("main", { name: "Hub dictée mobile" })
   ).toBeVisible();
-  await page.getByRole("link", { name: "Saisir" }).click();
+  await page
+    .getByRole("link", {
+      name: `Saisir les erreurs pour ${E2E_MATRIX_LABEL}`,
+    })
+    .click();
   await expect(page).toHaveURL(/\/dictations\/[0-9a-f-]+\/mobile$/);
   await expect(page.getByText("1 restant")).toBeVisible();
 
