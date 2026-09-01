@@ -13,7 +13,7 @@ type CategoryHeaderProps = {
 export function CategoryHeader({ category, className }: CategoryHeaderProps) {
   const [open, setOpen] = useState(false);
   const tooltipId = useId();
-  const tooltipText = `${category.name} — ${category.definition}`;
+  const tooltipText = category.name;
 
   useEffect(() => {
     if (!open) {
@@ -62,7 +62,6 @@ export function CategoryHeader({ category, className }: CategoryHeaderProps) {
         )}
       >
         <p className="font-medium">{category.name}</p>
-        <p className="mt-1 text-muted-foreground">{category.definition}</p>
       </div>
     </th>
   );

@@ -477,11 +477,13 @@ describe("ClassGrid", () => {
 
     expect(conjugationHeader).toBeTruthy();
     expect(conjugationHeader?.style.backgroundColor).toBe("#E70A16");
-    expect(conjugationHeader?.getAttribute("aria-label")).toContain(
-      "Conjugaison"
-    );
-    expect(conjugationHeader?.getAttribute("title")).toContain("Conjugaison");
-    expect(conjugationHeader?.textContent).toContain(
+    expect(conjugationHeader?.getAttribute("aria-label")).toBe("Conjugaison");
+    expect(conjugationHeader?.getAttribute("title")).toBe("Conjugaison");
+    const tooltip = conjugationHeader?.querySelector(
+      '[role="tooltip"]'
+    ) as HTMLDivElement | null;
+    expect(tooltip?.textContent).toBe("Conjugaison");
+    expect(tooltip?.textContent).not.toContain(
       "Les verbes sont-ils correctement conjugués ?"
     );
     expect(container.querySelectorAll('[role="tooltip"]')).toHaveLength(9);
@@ -505,6 +507,7 @@ describe("ClassGrid", () => {
 
     expect(tooltip?.className).toContain("opacity-100");
     expect(conjugationHeader?.getAttribute("aria-expanded")).toBe("true");
+    expect(tooltip?.textContent).toBe("Conjugaison");
   });
 
   it("dismisses category tooltip on Escape", () => {
