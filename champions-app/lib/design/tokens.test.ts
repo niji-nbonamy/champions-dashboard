@@ -53,6 +53,9 @@ describe("design tokens", () => {
     expect(SPACING.logoAppBarHeight).toBe("52px");
     expect(SPACING.logoAppBarHeightMobile).toBe("40px");
     expect(SPACING.logoPresentationHeight).toBe("44px");
+    expect(SPACING.navTabsHeight).toBe("41px");
+    expect(SPACING.dashboardChromeHeight).toBe("105px");
+    expect(SPACING.dashboardChromeHeightMobile).toBe("64px");
   });
 
   it("defines display and data-lg typography scales", () => {
@@ -88,6 +91,11 @@ describe("design tokens", () => {
     expect(css).toContain("var(--font-display)");
     expect(css).toContain("--spacing-grid-cell-min: 44px");
     expect(css).toContain("--spacing-grid-row-height: 40px");
+    expect(css).toContain("--spacing-nav-tabs-height: 41px");
+    expect(css).toContain("--spacing-dashboard-chrome-height: calc(");
+    expect(css).toContain(
+      "--spacing-dashboard-chrome-height-mobile: var(--spacing-app-bar-min-height)"
+    );
   });
 
   it("mirrors all COLORS hex values in globals.css", () => {

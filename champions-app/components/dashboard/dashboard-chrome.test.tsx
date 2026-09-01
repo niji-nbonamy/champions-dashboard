@@ -36,6 +36,7 @@ describe("DashboardChrome", () => {
     expect(html).toContain("hidden md:block");
     expect(html).toContain('href="/dictations"');
     expect(html).toContain("page content");
+    expect(html).toContain("sticky top-0 z-20 bg-background");
   });
 
   it("hides all chrome on presentation routes", () => {
@@ -54,5 +55,6 @@ describe("DashboardChrome", () => {
     expect(html).not.toContain('href="/dictations"');
     expect(html).not.toContain('alt="La méthode CHAMPIONS"');
     expect(html).not.toContain("hidden md:block");
+    expect(html).not.toContain("sticky top-0 z-20");
   });
 });

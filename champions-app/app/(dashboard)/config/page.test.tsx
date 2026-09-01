@@ -84,6 +84,10 @@ describe("config page", () => {
     expect(html).toContain("Importez votre liste d&#x27;élèves pour commencer.");
     expect(html).toContain('id="liste-eleves"');
     expect(html).toContain('id="matrice-mots"');
+    const scrollMarginClass =
+      "scroll-mt-[var(--spacing-dashboard-chrome-height)]";
+    expect(html).toContain(scrollMarginClass);
+    expect(html.split(scrollMarginClass).length - 1).toBe(2);
     expect(html).not.toContain("Importer la liste");
     expect(html).not.toContain('href="/config#liste-eleves"');
     expect(html).toContain("data-testid=\"csv-import-form\"");

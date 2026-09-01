@@ -42,7 +42,10 @@ export default async function ConfigPage() {
         ) : null}
       </div>
 
-      <section id="liste-eleves" className="flex flex-col gap-3">
+      <section
+        id="liste-eleves"
+        className="scroll-mt-[var(--spacing-dashboard-chrome-height)] flex flex-col gap-3"
+      >
         <h2 className="text-lg font-medium">Liste d&apos;élèves</h2>
         {isEmptyRoster ? (
           <>
@@ -56,7 +59,10 @@ export default async function ConfigPage() {
         )}
       </section>
 
-      <section id="matrice-mots" className="flex flex-col gap-3">
+      <section
+        id="matrice-mots"
+        className="scroll-mt-[var(--spacing-dashboard-chrome-height)] flex flex-col gap-3"
+      >
         <h2 className="text-lg font-medium">Matrice mots</h2>
         <p className="text-sm text-muted-foreground">
           Définissez le nombre de mots par dictée et par niveau couleur pour

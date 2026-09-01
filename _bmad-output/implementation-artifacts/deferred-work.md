@@ -10,7 +10,7 @@
 ## Deferred from: code review of spec-6-1-config-first-hint-before-nouvelle-dictée.md (2026-09-01)
 
 - Dialog interaction tests (open modal, link click) — static markup tests sufficient for MVP; manual check covers click path
-- `#matrice-mots` anchor lacks scroll-margin for future sticky shell (story 6.3) — out of scope for 6.1; address when 6.3 lands
+- ~~`#matrice-mots` anchor lacks scroll-margin for future sticky shell (story 6.3)~~ — **resolved 2026-09-01** (`config/page.tsx` scroll-mt token)
 - Spec Change Log empty — documentation hygiene; no functional impact
 
 ## Resolved technical debt batch (2026-09-01)

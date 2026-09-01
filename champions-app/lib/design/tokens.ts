@@ -30,6 +30,9 @@ export const SPACING = {
   logoAppBarHeightMobile: "40px",
   logoPresentationHeight: "44px",
   appBarMinHeight: "64px",
+  navTabsHeight: "41px",
+  dashboardChromeHeight: "105px",
+  dashboardChromeHeightMobile: "64px",
 } as const;
 
 export const TYPOGRAPHY = {
