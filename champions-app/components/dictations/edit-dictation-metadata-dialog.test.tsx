@@ -1,7 +1,9 @@
 /** @vitest-environment happy-dom */
 
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DICTATION_METADATA_UPDATE_SUCCESS_MESSAGE } from "@/lib/domain/dictation-save-messages";
 
@@ -55,10 +57,27 @@ const matrixLabelOptions = [
   { value: "Dictée 2", label: "Dictée 2" },
 ];
 
+async function flushPromises() {
+  await Promise.resolve();
+}
+
 describe("EditDictationMetadataDialog", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseActionState.mockReturnValue([{ error: null }, vi.fn(), false]);
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
   });
 
   it("renders the Modifier trigger and pre-filled form fields", () => {
@@ -116,7 +135,67 @@ describe("EditDictationMetadataDialog", () => {
     expect(html).toContain('disabled=""');
   });
 
-  it("exports the metadata update success message for toast usage", () => {
-    expect(DICTATION_METADATA_UPDATE_SUCCESS_MESSAGE).toBe("Dictée mise à jour.");
+  it("warns when the current label is missing from matrix options", () => {
+    const html = renderToStaticMarkup(
+      <EditDictationMetadataDialog
+        dictationId={dictationId}
+        currentLabelKey="Dictée 9"
+        currentDate="2026-08-27"
+        matrixLabelOptions={matrixLabelOptions}
+      />
+    );
+
+    expect(html).toContain("Sélectionnez un libellé");
+    expect(html).toContain("existe plus dans la matrice Config");
+  });
+
+  it("shows success toast and refreshes after a successful update", async () => {
+    await act(async () => {
+      root.render(
+        <EditDictationMetadataDialog
+          dictationId={dictationId}
+          currentLabelKey="Dictée 1"
+          currentDate="2026-08-27"
+          matrixLabelOptions={matrixLabelOptions}
+        />
+      );
+    });
+
+    const form = container.querySelector("form");
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true })
+      );
+    });
+
+    mockUseActionState.mockReturnValue([{ error: null }, vi.fn(), true]);
+    await act(async () => {
+      root.render(
+        <EditDictationMetadataDialog
+          dictationId={dictationId}
+          currentLabelKey="Dictée 1"
+          currentDate="2026-08-27"
+          matrixLabelOptions={matrixLabelOptions}
+        />
+      );
+    });
+
+    mockUseActionState.mockReturnValue([{ error: null }, vi.fn(), false]);
+    await act(async () => {
+      root.render(
+        <EditDictationMetadataDialog
+          dictationId={dictationId}
+          currentLabelKey="Dictée 2"
+          currentDate="2026-09-01"
+          matrixLabelOptions={matrixLabelOptions}
+        />
+      );
+      await flushPromises();
+    });
+
+    expect(mockToastSuccess).toHaveBeenCalledWith(
+      DICTATION_METADATA_UPDATE_SUCCESS_MESSAGE
+    );
+    expect(mockRouterRefresh).toHaveBeenCalled();
   });
 });

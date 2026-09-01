@@ -318,6 +318,9 @@ describe("DictationDetailPage", () => {
     expect(html).toContain('href="/config"');
     expect(html).toContain(">Config</a>");
     expect(html).not.toContain("Config</a> Config");
+    expect(html).toContain('disabled=""');
+    expect(html).toContain("pour modifier la dictée");
+    expect(mockEditDictationMetadataDialog).not.toHaveBeenCalled();
     expect(mockClassGrid).not.toHaveBeenCalled();
   });
 

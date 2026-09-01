@@ -679,6 +679,23 @@ describe("updateDictationAction", () => {
     vi.clearAllMocks();
   });
 
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { updateDictationAction } = await import("./actions");
+
+    await expect(
+      updateDictationAction(
+        { error: null },
+        makeFormData({
+          dictation_id: dictationId,
+          label: "Dictée 1",
+          dictation_date: "2026-08-27",
+        })
+      )
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
   it("updates metadata and revalidates dossier paths for affected students", async () => {
     mockAuthenticatedTeacherClass();
     mockUpdateDictation.mockResolvedValueOnce({
@@ -708,6 +725,32 @@ describe("updateDictationAction", () => {
     expect(mockRevalidateDictationMetadataPaths).toHaveBeenCalledWith(
       dictationId,
       [studentId]
+    );
+  });
+
+  it("revalidates base paths when the dictation has no student entries", async () => {
+    mockAuthenticatedTeacherClass();
+    mockUpdateDictation.mockResolvedValueOnce({
+      id: dictationId,
+      label: "Dictée 1",
+      dictationDate: "2026-09-01",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+
+    const { updateDictationAction } = await import("./actions");
+    const result = await updateDictationAction(
+      { error: null },
+      makeFormData({
+        dictation_id: dictationId,
+        label: "Dictée 1",
+        dictation_date: "2026-09-01",
+      })
+    );
+
+    expect(result).toEqual({ error: null });
+    expect(mockRevalidateDictationMetadataPaths).toHaveBeenCalledWith(
+      dictationId,
+      []
     );
   });
 

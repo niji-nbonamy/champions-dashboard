@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { Button } from "@/components/ui/button";
 import { EditDictationMetadataDialog } from "@/components/dictations/edit-dictation-metadata-dialog";
 import { ClassGrid } from "@/components/grid/class-grid";
 import {
@@ -67,7 +68,20 @@ function DictationDetailHeader({
             currentDate={dictationDate}
             matrixLabelOptions={matrixLabelOptions}
           />
-        ) : null}
+        ) : (
+          <div className="flex flex-col items-end gap-1">
+            <Button type="button" variant="outline" size="sm" disabled>
+              Modifier
+            </Button>
+            <p className="max-w-xs text-right text-xs text-muted-foreground">
+              Configurez la matrice sur{" "}
+              <Link href="/config" className="underline underline-offset-4">
+                Config
+              </Link>{" "}
+              pour modifier la dictée.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -223,7 +237,7 @@ export default async function DictationDetailPage({
         label={dictation.label}
         dictationDate={dictation.dictationDate}
         dictationId={dictation.id}
-        dictationLabelKey={dictation.dictationLabelKey}
+        dictationLabelKey={currentLabelOptionValue}
         matrixLabelOptions={matrixLabelOptions}
       />
       <h2 className="text-lg font-medium">Saisie des erreurs</h2>

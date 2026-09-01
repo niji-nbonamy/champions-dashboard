@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DICTATION_DATE_INVALID_ERROR } from "@/lib/domain/dictation";
 import { DICTATION_METADATA_UPDATE_SUCCESS_MESSAGE } from "@/lib/domain/dictation-save-messages";
+import { normalizeDictationLabelKey } from "@/lib/domain/word-count-matrix";
 
 import {
   updateDictationAction,
@@ -45,6 +46,11 @@ export function EditDictationMetadataDialog({
     initialState
   );
   const isDateError = state.error === DICTATION_DATE_INVALID_ERROR;
+  const hasCurrentLabelOption = matrixLabelOptions.some(
+    (option) =>
+      normalizeDictationLabelKey(option.value) ===
+      normalizeDictationLabelKey(currentLabelKey)
+  );
 
   useEffect(() => {
     if (state.error && dialogRef.current && !dialogRef.current.open) {
@@ -110,6 +116,7 @@ export function EditDictationMetadataDialog({
         className="fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-background p-0 shadow-lg backdrop:bg-black/50 open:flex"
       >
         <form
+          key={`${currentLabelKey}-${currentDate}`}
           action={formAction}
           className="flex w-full flex-col gap-4 p-6"
           onSubmit={() => {
@@ -130,13 +137,18 @@ export function EditDictationMetadataDialog({
               id="edit_dictation_label"
               name="label"
               required
-              defaultValue={currentLabelKey}
+              defaultValue={hasCurrentLabelOption ? currentLabelKey : ""}
               aria-invalid={state.error && !isDateError ? true : undefined}
               aria-errormessage={
                 state.error && !isDateError ? labelErrorId : undefined
               }
               className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
+              {!hasCurrentLabelOption ? (
+                <option value="" disabled>
+                  Sélectionnez un libellé
+                </option>
+              ) : null}
               {matrixLabelOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -160,6 +172,13 @@ export function EditDictationMetadataDialog({
               className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             />
           </div>
+
+          {!hasCurrentLabelOption ? (
+            <p className="text-sm text-muted-foreground" role="status">
+              Le libellé actuel n&apos;existe plus dans la matrice Config.
+              Sélectionnez un libellé valide avant d&apos;enregistrer.
+            </p>
+          ) : null}
 
           {state.error ? (
             <p

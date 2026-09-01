@@ -123,6 +123,18 @@ Mirror `create-dictation-dialog.tsx`: native `<dialog>`, matrix label `<select>`
 - [x] [Review][Patch] Validate `dictation_id` as UUID v4 in server action [`actions.ts:137`](../../champions-app/app/(dashboard)/dictations/actions.ts#L137)
 - [x] [Review][Patch] Add `updateDictationAction` integration tests [`actions.test.ts:677`](../../champions-app/app/(dashboard)/dictations/actions.test.ts#L677)
 
+- [x] [Review][Patch] Show disabled « Modifier » with explanatory message when matrix has no complete rows [`page.tsx:63`](../../champions-app/app/(dashboard)/dictations/[id]/page.tsx#L63)
+- [x] [Review][Patch] Apply `currentLabelOptionValue` on first-save branch [`page.tsx:226`](../../champions-app/app/(dashboard)/dictations/[id]/page.tsx#L226)
+- [x] [Review][Patch] Reset edit dialog form after successful save via `key` on form [`edit-dictation-metadata-dialog.tsx:915`](../../champions-app/components/dictations/edit-dictation-metadata-dialog.tsx#L915)
+- [x] [Review][Patch] Guard orphan label keys not present in matrix options [`page.tsx:125`](../../champions-app/app/(dashboard)/dictations/[id]/page.tsx#L125)
+- [x] [Review][Patch] Add `updateDictationAction` unauthenticated redirect test [`actions.test.ts:677`](../../champions-app/app/(dashboard)/dictations/actions.test.ts#L677)
+- [x] [Review][Patch] Assert post-success toast and `router.refresh()` in dialog test [`edit-dictation-metadata-dialog.test.tsx:55`](../../champions-app/components/dictations/edit-dictation-metadata-dialog.test.tsx#L55)
+- [x] [Review][Patch] Unit-test `revalidateDictationMetadataPaths` `revalidatePath` calls [`dictation-metadata-paths.ts:3`](../../champions-app/lib/revalidation/dictation-metadata-paths.ts#L3)
+- [x] [Review][Patch] Test `updateDictationAction` revalidation with zero student entries [`actions.test.ts:682`](../../champions-app/app/(dashboard)/dictations/actions.test.ts#L682)
+- [x] [Review][Patch] Assert disabled « Modifier » shown when matrix is empty [`page.test.tsx:295`](../../champions-app/app/(dashboard)/dictations/[id]/page.test.tsx#L295)
+
+- [x] [Review][Defer] Chronological sort after date-only change — no automated test covers dossier/history reordering [`list-dictations.ts:13`](../../champions-app/lib/services/list-dictations.ts#L13) — deferred, pre-existing
+
 ## Suggested Review Order
 
 **Metadata mutation (entry point)**

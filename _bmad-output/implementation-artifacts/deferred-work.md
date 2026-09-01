@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of spec-6-4-edit-dictation-label-and-date.md (2026-09-01)
+
+- Chronological sort after date-only change — no automated test covers dossier/history reordering (`list-dictations.ts:13`)
+
 ## Deferred from: code review of spec-6-3-sticky-app-bar-navigation-tabs.md (2026-09-01)
 
 - Grid column z-index stacking vs shell untested — z-20 > z-10 correct by construction; visual/E2E defer (`class-grid.tsx:395`)
