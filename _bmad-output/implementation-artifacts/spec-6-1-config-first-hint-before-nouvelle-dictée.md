@@ -116,3 +116,14 @@ Replace the current generic subtitle « Choisissez une dictée de la matrice et 
 
 - Constants export smoke test locks CTA label text.
   [`dictation-readiness.test.ts:34`](../../champions-app/lib/domain/dictation-readiness.test.ts#L34)
+
+### Review Findings
+
+- [x] [Review][Patch] Page test enabled path missing config-first hint assertions [`page.test.tsx:288`]
+- [x] [Review][Patch] Hint message exact French text not locked in tests [`dictation-readiness.test.ts:36`]
+- [x] [Review][Patch] Pending-state link lacks keyboard guard and regression test [`create-dictation-dialog.tsx:104`]
+- [x] [Review][Patch] Config link does not close dialog before navigation [`create-dictation-dialog.tsx:104`]
+- [x] [Review][Patch] Spec frontmatter status `done` before code review complete [`spec-6-1-config-first-hint-before-nouvelle-dictée.md:5`]
+- [x] [Review][Defer] Dialog interaction tests (open modal, link click) [`create-dictation-dialog.test.tsx:48`] — deferred, pre-existing
+- [x] [Review][Defer] `#matrice-mots` anchor lacks scroll-margin for future sticky shell (story 6.3) [`config/page.tsx:59`] — deferred, pre-existing
+- [x] [Review][Defer] Spec Change Log empty [`spec-6-1-config-first-hint-before-nouvelle-dictée.md:102`] — deferred, pre-existing

@@ -34,7 +34,9 @@ describe("canCreateDictation", () => {
 
 describe("config-first hint constants", () => {
   it("exports non-empty French microcopy for the create dialog", () => {
-    expect(CONFIG_FIRST_HINT_MESSAGE.length).toBeGreaterThan(0);
+    expect(CONFIG_FIRST_HINT_MESSAGE).toBe(
+      "Les dictées disponibles proviennent de la matrice sur Config. Ajoutez une nouvelle dictée sur Config avant de la créer ici."
+    );
     expect(CONFIG_FIRST_CTA_LABEL).toBe("Aller à Config");
   });
 });

@@ -66,6 +66,21 @@ export function CreateDictationDialog({
     dialogRef.current?.close();
   }
 
+  function handleConfigLinkClick() {
+    if (pending) {
+      return;
+    }
+    closeDialog();
+  }
+
+  function handleConfigLinkKeyDown(
+    event: React.KeyboardEvent<HTMLAnchorElement>
+  ) {
+    if (pending && (event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
+    }
+  }
+
   function handleDialogClick(event: React.MouseEvent<HTMLDialogElement>) {
     if (pending) {
       return;
@@ -103,6 +118,8 @@ export function CreateDictationDialog({
               {CONFIG_FIRST_HINT_MESSAGE}{" "}
               <Link
                 href="/config#matrice-mots"
+                onClick={handleConfigLinkClick}
+                onKeyDown={handleConfigLinkKeyDown}
                 className={
                   pending
                     ? "pointer-events-none opacity-50 underline underline-offset-4"

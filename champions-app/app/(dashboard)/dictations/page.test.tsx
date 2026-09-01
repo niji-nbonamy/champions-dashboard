@@ -49,6 +49,11 @@ vi.mock("@/lib/services/get-dictation-completion-summary", () => ({
   getDictationCompletionSummary: mockGetDictationCompletionSummary,
 }));
 
+import {
+  CONFIG_FIRST_CTA_LABEL,
+  CONFIG_FIRST_HINT_MESSAGE,
+} from "@/lib/domain/dictation-readiness";
+
 import DictationsPage from "./page";
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
@@ -311,6 +316,9 @@ describe("DictationsPage", () => {
     expect(html).toContain("Nouvelle dictée");
     expect(html).not.toContain("disabled=\"\"");
     expect(html).toContain("Créez votre première dictée pour commencer la saisie.");
+    expect(html).toContain(CONFIG_FIRST_HINT_MESSAGE);
+    expect(html).toContain(CONFIG_FIRST_CTA_LABEL);
+    expect(html).toContain('href="/config#matrice-mots"');
     expect(html).not.toContain("Configurez la matrice sur Config");
     expect(html).not.toContain("Importez votre liste d&#x27;élèves pour commencer.");
   });

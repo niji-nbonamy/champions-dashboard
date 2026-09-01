@@ -63,4 +63,16 @@ describe("CreateDictationDialog", () => {
     expect(html).toContain("Dictée 1");
     expect(html).toContain("Dictée 2");
   });
+
+  it("disables the config link while dictation creation is pending", () => {
+    mockUseActionState.mockReturnValue([{ error: null }, vi.fn(), true]);
+
+    const html = renderToStaticMarkup(
+      <CreateDictationDialog matrixLabelOptions={matrixLabelOptions} />
+    );
+
+    expect(html).toContain('tabindex="-1"');
+    expect(html).toContain('aria-disabled="true"');
+    expect(html).toContain("pointer-events-none");
+  });
 });

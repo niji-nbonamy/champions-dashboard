@@ -15,7 +15,10 @@ type NextLinkMockProps = {
   id?: string;
   "aria-current"?: "page";
   "aria-label"?: string;
+  "aria-disabled"?: boolean;
+  tabIndex?: number;
   onClick?: () => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLAnchorElement>) => void;
 };
 
 export function NextImageMock({
@@ -38,7 +41,10 @@ export function NextLinkMock({
   id,
   "aria-current": ariaCurrent,
   "aria-label": ariaLabel,
+  "aria-disabled": ariaDisabled,
+  tabIndex,
   onClick,
+  onKeyDown,
 }: NextLinkMockProps) {
   return (
     <a
@@ -47,7 +53,10 @@ export function NextLinkMock({
       className={className}
       aria-current={ariaCurrent}
       aria-label={ariaLabel}
+      aria-disabled={ariaDisabled}
+      tabIndex={tabIndex}
       onClick={onClick}
+      onKeyDown={onKeyDown}
     >
       {children}
     </a>
