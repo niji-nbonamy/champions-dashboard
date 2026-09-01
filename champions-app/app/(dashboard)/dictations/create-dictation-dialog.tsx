@@ -1,10 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useId, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { DICTATION_DATE_INVALID_ERROR } from "@/lib/domain/dictation";
+import {
+  CONFIG_FIRST_CTA_LABEL,
+  CONFIG_FIRST_HINT_MESSAGE,
+} from "@/lib/domain/dictation-readiness";
 
 import {
   createDictationAction,
@@ -95,7 +100,20 @@ export function CreateDictationDialog({
               Nouvelle dictée
             </h2>
             <p className="text-sm text-muted-foreground">
-              Choisissez une dictée de la matrice et sa date.
+              {CONFIG_FIRST_HINT_MESSAGE}{" "}
+              <Link
+                href="/config#matrice-mots"
+                className={
+                  pending
+                    ? "pointer-events-none opacity-50 underline underline-offset-4"
+                    : "underline underline-offset-4"
+                }
+                aria-disabled={pending || undefined}
+                tabIndex={pending ? -1 : undefined}
+              >
+                {CONFIG_FIRST_CTA_LABEL}
+              </Link>
+              .
             </p>
           </div>
 

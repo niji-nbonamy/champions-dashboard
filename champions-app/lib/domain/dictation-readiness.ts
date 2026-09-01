@@ -13,6 +13,11 @@ export const MATRIX_MISSING_MESSAGE =
 
 export const MATRIX_MISSING_CTA_LABEL = "Configurer la matrice";
 
+export const CONFIG_FIRST_HINT_MESSAGE =
+  "Les dictées disponibles proviennent de la matrice sur Config. Ajoutez une nouvelle dictée sur Config avant de la créer ici.";
+
+export const CONFIG_FIRST_CTA_LABEL = "Aller à Config";
+
 export type DictationReadinessInput = {
   leveledActiveStudentCount: number;
   matrixRowCount: number;
