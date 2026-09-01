@@ -2,7 +2,7 @@ import { PromotionPlusButton } from "@/components/promotion/promotion-plus-butto
 import type { PendingPromotionByStudent } from "@/lib/services/list-pending-promotions";
 
 type GridPromotionCellProps = {
-  firstName: string;
+  displayName: string;
   pendingPromotion: PendingPromotionByStudent | null;
   isReadOnlyRow: boolean;
   disabled?: boolean;
@@ -11,7 +11,7 @@ type GridPromotionCellProps = {
 };
 
 export function GridPromotionCell({
-  firstName,
+  displayName,
   pendingPromotion,
   isReadOnlyRow,
   disabled = false,
@@ -24,7 +24,7 @@ export function GridPromotionCell({
 
   return (
     <PromotionPlusButton
-      ariaLabel={`Ouvrir la promotion pour ${firstName}`}
+      ariaLabel={`Ouvrir la promotion pour ${displayName}`}
       disabled={disabled}
       onClick={() => onOpen(studentId)}
     />

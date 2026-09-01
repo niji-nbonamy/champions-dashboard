@@ -29,7 +29,7 @@ context:
 - Arrow keys move focus between adjacent cells when a cell is focused (FR15).
 - Digit keys 0–9 set the focused cell value directly (replace, not append) (FR15).
 - Cells min 44×40px via `--spacing-grid-cell-min` / `--spacing-grid-row-height`; horizontal scroll when viewport narrower than name + 9 columns (UX-DR4, UX-DR10, UX-DR14).
-- Cell `aria-label` = « {prénom}, {catégorie}, {valeur} erreurs » where prénom is extracted from `displayName` (UX-DR25).
+- Cell `aria-label` = « {displayName}, {catégorie}, {valeur} erreurs » using the stored student name as-is (trim only on input; UX-DR25).
 - Centered integers in cells (`.text-data-lg` or equivalent mono styling).
 - Counts live in client React state only — refresh clears unsaved data (acceptable until 3.4).
 - French UI microcopy; do not log student names in server logs (NFR10).
@@ -71,8 +71,8 @@ context:
 - `champions-app/lib/services/list-leveled-active-students.ts` -- **READ** `LeveledActiveStudent` shape + filters. [`list-leveled-active-students.ts:7`](../../champions-app/lib/services/list-leveled-active-students.ts#L7)
 - `champions-app/lib/domain/error-categories.ts` -- **CREATE** ordered C→S constants: letter, French name, definition (from error-categories.md).
 - `champions-app/lib/domain/error-categories.test.ts` -- **CREATE** order length 9, known letter/name pairs.
-- `champions-app/lib/domain/student-display-name.ts` -- **MODIFY** add `getStudentFirstName(displayName)` for aria-label prénom.
-- `champions-app/lib/domain/student-display-name.test.ts` -- **MODIFY** prénom extraction cases.
+- `champions-app/lib/domain/student-display-name.ts` -- **READ** `normalizeDisplayName` only; aria-labels use full `displayName` (no name split).
+- `champions-app/lib/domain/student-display-name.test.ts` -- **READ** display-name validation tests (no name-split helpers).
 - `champions-app/components/grid/class-grid.tsx` -- **CREATE** `"use client"` grid: state map, keyboard handlers, scroll container.
 - `champions-app/components/grid/grid-cell.tsx` -- **CREATE** single numeric cell input with sizing tokens + aria-label.
 - `champions-app/components/grid/category-header.tsx` -- **CREATE** letter header + hover/tap definition.
@@ -87,7 +87,7 @@ context:
 **Execution:**
 - [x] `champions-app/lib/domain/error-categories.ts` -- Define nine fixed categories -- FR14/FR16 source of truth.
 - [x] `champions-app/lib/domain/error-categories.test.ts` -- Unit tests -- guard column order.
-- [x] `champions-app/lib/domain/student-display-name.ts` -- `getStudentFirstName` -- UX-DR25 aria-label prénom.
+- [x] `champions-app/lib/domain/student-display-name.ts` -- full `displayName` in grid aria-labels -- UX-DR25 (supersedes original `getStudentFirstName` task; see Spec Change Log).
 - [x] `champions-app/lib/domain/student-display-name.test.ts` -- Prénom cases -- helper coverage.
 - [x] `champions-app/components/grid/grid-cell.tsx` -- Sized numeric cell -- UX-DR10 cell component.
 - [x] `champions-app/components/grid/category-header.tsx` -- Letter + definition tooltip -- FR16.
@@ -102,7 +102,7 @@ context:
 - Given a focused grid cell, when I press arrow keys or digit keys 0–9, then focus moves between cells or the cell value updates to that non-negative integer (FR15).
 - Given a column header, when I hover or tap it, then I see the full category name and definition (FR16).
 - Given a narrow viewport, when the grid renders, then cells respect min 44×40px and the table scrolls horizontally (UX-DR4, UX-DR10, UX-DR14).
-- Given any grid cell, when inspected, then its `aria-label` matches « {prénom}, {catégorie}, {valeur} erreurs » (UX-DR25).
+- Given any grid cell, when inspected, then its `aria-label` matches « {displayName}, {catégorie}, {valeur} erreurs » (UX-DR25).
 
 ### Review Findings
 
@@ -121,6 +121,8 @@ context:
 - [x] [Review][Defer] Missing `headers` attribute linking inputs to row/column `<th>` [`grid-cell.tsx:111`] — deferred, aria-label sufficient for MVP
 
 ## Spec Change Log
+
+- Post-delivery (2026-09-01): Student microcopy uses full `displayName` everywhere; removed `getStudentFirstName`. Grid cell aria-labels now « {displayName}, {catégorie}, {valeur} erreurs ». Frozen intent line 32 superseded by this entry.
 
 ## Design Notes
 

@@ -125,7 +125,7 @@ UX-DR12: Implement G1 four-tab navigation (Dictées · Élèves · Config · Ale
 UX-DR13: Implement G2 mobile dictation hub as mobile home with last dictation + Saisir/Voir shortcuts; mobile is dictation-capture-only — no Élèves/Config/Alertes navigation on phone (laptop required for roster, config, and alerts).
 UX-DR14: Implement class grid (A2) with horizontal scroll when viewport < 9 columns + name column.
 UX-DR15: Implement student dossier layout — max-w-4xl, hero curve top, collapsed table below; side-by-side on wide screens.
-UX-DR16: Implement presentation mode (C3) — full viewport, no chrome, focus trapped, Esc or « Fermer » exits, screen reader announces « Mode RDV parents, {prénom} ».
+UX-DR16: Implement presentation mode (C3) — full viewport, no chrome, focus trapped, Esc or « Fermer » exits, screen reader announces « Mode RDV parents, {displayName} ».
 UX-DR17: Implement alerts queue (D2) with tab badge count « N élèves prêts » and one-by-one Valider/Refuser processing.
 UX-DR18: Implement level dot picker (E1) — four color dots per unassigned student row on Élèves tab.
 UX-DR19: Implement year-start wizard (E3) — linear 3-step flow with back navigation, cannot skip level assignment.
@@ -133,8 +133,8 @@ UX-DR20: Implement word matrix table (F1) on Config tab — rows = dictations, c
 UX-DR21: Implement mobile per-student form (B4) — full width, 48px min field height, inputmode="numeric", quick-tap 0→1→2→3 cycling.
 UX-DR22: Implement empty states: empty roster CTA to Config CSV import; no dictations placeholder on dossier; unassigned levels badge on Élèves tab.
 UX-DR23: Implement loading states — shadcn Skeleton matching expected layout on cold load; save-in-progress spinner with optimistic lock on grid cells.
-UX-DR24: Implement error states — inline grid validation message « Σ erreurs ({N}) > total mots ({M}) pour {prénom} »; destructive Toast on save failure with data retained.
-UX-DR25: Implement accessibility: grid cell aria-label « {prénom}, {catégorie}, {valeur} erreurs »; promotion banner role="alert"; level badges with text label alongside color dot; tab order matches row-major grid order.
+UX-DR24: Implement error states — inline grid validation message « Σ erreurs ({N}) > total mots ({M}) pour {displayName} »; destructive Toast on save failure with data retained.
+UX-DR25: Implement accessibility: grid cell aria-label « {displayName}, {catégorie}, {valeur} erreurs »; promotion banner role="alert"; level badges with text label alongside color dot; tab order matches row-major grid order. `{displayName}` = stored student name (trim only on input; no first/last-name parsing).
 UX-DR26: Implement responsive breakpoints — ≥1024px full G1 layout; 768–1023px scrollable grid + stacked dossier; <768px G2 hub + B4 entry only.
 UX-DR27: Implement French microcopy per voice/tone table — factual labels only, no celebratory or pedagogical auto-text.
 UX-DR28: Implement archived student UI — « Archivé » label, read-only dossier, hidden from active grids, filter on Élèves tab.
@@ -524,7 +524,7 @@ So that I can capture all student errors in one view as fast as on paper.
 **And** digit keys 0–9 enter values directly in the focused cell (FR15)
 **And** hover/tap on a column header shows the full category name and definition (FR16)
 **And** grid cells have min 44×40px with horizontal scroll when viewport is narrow (UX-DR4, UX-DR10, UX-DR14)
-**And** grid cells have `aria-label` = « {prénom}, {catégorie}, {valeur} erreurs » (UX-DR25)
+**And** grid cells have `aria-label` = « {displayName}, {catégorie}, {valeur} erreurs » (UX-DR25)
 
 ### Story 3.3: Grid Validation & Save Blocking
 
@@ -537,7 +537,7 @@ So that I cannot record impossible error counts.
 **Given** I am editing the class grid
 **When** any student row has Σ category errors > their word total for this dictation
 **Then** the offending row/cell shows a destructive border (FR17)
-**And** an inline message displays « Σ erreurs ({N}) > total mots ({M}) pour {prénom} » (UX-DR24)
+**And** an inline message displays « Σ erreurs ({N}) > total mots ({M}) pour {displayName} » (UX-DR24)
 **And** the Enregistrer button is disabled until all rows are valid
 **And** save is also blocked when any single category error count > word total
 
@@ -707,7 +707,7 @@ So that I can orient the parent in about 30 seconds.
 **And** trend = most recent % minus previous %; shows « — » when fewer than 2 dictations exist (FR35)
 **And** per-category error counts are available on demand via a collapsed table toggle — no pedagogical narrative (FR36)
 **And** the CHAMPIONS wordmark appears bottom-right at 44px height, opacity 0.85, 24px margin (UX-DR6)
-**And** focus is trapped; Esc or « Fermer » exits; screen reader announces « Mode RDV parents, {prénom} » (UX-DR16, UX-DR25)
+**And** focus is trapped; Esc or « Fermer » exits; screen reader announces « Mode RDV parents, {displayName} » (UX-DR16, UX-DR25)
 **And** no school grade (CE2, CM1, etc.) appears anywhere (NFR8)
 
 ## Epic 5: Mobile Dictation Capture
@@ -765,7 +765,7 @@ So that I know I must assign one on my laptop before capturing errors.
 
 **Given** I select a student without an assigned color level on mobile
 **When** I attempt to enter dictation errors
-**Then** entry is blocked with « Niveau requis pour {prénom}. Assignez le niveau depuis un ordinateur. » (FR39)
+**Then** entry is blocked with « Niveau requis pour {displayName}. Assignez le niveau depuis un ordinateur. » (FR39)
 **And** no DictationEntry is created until a level is assigned on laptop (Élèves tab)
 **And** there is no mobile navigation to level assignment — laptop is required for E1
 

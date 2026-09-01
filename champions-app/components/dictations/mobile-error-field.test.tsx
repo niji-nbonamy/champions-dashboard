@@ -34,7 +34,7 @@ describe("MobileErrorField", () => {
         <MobileErrorField
           categoryLetter="C"
           categoryName="Conjugaison"
-          firstName="Marie"
+          displayName="DUPONT Marie"
           value={value}
           onChange={onChange}
         />
@@ -77,7 +77,7 @@ describe("MobileErrorField", () => {
     renderField(2);
 
     expect(getCycleButton()?.getAttribute("aria-label")).toBe(
-      "Marie, Conjugaison, 2 erreurs"
+      "DUPONT Marie, Conjugaison, 2 erreurs"
     );
   });
 

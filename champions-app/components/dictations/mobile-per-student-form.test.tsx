@@ -182,7 +182,7 @@ describe("MobilePerStudentForm", () => {
     });
 
     expect(container.textContent).toContain(
-      "Σ erreurs (6) > total mots (5) pour Paul"
+      "Σ erreurs (6) > total mots (5) pour MARTIN Paul"
     );
 
     const saveButton = [...container.querySelectorAll("button")].find(

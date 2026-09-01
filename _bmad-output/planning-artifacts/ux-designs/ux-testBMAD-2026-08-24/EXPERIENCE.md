@@ -91,7 +91,7 @@ Behavioral. Visual specs in `DESIGN.md.Components` or shadcn defaults.
 | **Cold load** | Any tab | shadcn `Skeleton` matching expected layout. Resolves on data. |
 | **Empty roster** | Dictées, Config | « Importez votre liste d'élèves pour commencer. » Primary CTA → Config CSV import. Dictation create disabled. |
 | **Unassigned levels** | Élèves | Students with « niveau requis » badge. Hidden from grids. Warning count on Élèves tab if > 0. |
-| **Grid validation error** | Class grid | Inline red border on offending cell/row. Message: « Σ erreurs ({N}) > total mots ({M}) pour {prénom} ». Save button disabled until resolved. |
+| **Grid validation error** | Class grid | Inline red border on offending cell/row. Message: « Σ erreurs ({N}) > total mots ({M}) pour {displayName} ». Save button disabled until resolved. |
 | **Pending promotions** | Alertes tab, grid rows, dossiers | Badge count on Alertes tab. Synced pending state across D1/D2/D3/D3+ — first action wins. |
 | **No dictations yet** | Dossier | Empty curve placeholder: « Aucune dictée enregistrée. » No trend, no %. |
 | **Single dictation** | Presentation mode | Trend shows « — » (needs ≥ 2 dictations per `scoring-model.md`). |
@@ -126,9 +126,9 @@ Behavioral. Visual specs in `DESIGN.md.Components` or shadcn defaults.
 ## Accessibility Floor
 
 - WCAG 2.2 AA target. Visual contrast inherits shadcn defaults; brand overrides in `DESIGN.md` verified at implementation.
-- Grid cells: `aria-label` = « {prénom}, {catégorie}, {valeur} erreurs »
+- Grid cells: `aria-label` = « {displayName}, {catégorie}, {valeur} erreurs »
 - Promotion banner: `role="alert"` when newly surfaced
-- Presentation mode: focus trapped; Esc exits; screen reader announces « Mode RDV parents, {prénom} »
+- Presentation mode: focus trapped; Esc exits; screen reader announces « Mode RDV parents, {displayName} »
 - Level badges: text label alongside color dot (not color-only)
 - Tab order on grid matches visual row-major order
 - Mobile numeric fields: `inputmode="numeric"`; minimum 44px touch targets per `{spacing.grid-cell-min}`
@@ -195,7 +195,7 @@ Rachel has 3 students left to enter from this morning's dictation. She's on play
 4. **Enregistrer** → returns to student picker. 2 remaining.
 5. **Climax:** After the third student, hub shows « Dictée 4 complète ». Rachel pockets the phone — no need to wait for the laptop.
 
-**Failure:** Student without level → « Niveau requis pour Léa. Assignez le niveau depuis un ordinateur. » Entry blocked; no mobile path to E1.
+**Failure:** Student without level → « Niveau requis pour {displayName}. Assignez le niveau depuis un ordinateur. » (e.g. `MARTIN Léa`). Entry blocked; no mobile path to E1.
 
 ## Open Items
 

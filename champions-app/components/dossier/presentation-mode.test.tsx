@@ -114,7 +114,9 @@ describe("PresentationMode", () => {
     });
 
     const dialog = container.querySelector("dialog");
-    expect(dialog?.getAttribute("aria-label")).toBe("Mode RDV parents, Marie");
+    expect(dialog?.getAttribute("aria-label")).toBe(
+      "Mode RDV parents, DUPONT Marie"
+    );
   });
 
   it("navigates back to the dossier when Escape is pressed", () => {

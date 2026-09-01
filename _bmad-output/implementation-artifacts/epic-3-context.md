@@ -21,7 +21,7 @@ Enable teachers to run the core CHAMPIONS dictation workflow on laptop: create d
 - Class grid shows only active, leveled, non-archived students. Rows = students, columns = nine fixed CHAMPIONS categories (C–S). Each cell accepts non-negative integers.
 - Keyboard-first entry: Tab/Shift+Tab row-major navigation (C→S, then next student), arrow keys between cells, digit keys 0–9 direct entry, Enter to save when not editing a cell.
 - Column headers reveal full category name and definition on hover/tap.
-- Save blocked when any row has Σ category errors > word total for that student's level, or any single category count > word total. Inline destructive border and message « Σ erreurs ({N}) > total mots ({M}) pour {prénom} » on offending rows; Enregistrer disabled until valid.
+- Save blocked when any row has Σ category errors > word total for that student's level, or any single category count > word total. Inline destructive border and message « Σ erreurs ({N}) > total mots ({M}) pour {displayName} » on offending rows; Enregistrer disabled until valid.
 - On save: one DictationEntry per leveled student with nine error counts; global % = `(totalWords − min(Σerrors, totalWords)) / totalWords × 100`, clamped [0, 100]. No per-category percentages anywhere.
 - Per-student snapshots persist `levelAtSave`, `wordDenominator`, `globalPercent`, and nine error counts. Subsequent level changes must not retroactively alter stored snapshots.
 - Past dictation edits recalculate using the original snapshot level and denominator, then re-run promotion detection forward from the edited dictation.
@@ -48,7 +48,7 @@ Enable teachers to run the core CHAMPIONS dictation workflow on laptop: create d
 - **Keyboard flow:** Tab row-major through cells; digits enter values directly; Enter saves grid when focus is not in cell edit mode.
 - **Promotion indicators:** Non-interactive ⬆️ at row start (D3); circular promotion-ready blue **+** at row end (D3+) opening Valider/Refuser dialog — same behavior as dossier banner (D1).
 - **Save states:** Enregistrer shows spinner during save; grid cells locked optimistically. Success toast « Dictée enregistrée. »; failure toast « Enregistrement impossible. Réessayez. » with data retained.
-- **Accessibility:** Grid cell `aria-label` = « {prénom}, {catégorie}, {valeur} erreurs »; tab order matches row-major visual order.
+- **Accessibility:** Grid cell `aria-label` = « {displayName}, {catégorie}, {valeur} erreurs »; tab order matches row-major visual order. `{displayName}` is the stored student name as-is (trim only on input — no first/last-name split).
 - **Theme:** Mint primary for Enregistrer/Valider; promotion-ready blue `#2563EB` for D3/D3+; no orange anywhere.
 
 ## Cross-Story Dependencies

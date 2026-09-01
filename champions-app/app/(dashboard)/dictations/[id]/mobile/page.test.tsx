@@ -154,6 +154,28 @@ describe("MobileDictationPage", () => {
     expect(html).toContain("Aucun élève actif.");
   });
 
+  it("shows the leveled-only subtitle when active students exist but none are leveled", async () => {
+    mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+    mockListActiveStudents.mockResolvedValueOnce([
+      {
+        id: "770e8400-e29b-41d4-a716-446655440008",
+        displayName: "PETIT Lucas",
+        level: null,
+      },
+    ]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+
+    const page = await MobileDictationPage({
+      params: Promise.resolve({ id: dictationId }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain("Aucun élève nivelé pour saisir.");
+    expect(html).not.toContain("Tous les élèves sont saisis");
+    expect(html).toContain("PETIT Lucas");
+    expect(html).toContain("niveau requis");
+  });
+
   it("ignores archived entries when deriving saisi state", async () => {
     mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
       {

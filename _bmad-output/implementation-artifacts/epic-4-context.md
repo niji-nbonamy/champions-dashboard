@@ -28,7 +28,7 @@ Give teachers a complete view of each student's dictation journey and level prog
 - Promotion detection after each dictation save: yellow→green and green→violet require 2 consecutive dictations with global % > 90%; violet→gold requires 2 consecutive > 95%; gold never surfaces readiness. No automatic level change — only a PendingPromotion record.
 - At most one pending promotion per student across all surfaces; first validate/refuse wins (idempotent).
 - Alertes tab lists students with pending promotions, badge « N élèves prêts »; row tap opens Valider/Refuser dialog matching D1.
-- Presentation mode (C3): full-screen, no app chrome; dominant global curve; three factual highlights (last dictation %, trend delta, current level badge) in monospace `data-lg`; trend = most recent % minus previous %, « — » when fewer than 2 dictations; per-category errors on demand via collapsed toggle; CHAMPIONS wordmark bottom-right (44px height, opacity 0.85, 24px margin); focus trapped; Esc or « Fermer » exits; screen reader « Mode RDV parents, {prénom} ».
+- Presentation mode (C3): full-screen, no app chrome; dominant global curve; three factual highlights (last dictation %, trend delta, current level badge) in monospace `data-lg`; trend = most recent % minus previous %, « — » when fewer than 2 dictations; per-category errors on demand via collapsed toggle; CHAMPIONS wordmark bottom-right (44px height, opacity 0.85, 24px margin); focus trapped; Esc or « Fermer » exits; screen reader « Mode RDV parents, {displayName} ».
 - No school grade (CE2, CM1, etc.) anywhere. French factual microcopy. WCAG 2.2 AA target. Laptop-first (≥1024px).
 
 ## Technical Decisions

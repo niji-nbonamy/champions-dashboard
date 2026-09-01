@@ -51,9 +51,9 @@ export function validateGridRow(
 }
 
 export function formatGridRowValidationMessage(
-  firstName: string,
+  displayName: string,
   sumErrors: number,
   wordTotal: number
 ): string {
-  return `Σ erreurs (${sumErrors}) > total mots (${wordTotal}) pour ${firstName}`;
+  return `Σ erreurs (${sumErrors}) > total mots (${wordTotal}) pour ${displayName}`;
 }

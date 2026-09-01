@@ -97,8 +97,8 @@ describe("validateGridRow", () => {
 
 describe("formatGridRowValidationMessage", () => {
   it("formats the French inline validation message", () => {
-    expect(formatGridRowValidationMessage("Marie", 12, 10)).toBe(
-      "Σ erreurs (12) > total mots (10) pour Marie"
+    expect(formatGridRowValidationMessage("DUPONT Marie", 12, 10)).toBe(
+      "Σ erreurs (12) > total mots (10) pour DUPONT Marie"
     );
   });
 });

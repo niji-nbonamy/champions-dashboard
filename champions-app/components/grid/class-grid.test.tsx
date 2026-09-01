@@ -161,13 +161,13 @@ describe("ClassGrid", () => {
 
     const inputs = getCellInputs();
     expect(inputs[0]?.getAttribute("aria-label")).toContain(
-      "Marie, Conjugaison, 0 erreurs"
+      "DUPONT Marie, Conjugaison, 0 erreurs"
     );
     expect(inputs[1]?.getAttribute("aria-label")).toContain(
       "Marie, Homophones, 0 erreurs"
     );
     expect(inputs[9]?.getAttribute("aria-label")).toContain(
-      "Paul, Conjugaison, 0 erreurs"
+      "MARTIN Paul, Conjugaison, 0 erreurs"
     );
   });
 
@@ -216,7 +216,7 @@ describe("ClassGrid", () => {
 
     expect(firstInput?.value).toBe("3");
     expect(firstInput?.getAttribute("aria-label")).toBe(
-      "Marie, Conjugaison, 3 erreurs"
+      "DUPONT Marie, Conjugaison, 3 erreurs"
     );
   });
 
@@ -240,7 +240,7 @@ describe("ClassGrid", () => {
 
     expect(firstInput?.value).toBe("3");
     expect(firstInput?.getAttribute("aria-label")).toBe(
-      "Marie, Conjugaison, 3 erreurs"
+      "DUPONT Marie, Conjugaison, 3 erreurs"
     );
   });
 
@@ -259,7 +259,7 @@ describe("ClassGrid", () => {
 
     expect(firstInput?.value).toBe("123");
     expect(firstInput?.getAttribute("aria-label")).toBe(
-      "Marie, Conjugaison, 123 erreurs"
+      "DUPONT Marie, Conjugaison, 123 erreurs"
     );
   });
 
@@ -564,7 +564,7 @@ describe("ClassGrid", () => {
     });
 
     expect(container.textContent).toContain(
-      "Σ erreurs (6) > total mots (5) pour Marie"
+      "Σ erreurs (6) > total mots (5) pour DUPONT Marie"
     );
     expect(getSaveButton()?.disabled).toBe(true);
     expect(firstInput?.className).toContain("border-destructive");
@@ -574,7 +574,7 @@ describe("ClassGrid", () => {
         expect(input.className).toContain("border-destructive");
       });
     expect(container.querySelector('[role="alert"]')?.textContent).toContain(
-      "Σ erreurs (6) > total mots (5) pour Marie"
+      "Σ erreurs (6) > total mots (5) pour DUPONT Marie"
     );
   });
 
@@ -591,7 +591,7 @@ describe("ClassGrid", () => {
     });
 
     expect(container.textContent).toContain(
-      "Σ erreurs (6) > total mots (5) pour Paul"
+      "Σ erreurs (6) > total mots (5) pour MARTIN Paul"
     );
     expect(getSaveButton()?.disabled).toBe(true);
   });
@@ -608,7 +608,7 @@ describe("ClassGrid", () => {
     });
 
     expect(container.textContent).toContain(
-      "Σ erreurs (6) > total mots (5) pour Marie"
+      "Σ erreurs (6) > total mots (5) pour DUPONT Marie"
     );
     expect(getSaveButton()?.disabled).toBe(true);
   });
@@ -752,7 +752,7 @@ describe("ClassGrid", () => {
     const firstInput = getCellInputs()[0];
     expect(firstInput?.value).toBe("3");
     expect(firstInput?.getAttribute("aria-label")).toBe(
-      "Marie, Conjugaison, 3 erreurs"
+      "DUPONT Marie, Conjugaison, 3 erreurs"
     );
   });
 
@@ -780,7 +780,7 @@ describe("ClassGrid", () => {
     });
 
     expect(container.textContent).toContain(
-      "Σ erreurs (11) > total mots (10) pour Marie"
+      "Σ erreurs (11) > total mots (10) pour DUPONT Marie"
     );
     expect(getSaveButton()?.disabled).toBe(true);
   });
@@ -886,7 +886,7 @@ describe("ClassGrid", () => {
     expect(container.textContent).not.toContain("⬆️");
     expect(
       container.querySelector(
-        'button[aria-label="Ouvrir la promotion pour Marie"]'
+        'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
       )
     ).not.toBeNull();
   });
@@ -902,7 +902,7 @@ describe("ClassGrid", () => {
     expect(container.textContent).not.toContain("⬆️");
     expect(
       container.querySelector(
-        'button[aria-label="Ouvrir la promotion pour Marie"]'
+        'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
       )
     ).toBeNull();
   });
@@ -915,7 +915,7 @@ describe("ClassGrid", () => {
     });
 
     const plusButton = container.querySelector(
-      'button[aria-label="Ouvrir la promotion pour Marie"]'
+      'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
     );
 
     await act(async () => {
@@ -941,7 +941,7 @@ describe("ClassGrid", () => {
     });
 
     const plusButton = container.querySelector(
-      'button[aria-label="Ouvrir la promotion pour Marie"]'
+      'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
     );
 
     await act(async () => {
@@ -976,7 +976,7 @@ describe("ClassGrid", () => {
     });
 
     const plusButton = container.querySelector(
-      'button[aria-label="Ouvrir la promotion pour Marie"]'
+      'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
     );
 
     await act(async () => {
@@ -1011,7 +1011,7 @@ describe("ClassGrid", () => {
     });
 
     const plusButton = container.querySelector(
-      'button[aria-label="Ouvrir la promotion pour Marie"]'
+      'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
     );
 
     await act(async () => {
@@ -1047,7 +1047,7 @@ describe("ClassGrid", () => {
     });
 
     const plusButton = container.querySelector(
-      'button[aria-label="Ouvrir la promotion pour Marie"]'
+      'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
     );
 
     await act(async () => {
@@ -1090,7 +1090,7 @@ describe("ClassGrid", () => {
     });
 
     const plusButton = container.querySelector(
-      'button[aria-label="Ouvrir la promotion pour Marie"]'
+      'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
     );
 
     await act(async () => {

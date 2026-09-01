@@ -70,7 +70,7 @@ context:
 - `champions-app/lib/domain/grid-validation.ts` -- **REUSE** `validateGridRow`, `formatGridRowValidationMessage` L22–59.
 - `champions-app/lib/domain/word-count-matrix.ts` -- **REUSE** `getWordCountForLevel` L58–72 for new entries.
 - `champions-app/lib/domain/dictation.ts` -- **REUSE** `findMatchingMatrixRow` L108–118.
-- `champions-app/lib/domain/student-display-name.ts` -- **REUSE** `getStudentFirstName` L51–60 for row labels.
+- `champions-app/lib/domain/student-display-name.ts` -- **READ** full `displayName` in mobile validation messages and field aria-labels (no name split).
 - `champions-app/components/grid/grid-cell.tsx` -- **READ** L33–45 `parseNonNegativeInteger` pattern for numeric parsing in mobile field.
 - `champions-app/app/(dashboard)/students/roster-list.tsx` -- **READ** L73–79 row layout pattern for large touch list rows.
 - `champions-app/components/ui/level-badge.tsx` -- **REUSE** level color dot in picker rows.
@@ -185,4 +185,8 @@ Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or ex
 - [x] [Review][Defer] Mises à jour concurrentes last-write-wins — même pattern que `saveDictation` batch [`dictation-save.ts:410`] — deferred, pre-existing
 - [x] [Review][Defer] Brouillon perdu sans confirmation sur navigation prev/next — hors spec MVP [`mobile-per-student-form.tsx:135`] — deferred, pre-existing
 - [x] [Review][Defer] `saveDictationAction` sans tests action dédiés — trou pré-existant [`actions.test.ts`] — deferred, pre-existing
+
+## Spec Change Log
+
+- Post-delivery (2026-09-01): Mobile B4 validation and field aria-labels use full `displayName`; `getStudentFirstName` removed (picker already used full name per decision 1B).
 - [x] [Review][Defer] Incohérence statut spec `done` vs sprint `review` — hygiène artefact [`spec-5-2-*.md`, `sprint-status.yaml`] — deferred, pre-existing

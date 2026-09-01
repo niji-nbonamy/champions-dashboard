@@ -49,19 +49,8 @@ export function formatStudentDuplicateError(existingName: string): string {
 }
 
 export function formatUnleveledMobileBlockMessage(displayName: string): string {
-  const firstName = getStudentFirstName(displayName);
-  return `Niveau requis pour ${firstName}. Assignez le niveau depuis un ordinateur.`;
-}
-
-export function getStudentFirstName(displayName: string): string {
-  const trimmed = normalizeDisplayName(displayName);
-  const lastSpaceIndex = trimmed.lastIndexOf(" ");
-
-  if (lastSpaceIndex === -1) {
-    return trimmed;
-  }
-
-  return trimmed.slice(lastSpaceIndex + 1);
+  const name = normalizeDisplayName(displayName);
+  return `Niveau requis pour ${name}. Assignez le niveau depuis un ordinateur.`;
 }
 
 export function validateDisplayName(

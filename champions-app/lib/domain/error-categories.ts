@@ -104,11 +104,11 @@ export function getChampionsErrorCategory(
 }
 
 export function formatGridCellAriaLabel(
-  firstName: string,
+  displayName: string,
   categoryName: string,
   value: number
 ): string {
-  return `${firstName}, ${categoryName}, ${value} erreurs`;
+  return `${displayName}, ${categoryName}, ${value} erreurs`;
 }
 
 export type DictationEntryErrorColumns = {

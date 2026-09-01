@@ -173,11 +173,61 @@ describe("MobileStudentEntryPage", () => {
     const html = renderToStaticMarkup(page);
 
     expect(html).toContain(
-      "Niveau requis pour Marie. Assignez le niveau depuis un ordinateur."
+      "Niveau requis pour DUPONT Marie. Assignez le niveau depuis un ordinateur."
     );
     expect(html).toContain('role="alert"');
+    expect(html).toContain("Retour à la liste");
     expect(html).not.toContain("Enregistrer");
+    expect(html).not.toContain('inputmode="numeric"');
+    expect(html).not.toContain("Conjugaison");
     expect(html).not.toContain('href="/students"');
+  });
+
+  it("limits prev/next navigation to leveled students only", async () => {
+    const firstLeveledId = "770e8400-e29b-41d4-a716-446655440002";
+    const middleLeveledId = "770e8400-e29b-41d4-a716-446655440004";
+    const thirdLeveledId = "770e8400-e29b-41d4-a716-446655440006";
+    const unleveledId = "770e8400-e29b-41d4-a716-446655440008";
+
+    mockGetClassStudent.mockResolvedValueOnce({
+      id: middleLeveledId,
+      displayName: "MARTIN Paul",
+      level: "green",
+      archived: false,
+    });
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      {
+        id: firstLeveledId,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+      {
+        id: middleLeveledId,
+        displayName: "MARTIN Paul",
+        level: "green",
+      },
+      {
+        id: thirdLeveledId,
+        displayName: "BERNARD Eve",
+        level: "violet",
+      },
+    ]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+
+    const page = await MobileStudentEntryPage({
+      params: Promise.resolve({ id: dictationId, studentId: middleLeveledId }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain(
+      `href="/dictations/${dictationId}/mobile/${firstLeveledId}"`
+    );
+    expect(html).toContain(
+      `href="/dictations/${dictationId}/mobile/${thirdLeveledId}"`
+    );
+    expect(html).not.toContain(
+      `href="/dictations/${dictationId}/mobile/${unleveledId}"`
+    );
   });
 
   it("renders the per-student form with pre-filled counts", async () => {
@@ -187,7 +237,7 @@ describe("MobileStudentEntryPage", () => {
     const html = renderToStaticMarkup(page);
 
     expect(html).toContain("DUPONT Marie");
-    expect(html).toContain("Marie, Conjugaison, 2 erreurs");
+    expect(html).toContain("DUPONT Marie, Conjugaison, 2 erreurs");
     expect(html).toContain("Enregistrer");
     expect(html).toContain("Retour à la liste");
   });

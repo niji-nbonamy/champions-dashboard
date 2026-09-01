@@ -12,7 +12,7 @@ type GridCellProps = {
   studentId: string;
   categoryLetter: ChampionsErrorCategoryLetter;
   categoryName: string;
-  firstName: string;
+  displayName: string;
   value: number;
   inputRef?: Ref<HTMLInputElement>;
   onValueChange: (studentId: string, letter: ChampionsErrorCategoryLetter, value: number) => void;
@@ -48,7 +48,7 @@ export function GridCell({
   studentId,
   categoryLetter,
   categoryName,
-  firstName,
+  displayName,
   value,
   inputRef,
   onValueChange,
@@ -123,7 +123,7 @@ export function GridCell({
         pattern="[0-9]*"
         value={String(value)}
         disabled={disabled}
-        aria-label={formatGridCellAriaLabel(firstName, categoryName, value)}
+        aria-label={formatGridCellAriaLabel(displayName, categoryName, value)}
         aria-invalid={hasValidationError ? true : undefined}
         onChange={handleChange}
         onFocus={handleFocus}

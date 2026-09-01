@@ -25,7 +25,7 @@ context:
 - Auth + class scope unchanged (NFR1). All promotion mutations re-verify student belongs to teacher's class and has an active pending row.
 - Indicators driven by `pending_promotions` row for that student — same source of truth as D1/D2 (FR30, level-system.md). No client-side promotion eligibility preview before save.
 - **D3 ⬆️:** non-interactive, `aria-hidden="true"`, promotion-ready blue `#2563EB`, at row start before student name (FR18).
-- **D3+ +:** circular promotion-ready blue button at row end after column S; `aria-label` includes student first name; opens dialog without leaving grid (FR19, UX-DR9).
+- **D3+ +:** circular promotion-ready blue button at row end after column S; `aria-label` includes full student `displayName`; opens dialog without leaving grid (FR19, UX-DR9).
 - **Dialog:** native `<dialog>` pattern (like `create-dictation-dialog.tsx`); title « Prêt à monter → {niveau} » using `getChampionsLevelFrenchLabel(targetLevel)`; mint **Valider** / outline **Refuser**; `Esc` closes (UX-DR7/8).
 - **Validate:** tx updates `students.level` to `targetLevel`, inserts `level_history_entries` (`action: "promoted"`, `level: targetLevel`), deletes pending row. Idempotent if pending already cleared.
 - **Refuse:** tx inserts `level_history_entries` (`action: "refused"`, `level: targetLevel`), deletes pending; student level unchanged; streak resets implicitly (no re-insert until save re-qualifies).
@@ -122,6 +122,7 @@ Post-save refresh in `handleSave` is required so a qualifying save immediately s
 - [x] [Review][Patch] Guard concurrent save during promotion — `isPromotionPending` blocks save [`class-grid.tsx:268`](../../champions-app/components/grid/class-grid.tsx#L268)
 - [x] [Review][Patch] sr-only text for ⬆️ indicator — screen reader support [`class-grid.tsx:456`](../../champions-app/components/grid/class-grid.tsx#L456)
 - [x] [Review][Patch] Fix + button aria-label — opens dialog, not immediate validate [`class-grid.tsx:508`](../../champions-app/components/grid/class-grid.tsx#L508)
+- Post-delivery (2026-09-01): D3+ `aria-label` uses full `displayName` (see spec-3-2 change log); `getStudentFirstName` removed.
 - [x] [Review][Defer] Streak reset on refuse relies on re-evaluation on next save — same two qualifying entries may re-pending until new dictations qualify
 - [x] [Review][Patch] Block Enregistrer while promotion dialog is open — disable save and Enter when `promotionDialogStudentId !== null` (resolved: block save while dialog open) [`class-grid.tsx:277`](../../champions-app/components/grid/class-grid.tsx#L277)
 - [x] [Review][Defer] Add + button to keyboard Tab order — `isLastCell` ends at column S; D3+ **+** is click-only (resolved: out of MVP scope for story 3-6; defer to accessibility story) [`class-grid.tsx:515`](../../champions-app/components/grid/class-grid.tsx#L515)

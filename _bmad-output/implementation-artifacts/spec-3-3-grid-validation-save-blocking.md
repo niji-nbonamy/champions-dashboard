@@ -24,7 +24,7 @@ context:
 - Auth + class scope on `/dictations/[id]` unchanged (NFR1).
 - Word totals come from `word_count_matrix_rows` matched to `dictation.dictationLabelKey` via `findMatchingMatrixRow` + `getWordCountForLevel(row, student.level)` — same normalization as dictation create (FR13).
 - Validation rules (pure domain, reusable by 3.4 server): row invalid when `Σ category errors > wordTotal` **or** any single category count `> wordTotal` (FR17).
-- Invalid row: all nine cells show destructive border on inputs (`border-destructive` / `ring-destructive` per UX-DR10); inline `role="alert"` message « Σ erreurs ({N}) > total mots ({M}) pour {prénom} » where N = Σ errors, M = word total, prénom from `getStudentFirstName` (UX-DR24).
+- Invalid row: all nine cells show destructive border on inputs (`border-destructive` / `ring-destructive` per UX-DR10); inline `role="alert"` message « Σ erreurs ({N}) > total mots ({M}) pour {displayName} » where N = Σ errors, M = word total, `{displayName}` = stored student name (UX-DR24).
 - **Enregistrer** button visible below grid when students exist; `disabled` when any row invalid; enabled when all rows valid (FR17). No `onClick` save handler, Server Action, or Enter-to-save yet (3.4).
 - Recompute validation on every cell change (client state). Default all-zero rows are always valid.
 - French microcopy; do not log student names in server logs (NFR10).
@@ -81,12 +81,14 @@ context:
 - [x] `champions-app/app/(dashboard)/dictations/[id]/page.test.tsx` -- Page integration tests -- server props.
 
 **Acceptance Criteria:**
-- Given I edit the class grid, when any student row has Σ category errors > their word total for this dictation, then offending cells show a destructive border, an inline message « Σ erreurs ({N}) > total mots ({M}) pour {prénom} », and Enregistrer is disabled (FR17, UX-DR24).
+- Given I edit the class grid, when any student row has Σ category errors > their word total for this dictation, then offending cells show a destructive border, an inline message « Σ erreurs ({N}) > total mots ({M}) pour {displayName} », and Enregistrer is disabled (FR17, UX-DR24).
 - Given I edit the class grid, when any single category error count > word total for that student, then save is blocked with the same visual treatment and Enregistrer disabled (FR17).
 - Given all grid rows are valid, when I inspect the grid, then Enregistrer is enabled (but does not persist until story 3.4).
 - Given word totals per student, when validation runs, then denominators match the matrix row for this dictation label × each student's current level (FR13).
 
 ## Spec Change Log
+
+- Post-delivery (2026-09-01): Validation messages use full `displayName`; `getStudentFirstName` removed. Frozen intent line 27 superseded by this entry.
 
 ## Design Notes
 

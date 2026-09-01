@@ -18,7 +18,6 @@ import {
   validateGridRow,
   type CategoryErrorCounts,
 } from "@/lib/domain/grid-validation";
-import { getStudentFirstName } from "@/lib/domain/student-display-name";
 import { cn } from "@/lib/utils";
 
 type MobilePerStudentFormProps = {
@@ -110,7 +109,6 @@ export function MobilePerStudentForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const firstName = getStudentFirstName(displayName);
   const validation = useMemo(
     () => validateGridRow(counts, wordDenominator),
     [counts, wordDenominator]
@@ -169,7 +167,7 @@ export function MobilePerStudentForm({
   const validationMessage = validation.valid
     ? null
     : formatGridRowValidationMessage(
-        firstName,
+        displayName,
         validation.sumErrors,
         validation.wordTotal
       );
@@ -200,7 +198,7 @@ export function MobilePerStudentForm({
             key={category.letter}
             categoryLetter={category.letter}
             categoryName={category.name}
-            firstName={firstName}
+            displayName={displayName}
             value={counts[category.letter]}
             onChange={handleValueChange}
             hasValidationError={!validation.valid}

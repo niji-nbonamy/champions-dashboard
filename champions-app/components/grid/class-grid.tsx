@@ -27,7 +27,6 @@ import {
   formatGridRowValidationMessage,
   validateGridRow,
 } from "@/lib/domain/grid-validation";
-import { getStudentFirstName } from "@/lib/domain/student-display-name";
 import type { LeveledActiveStudent } from "@/lib/services/list-leveled-active-students";
 import type { PendingPromotionByStudent } from "@/lib/services/list-pending-promotions";
 
@@ -95,7 +94,6 @@ export function ClassGrid({
     () =>
       students.map((student) => ({
         ...student,
-        firstName: getStudentFirstName(student.displayName),
         level: parseChampionsLevel(student.level),
       })),
     [students]
@@ -135,7 +133,7 @@ export function ClassGrid({
         message: result.valid
           ? undefined
           : formatGridRowValidationMessage(
-              student.firstName,
+              student.displayName,
               result.sumErrors,
               result.wordTotal
             ),
@@ -406,7 +404,7 @@ export function ClassGrid({
                       studentId={student.id}
                       categoryLetter={category.letter}
                       categoryName={category.name}
-                      firstName={student.firstName}
+                      displayName={student.displayName}
                       value={counts[student.id]?.[category.letter] ?? 0}
                       studentIndex={studentIndex}
                       categoryIndex={categoryIndex}
@@ -432,7 +430,7 @@ export function ClassGrid({
                   <td className="px-2 py-2 text-center">
                     <GridPromotionCell
                       studentId={student.id}
-                      firstName={student.firstName}
+                      displayName={student.displayName}
                       pendingPromotion={pendingPromotion}
                       isReadOnlyRow={isReadOnlyRow}
                       disabled={isPending || isPromotionPending}

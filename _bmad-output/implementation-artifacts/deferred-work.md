@@ -1,5 +1,12 @@
 # Deferred Work
 
+## Deferred from: code review of spec-5-3-unleveled-student-block-on-mobile.md (2026-09-01)
+
+- Unnecessary DB fetches (`listLeveledActiveStudents`, entries, matrix) before unleveled early return — optimization only; functional path correct (`page.tsx:67`)
+- Duplicate non-archived entries for same leveled student can skew `remainingCount` — pre-existing from 5.2, not introduced by dual-query picker (`page.tsx:57`)
+- Spec 5-2 still documents unleveled picker exclusion — cross-story doc sync needed (`spec-5-2-mobile-per-student-entry-form-b4.md`)
+- Hub vs picker microcopy divergence for zero-leveled state — hub unchanged in 5-3 (`mobile-dictation-hub.tsx`)
+
 ## Deferred from: code review of spec-5-2-mobile-per-student-entry-form-b4.md (2026-08-31)
 
 - Mises à jour concurrentes last-write-wins sur `saveDictationStudentEntry` — même pattern que `saveDictation` batch ; acceptable MVP (AD-9 stale counts)

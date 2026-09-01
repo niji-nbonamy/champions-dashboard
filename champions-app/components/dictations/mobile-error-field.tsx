@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 type MobileErrorFieldProps = {
   categoryLetter: ChampionsErrorCategoryLetter;
   categoryName: string;
-  firstName: string;
+  displayName: string;
   value: number;
   onChange: (letter: ChampionsErrorCategoryLetter, value: number) => void;
   hasValidationError?: boolean;
@@ -36,7 +36,7 @@ function parseNonNegativeInteger(rawValue: string): number | null {
 export function MobileErrorField({
   categoryLetter,
   categoryName,
-  firstName,
+  displayName,
   value,
   onChange,
   hasValidationError = false,
@@ -99,7 +99,7 @@ export function MobileErrorField({
     setShowManualInput(false);
   }
 
-  const ariaLabel = formatGridCellAriaLabel(firstName, categoryName, value);
+  const ariaLabel = formatGridCellAriaLabel(displayName, categoryName, value);
 
   return (
     <div className="flex flex-col gap-1">

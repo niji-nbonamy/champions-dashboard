@@ -10,7 +10,6 @@ import { PresentationHighlights } from "@/components/dossier/presentation-highli
 import { PresentationBrandLogo } from "@/components/dashboard/presentation-brand-logo";
 import { Button } from "@/components/ui/button";
 import { toCurvePoints } from "@/lib/domain/dossier-curve";
-import { getStudentFirstName } from "@/lib/domain/student-display-name";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 
@@ -29,8 +28,7 @@ export function PresentationMode({
 }: PresentationModeProps) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const firstName = getStudentFirstName(displayName);
-  const ariaLabel = `Mode RDV parents, ${firstName}`;
+  const ariaLabel = `Mode RDV parents, ${displayName}`;
   const hasHistory = history.length > 0;
   const curvePoints = toCurvePoints(history);
 

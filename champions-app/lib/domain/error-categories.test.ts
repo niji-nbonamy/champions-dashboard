@@ -41,8 +41,8 @@ describe("CHAMPIONS_ERROR_CATEGORIES", () => {
 
 describe("formatGridCellAriaLabel", () => {
   it("formats the accessibility label for a grid cell", () => {
-    expect(formatGridCellAriaLabel("Marie", "Conjugaison", 3)).toBe(
-      "Marie, Conjugaison, 3 erreurs"
+    expect(formatGridCellAriaLabel("DUPONT Marie", "Conjugaison", 3)).toBe(
+      "DUPONT Marie, Conjugaison, 3 erreurs"
     );
   });
 });

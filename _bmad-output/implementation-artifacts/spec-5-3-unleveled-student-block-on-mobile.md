@@ -16,7 +16,7 @@ context:
 
 **Problem:** Story 5.2 excludes unleveled students from the mobile picker via `listLeveledActiveStudents`, so teachers never see why a roster member cannot be captured on phone. FR39 requires visible selection with an explicit block message directing them to assign a level on laptop/tablet (E1 on G1 Élèves tab).
 
-**Approach:** List all active students in the mobile picker; when an unleveled student is selected, render a blocking alert with the exact FR39 microcopy (first name via `getStudentFirstName`) instead of the B4 form. Keep completion counts and server save guards scoped to leveled students only.
+**Approach:** List all active students in the mobile picker; when an unleveled student is selected, render a blocking alert with the exact FR39 microcopy (full `displayName`, trimmed only) instead of the B4 form. Keep completion counts and server save guards scoped to leveled students only.
 
 ## Boundaries & Constraints
 
@@ -24,7 +24,7 @@ context:
 - Mobile-only surfaces (`<768px`); laptop grid, G1 tabs, and E1 picker unchanged.
 - Picker shows **all** active non-archived students via `listActiveStudents`; « saisi », `remainingCount`, and hub completion stay based on **leveled** students only (`listLeveledActiveStudents` + existing entry filter in `mobile/page.tsx` L49–55).
 - Unleveled picker rows: neutral stripe (`bg-border`), `RequiredLevelBadge`, link to form route preserved (selection triggers block, not exclusion).
-- Block message exact copy: `Niveau requis pour {prénom}. Assignez le niveau depuis un ordinateur.` where `{prénom}` = `getStudentFirstName(displayName)` (FR39).
+- Block message exact copy: `Niveau requis pour {displayName}. Assignez le niveau depuis un ordinateur.` where `{displayName}` is the stored student name, normalized with trim only (FR39).
 - Block UI: `role="alert"`, destructive/warning styling consistent with matrix-missing block (`[studentId]/page.tsx` L104–117 pattern); « Retour à la liste » link only — **no** link to `/students` or level picker.
 - Form route resolves student via `getClassStudent(classId, studentId)` (or equivalent active lookup); archived/unknown → `notFound()`. Unleveled → block view, **not** `notFound()`.
 - Prev/next on B4 form stays on leveled roster order only (`listLeveledActiveStudents` sort).
@@ -50,7 +50,7 @@ context:
 | Select unleveled | Student `level: null`, valid dictation | Block alert with FR39 message; no numeric fields; no Enregistrer | N/A |
 | Direct URL unleveled | `/mobile/{unleveledId}` | Same block view (not 404) | Archived/missing student → `notFound()` |
 | Save attempt unleveled | POST via action for unleveled id | No DB write; generic or FR39-aligned error | `InvalidGridSaveError` at L377–380 |
-| All unleveled class | Zero leveled students | Hub hides Saisir (existing); picker empty-state for leveled capture unchanged | N/A |
+| All unleveled class | Zero leveled, 1+ active unleveled | Hub hides Saisir (existing); picker lists unleveled rows with `RequiredLevelBadge`; subtitle « Aucun élève nivelé pour saisir. » | N/A |
 | Leveled student | Normal B4 flow | Unchanged — form renders, save works | N/A |
 
 </frozen-after-approval>
@@ -60,7 +60,7 @@ context:
 - `champions-app/lib/services/list-active-students.ts` -- **REUSE** L12–29 all active students with `level: string | null`; same `fr` sort as leveled list.
 - `champions-app/lib/services/list-leveled-active-students.ts` -- **REUSE** L13–41 completion denominator, prev/next order, save guard roster.
 - `champions-app/lib/services/get-class-student.ts` -- **REUSE** L13–35 single-student lookup with `level: null` for form route resolution.
-- `champions-app/lib/domain/student-display-name.ts` -- **EXTEND** add `formatUnleveledMobileBlockMessage(displayName)` using `getStudentFirstName` L51–60 for FR39 string.
+- `champions-app/lib/domain/student-display-name.ts` -- **EXTEND** add `formatUnleveledMobileBlockMessage(displayName)` using `normalizeDisplayName` for FR39 string (full name, no split).
 - `champions-app/lib/domain/student-display-name.test.ts` -- **EXTEND** message formatting cases (single name, compound display name).
 - `champions-app/components/ui/required-level-badge.tsx` -- **REUSE** L7–16 « niveau requis » badge in picker rows (same as roster-list L110–120).
 - `champions-app/app/(dashboard)/dictations/[id]/mobile/page.tsx` -- **MODIFY** L44–46 fetch `listActiveStudents` for display + keep leveled query for `enteredStudentIds`/`remainingCount` (L49–55 pattern).
@@ -76,13 +76,13 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [x] `champions-app/lib/domain/student-display-name.ts` + test -- `formatUnleveledMobileBlockMessage` -- centralizes exact FR39 copy with first-name extraction.
+- [x] `champions-app/lib/domain/student-display-name.ts` + test -- `formatUnleveledMobileBlockMessage` -- centralizes exact FR39 copy with full `displayName`.
 - [x] `champions-app/app/(dashboard)/dictations/[id]/mobile/page.tsx` + test -- dual-query picker data -- show all active students while preserving leveled completion math.
 - [x] `champions-app/components/dictations/mobile-student-picker.tsx` + test -- unleveled row affordances -- visible in list with badge, still navigable to block screen.
 - [x] `champions-app/app/(dashboard)/dictations/[id]/mobile/[studentId]/page.tsx` + test -- unleveled block view -- FR39 alert instead of B4 form; leveled path unchanged.
 
 **Acceptance Criteria:**
-- Given I select a student without an assigned color level on mobile, when I attempt to enter dictation errors, then entry is blocked with « Niveau requis pour {prénom}. Assignez le niveau depuis un ordinateur. » (FR39).
+- Given I select a student without an assigned color level on mobile, when I attempt to enter dictation errors, then entry is blocked with « Niveau requis pour {displayName}. Assignez le niveau depuis un ordinateur. » (FR39).
 - Given an unleveled student is blocked on mobile, when any save is attempted, then no DictationEntry is created until a level is assigned on laptop Élèves tab (E1).
 - Given I am on mobile below 768px, when I need to assign a level, then there is no navigation path to level assignment — laptop/tablet G1 required.
 
@@ -98,27 +98,29 @@ context:
 ## Spec Change Log
 
 - Review loop 1: Picker subtitle showed « Tous les élèves sont saisis » when `leveledStudentCount === 0`; added `leveledStudentCount` prop and « Aucun élève nivelé pour saisir. » copy.
+- Post-delivery (2026-09-01): All student-facing microcopy uses full `displayName` (trim only); removed `getStudentFirstName` project-wide. FR39 block message and this spec updated accordingly.
+- Code review (2026-09-01): Added page integration tests (all-unleveled subtitle, leveled-only prev/next), extended FR39 block test assertions, updated I/O matrix and review-order anchors.
 
 ## Suggested Review Order
 
 **Unleveled block (FR39)**
 
 - Early return renders exact FR39 alert instead of B4 form.
-  [`page.tsx:79`](../../champions-app/app/(dashboard)/dictations/[id]/mobile/[studentId]/page.tsx#L79)
+  [`page.tsx:81`](../../champions-app/app/(dashboard)/dictations/[id]/mobile/[studentId]/page.tsx#L81)
 
-- Centralizes first-name extraction into the block message string.
+- Centralizes full `displayName` (trim only) into the block message string.
   [`student-display-name.ts:51`](../../champions-app/lib/domain/student-display-name.ts#L51)
 
 **Picker visibility**
 
 - Dual query: all active students displayed, leveled-only completion math.
-  [`page.tsx:44`](../../champions-app/app/(dashboard)/dictations/[id]/mobile/page.tsx#L44)
+  [`page.tsx:45`](../../champions-app/app/(dashboard)/dictations/[id]/mobile/page.tsx#L45)
 
 - Unleveled rows show `RequiredLevelBadge` and remain navigable to block screen.
-  [`mobile-student-picker.tsx:73`](../../champions-app/components/dictations/mobile-student-picker.tsx#L73)
+  [`mobile-student-picker.tsx:77`](../../champions-app/components/dictations/mobile-student-picker.tsx#L77)
 
 - Subtitle avoids false « Tous saisis » when zero leveled students exist.
-  [`mobile-student-picker.tsx:37`](../../champions-app/components/dictations/mobile-student-picker.tsx#L37)
+  [`mobile-student-picker.tsx:42`](../../champions-app/components/dictations/mobile-student-picker.tsx#L42)
 
 **Tests**
 
@@ -126,4 +128,16 @@ context:
   [`page.test.tsx:162`](../../champions-app/app/(dashboard)/dictations/[id]/mobile/[studentId]/page.test.tsx#L162)
 
 - Message formatter unit tests lock exact FR39 copy.
-  [`student-display-name.test.ts:64`](../../champions-app/lib/domain/student-display-name.test.ts#L64)
+  [`student-display-name.test.ts:52`](../../champions-app/lib/domain/student-display-name.test.ts#L52)
+
+### Review Findings
+
+- [x] [Review][Patch] Missing page integration test for all-unleveled roster subtitle [`champions-app/app/(dashboard)/dictations/[id]/mobile/page.test.tsx`]
+- [x] [Review][Patch] Missing prev/next integration test for leveled-only `orderedStudentIds` [`champions-app/app/(dashboard)/dictations/[id]/mobile/[studentId]/page.test.tsx`]
+- [x] [Review][Patch] Extend unleveled block test: assert « Retour à la liste » and absence of B4 numeric fields [`champions-app/app/(dashboard)/dictations/[id]/mobile/[studentId]/page.test.tsx`]
+- [x] [Review][Patch] Update I/O matrix row « All unleveled class » to reflect picker showing active unleveled students with « Aucun élève nivelé pour saisir. » [`spec-5-3-unleveled-student-block-on-mobile.md`]
+- [x] [Review][Patch] Fix inaccurate Suggested Review Order line anchors (e.g. `student-display-name.test.ts#L64`, `mobile-student-picker.tsx#L37`) [`spec-5-3-unleveled-student-block-on-mobile.md`]
+- [x] [Review][Defer] Unnecessary DB fetches (`listLeveledActiveStudents`, entries, matrix) before unleveled early return [`champions-app/app/(dashboard)/dictations/[id]/mobile/[studentId]/page.tsx:67`] — deferred, pre-existing optimization opportunity
+- [x] [Review][Defer] Duplicate non-archived entries for same leveled student can skew `remainingCount` [`champions-app/app/(dashboard)/dictations/[id]/mobile/page.tsx:57`] — deferred, pre-existing from 5.2
+- [x] [Review][Defer] Spec 5-2 still documents unleveled picker exclusion — doc sync needed across stories [`spec-5-2-mobile-per-student-entry-form-b4.md`] — deferred, pre-existing
+- [x] [Review][Defer] Hub vs picker microcopy divergence for zero-leveled state (« Aucun élève nivelé actif. » vs « Aucun élève nivelé pour saisir. ») [`champions-app/components/dictations/mobile-dictation-hub.tsx`] — deferred, hub unchanged in 5-3

@@ -28,7 +28,7 @@ context:
 - Trend color: `text-trend-up` / `text-trend-down` / `text-trend-flat` for positive / negative / zero delta.
 - Per-category error counts on demand via collapsed table toggle — reuse `DictationHistoryTable` / `CategoryErrorCounts`; factual counts only, no narrative (FR36).
 - `PresentationBrandLogo` bottom-right: 44px height, opacity 0.85, 24px margin (UX-DR6) — component already exists, wire it in.
-- Focus trapped in presentation shell; Esc or « Fermer » exits back to dossier; screen reader label « Mode RDV parents, {prénom} » via `getStudentFirstName` (UX-DR16, UX-DR25).
+- Focus trapped in presentation shell; Esc or « Fermer » exits back to dossier; screen reader label « Mode RDV parents, {displayName} » using stored student name as-is (UX-DR16, UX-DR25).
 - Read persisted snapshots only — never call `calculateGlobalPercent` or promotion services in presentation mode.
 - French factual microcopy. No school grade anywhere (NFR8). No student names in server logs (NFR10). No schema changes.
 - Archived students: presentation remains viewable (read-only dossier data).
@@ -65,7 +65,7 @@ context:
 - `champions-app/app/(dashboard)/students/[id]/present/page.tsx` -- **CREATE** server page: auth/scope mirror dossier; load `getClassStudent` + `getStudentDictationHistory`; render `PresentationMode` client shell with props.
 - `champions-app/app/(dashboard)/students/[id]/present/page.test.tsx` -- **CREATE** auth redirect, notFound, data passed to presentation component.
 - `champions-app/components/dossier/presentation-mode.tsx` -- **CREATE** `"use client"` fullscreen `<dialog>` (pattern from `PromotionDialog`); focus trap via native `showModal()`; Esc/`onCancel` → `router.push` dossier; `aria-label` SR announcement; layout: curve dominant, highlights row, collapsed errors toggle, Fermer button, `PresentationBrandLogo`.
-- `champions-app/components/dossier/presentation-mode.test.tsx` -- **CREATE** open state, Esc exit, Fermer navigation, aria-label with first name, logo present.
+- `champions-app/components/dossier/presentation-mode.test.tsx` -- **CREATE** open state, Esc exit, Fermer navigation, aria-label with full `displayName`, logo present.
 - `champions-app/components/dossier/presentation-highlights.tsx` -- **CREATE** three `text-data-lg` cards: last %, trend (with color token), `LevelBadge`.
 - `champions-app/components/dossier/presentation-highlights.test.tsx` -- **CREATE** last %, trend « — » when <2 dictations, trend color mapping.
 - `champions-app/lib/domain/dossier-presentation.ts` -- **CREATE** `getLastDictationPercent(history)`, `getPresentationTrendDelta(history)` → `number | null` (null → display « — »); operate on newest-first history from service.
@@ -77,7 +77,7 @@ context:
 - `champions-app/lib/domain/dossier-curve.ts` -- **REUSE** `toCurvePoints` for curve data. [`dossier-curve.ts:10`](../../champions-app/lib/domain/dossier-curve.ts#L10)
 - `champions-app/components/dashboard/presentation-brand-logo.tsx` -- **REUSE** fixed bottom-right wordmark. [`presentation-brand-logo.tsx:8`](../../champions-app/components/dashboard/presentation-brand-logo.tsx#L8)
 - `champions-app/lib/services/get-student-dictation-history.ts` -- **REUSE** newest-first history with `globalPercent`, `categoryErrors`. [`get-student-dictation-history.ts:51`](../../champions-app/lib/services/get-student-dictation-history.ts#L51)
-- `champions-app/lib/domain/student-display-name.ts` -- **REUSE** `getStudentFirstName` for SR label. [`student-display-name.ts:51`](../../champions-app/lib/domain/student-display-name.ts#L51)
+- `champions-app/lib/domain/student-display-name.ts` -- **READ** `normalizeDisplayName` only; presentation SR label uses full `displayName`.
 - `champions-app/components/promotion/promotion-dialog.tsx` -- **READ** `<dialog>` + `showModal()` + `onCancel` pattern for focus trap reference. [`promotion-dialog.tsx:28`](../../champions-app/components/promotion/promotion-dialog.tsx#L28)
 
 ## Tasks & Acceptance
@@ -121,7 +121,7 @@ context:
 - Given fewer than 2 dictations, when presentation loads, then trend displays « — » (FR35).
 - Given I expand the category errors toggle, when table opens, then per-category C–S counts are shown with no pedagogical narrative (FR36).
 - Given presentation mode is open, when I press Esc or tap « Fermer », then I return to the dossier and focus is restored sensibly (UX-DR16).
-- Given presentation mode opens, when a screen reader announces the view, then it reads « Mode RDV parents, {prénom} » (UX-DR25).
+- Given presentation mode opens, when a screen reader announces the view, then it reads « Mode RDV parents, {displayName} » (UX-DR25).
 - Given presentation mode is open, then the CHAMPIONS wordmark appears bottom-right at 44px height with 0.85 opacity and 24px margin (UX-DR6).
 - Given any presentation view, then no school grade (CE2, CM1, etc.) appears (NFR8).
 
@@ -153,6 +153,8 @@ Chrome bypass: extract `DashboardChrome` client sub-component using `usePathname
 - Esc exits cleanly; wordmark visible bottom-right without overlapping highlights.
 
 ## Spec Change Log
+
+- Post-delivery (2026-09-01): Presentation SR label uses full `displayName`; `getStudentFirstName` removed project-wide.
 
 ## Suggested Review Order
 

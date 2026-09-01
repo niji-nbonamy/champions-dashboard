@@ -33,7 +33,7 @@ Implementation note: use **768px** (`md` in Tailwind) as the G2 vs G1 routing th
 - Nine full-width numeric fields (one per CHAMPIONS category), min 48px height, `inputmode="numeric"`, min 44px touch targets. Pre-fill when an entry already exists.
 - Quick-tap mode: tap cycles 0→1→2→3 per field; long-press or a dedicated input accepts values ≥ 4.
 - Save uses the same server-authoritative scoring, validation, and immutable snapshot rules as the laptop grid (global %, `levelAtSave`, `wordDenominator`, nine error counts). Browser never computes authoritative scores or promotion outcomes.
-- Unleveled students on mobile: entry blocked with « Niveau requis pour {prénom}. Assignez le niveau depuis un ordinateur. » No `DictationEntry` created; no mobile path to level assignment — E1 remains on G1 Élèves tab (tablet or laptop, ≥ 768px).
+- Unleveled students on mobile: entry blocked with « Niveau requis pour {displayName}. Assignez le niveau depuis un ordinateur. » (`displayName` = stored name, trim only). No `DictationEntry` created; no mobile path to level assignment — E1 remains on G1 Élèves tab (tablet or laptop, ≥ 768px).
 - No full mobile class grid, no promotion validate/refuse on mobile, no dossier or presentation mode below 768px in MVP. Tablet and laptop retain full G1 feature set.
 - French factual microcopy. WCAG 2.2 AA target. No school grade (CE2, CM1, etc.) anywhere.
 
