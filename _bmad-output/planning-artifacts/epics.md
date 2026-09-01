@@ -2,7 +2,9 @@
 stepsCompleted:
   - step-01-validate-prerequisites
   - step-01-requirements-confirmed
-  - step-02-design-epics
+  - step-01-requirements-update-2026-09-01
+  - step-01-requirements-confirmed-2026-09-01
+  - step-02-design-epics-approved-2026-09-01
   - step-03-create-stories
   - step-04-final-validation
   - assumptions-mobile-resolved-2026-08-25
@@ -18,6 +20,9 @@ inputDocuments:
   - _bmad-output/planning-artifacts/architecture/architecture-testBMAD-2026-08-24/ARCHITECTURE-SPINE.md
   - _bmad-output/planning-artifacts/ux-designs/ux-testBMAD-2026-08-24/DESIGN.md
   - _bmad-output/planning-artifacts/ux-designs/ux-testBMAD-2026-08-24/EXPERIENCE.md
+  - _bmad-output/planning-artifacts/sprint-change-proposal-08-27-2026.md
+  - _bmad-output/planning-artifacts/sprint-change-proposal-08-27-2026-landing-branding.md
+  - _bmad-output/planning-artifacts/future-ideas.md
 ---
 
 # testBMAD - Epic Breakdown
@@ -45,7 +50,7 @@ FR12: Teacher creates dictation with free-text label and date (defaults to today
 FR13: Dictation creation is blocked when roster is empty or word-count matrix row is missing for that dictation.
 FR14: Teacher enters non-negative integer error counts on condensed class grid — rows = active leveled students, columns = C H A M P I O N S (CAP-1, A2).
 FR15: Class grid supports keyboard-first entry: Tab/Shift+Tab row-major navigation, arrow keys, digit keys 0–9, Enter to save.
-FR16: Class grid shows full category name and definition on hover/tap per error-categories.md.
+FR16: Class grid shows category name only (no definition text) on column header hover/tap per error-categories.md.
 FR17: Class grid save is blocked when any student row has Σ category errors > word total; inline error on offending row.
 FR18: Class grid displays ⬆️ promotion indicator (D3) on row when pending promotion exists.
 FR19: Class grid displays **+** button (D3+) on row when promotion criteria met; opens Valider/Refuser dialog without leaving grid.
@@ -75,6 +80,17 @@ FR42: Dictation lifecycle supports create, save, and edit; delete/purge deferred
 FR43: Teacher can trigger annual year reset from Config tab with explicit confirmation modal warning irreversibility.
 FR44: Year reset atomically deletes all Class-scoped data (students, dictations, entries, word matrix, level history, pending promotions) in a single transaction.
 FR45: After year reset, teacher is redirected to year-start wizard (E3) to configure the new school year (CSV import → levels → word matrix).
+FR-AUTH-1: Registration form displays password visibility toggle on password and confirmation fields.
+FR-AUTH-2: Registration requires password confirmation; mismatch blocks submit with inline feedback.
+FR-AUTH-3: Registration displays real-time password requirement checklist in French: « Saisissez un mot de passe comportant au moins : » + 8 caractères, 1 chiffre, 1 minuscule, 1 majuscule, 1 caractère spécial, correspondance des deux mots de passe.
+FR-AUTH-4: Registration requires Google reCAPTCHA v2 (« Je ne suis pas un robot »); server verifies token before account creation.
+FR-AUTH-5: Login form displays password visibility toggle.
+FR-AUTH-6: All auth form labels, requirement text, and error messages in French.
+FR46: Unauthenticated visitors see a branded public landing at `/` with centered « La méthode CHAMPIONS » hero image and French CTAs « Se connecter » and « Créer un compte ».
+FR47: Authenticated users visiting `/` are redirected to `/dictations` (onboarding/class guards unchanged).
+FR48: App bar and main G1 tab navigation remain fixed (sticky) while scrolling dashboard content.
+FR49: Teacher can edit a saved dictation's label and date after creation (typo or session date correction).
+FR50: Dictation creation flow shows guidance that dictation labels must exist in the Config word-count matrix first, with a link to Config.
 
 ### NonFunctional Requirements
 
@@ -95,6 +111,9 @@ NFR14: French UI microcopy throughout; factual tone — no auto-generated pedago
 NFR15: Laptop-first responsive design (≥1024px primary); mobile secondary (<768px) for per-student capture only — no feature parity on mobile.
 NFR16: Performance: parent-meeting presentation mode usable in ~30 seconds from dossier open.
 NFR17: CI via GitHub → Vercel auto-deploy; migrations via drizzle-kit push or migrate in deploy step.
+NFR-AUTH-1: Password policy enforced server-side: min 8 chars, ≥1 digit, ≥1 lowercase, ≥1 uppercase, ≥1 special character.
+NFR-AUTH-2: reCAPTCHA bypass allowed only in non-production when `RECAPTCHA_SECRET_KEY` is absent (dev/CI convenience).
+NFR-AUTH-3: Existing NFR9 preserved — generic errors, no email-exists leak on registration.
 
 ### Additional Requirements
 
@@ -106,7 +125,10 @@ NFR17: CI via GitHub → Vercel auto-deploy; migrations via drizzle-kit push or 
 - **Level colors enum:** `yellow`, `green`, `violet`, `gold`. Level history actions enum: `assigned`, `promoted`, `refused`, `manual`.
 - **Deployment environments:** production (Vercel Hobby main + Neon Frankfurt), preview (Vercel preview + optional Neon branch), local (`next dev` + Neon dev branch).
 - **Capability → path mapping:** Grid entry in `app/(dashboard)/dictations/`; dossier in `app/(dashboard)/students/[id]/`; config in `app/(dashboard)/config/`; presentation in `app/(dashboard)/students/[id]/present/`; mobile entry in `app/(dashboard)/dictations/[id]/mobile/`.
+- **Auth security (AD-12):** Server-side password policy + reCAPTCHA v2 verification via `lib/services/recaptcha-verify.ts`; shared auth components under `components/auth/` (`password-field.tsx`, `password-requirements.tsx`, `recaptcha-field.tsx`); env vars `RECAPTCHA_SITE_KEY` + `RECAPTCHA_SECRET_KEY` required in production.
+- **Public landing:** `app/page.tsx` branded hero + CTAs; middleware extends `/` matcher — logged-in redirect to `/dictations`; assets `public/logo-champions-method-full.jpg` (landing) and `public/logo-champions-wordmark.jpg` (app bar).
 - **Deferred (not in MVP stories):** Per-category %, full mobile class grid, pixel-perfect paper layout, dictation delete/purge, word-count matrix CSV import (F3), PWA/offline, WebSocket sync, Postgres RLS, email verification, automated GDPR export/erasure.
+- **Future (captured in future-ideas.md, not scheduled):** Password reset self-service (IDEA-001); interactive per-category dossier curves with toggles, Y-axis ticks, and X-axis dictation labels (IDEA-004).
 
 ### UX Design Requirements
 
@@ -114,7 +136,7 @@ UX-DR1: Implement Theme C — Menthe Douce color tokens: primary `#059669`, acce
 UX-DR2: Implement four CHAMPIONS level badge variants (yellow, green, violet, gold) with pill shape and semantic foreground colors per DESIGN.md.
 UX-DR3: Implement typography tokens: DM Sans Light for display titles (28px/300), display-sm (20px/300), monospace data-lg (32px/600) for presentation highlights.
 UX-DR4: Implement spacing tokens: grid-cell-min 44px, grid-row-height 40px, app-bar-min-height 64px, logo heights 52px laptop / 40px mobile / 44px presentation.
-UX-DR5: Implement app bar with École Saint Hermeland wordmark left (52px h laptop, 40px h mobile, width auto, object-fit contain), muted « champions » subtitle, tabs below/inline on wide screens.
+UX-DR5: Implement app bar with CHAMPIONS method wordmark left (52px h laptop, 40px h mobile, width auto, object-fit contain) — no separate subtitle; tabs below/inline on wide screens.
 UX-DR6: Implement CHAMPIONS wordmark in presentation mode bottom-right (44px height, opacity 0.85, 24px safe margin, non-interactive, does not overlap curve/highlights).
 UX-DR7: Implement primary button style (mint fill) for Enregistrer, Valider, confirm actions; accent outline button for « RDV parents » and wizard forward steps.
 UX-DR8: Implement promotion banner component (D1) with promotion-ready blue fill, Valider / Refuser actions.
@@ -138,6 +160,10 @@ UX-DR25: Implement accessibility: grid cell aria-label « {displayName}, {catég
 UX-DR26: Implement responsive breakpoints — ≥1024px full G1 layout; 768–1023px scrollable grid + stacked dossier; <768px G2 hub + B4 entry only.
 UX-DR27: Implement French microcopy per voice/tone table — factual labels only, no celebratory or pedagogical auto-text.
 UX-DR28: Implement archived student UI — « Archivé » label, read-only dossier, hidden from active grids, filter on Élèves tab.
+UX-DR29: Implement registration form per DESIGN.md § Auth Forms — password toggles, confirmation field, bordered requirements inset with real-time satisfied/unsatisfied bullets, reCAPTCHA v2 centered below inset, submit « Créer mon compte ».
+UX-DR30: Implement login form per DESIGN.md § Auth Forms — password toggle only, submit « Se connecter », no captcha or requirements inset.
+UX-DR31: Implement public landing surface — `{champions-landing-hero}` centered on `/` for unauthenticated users; primary CTAs « Se connecter » and « Créer un compte »; no dev scaffold copy.
+UX-DR32: Implement sticky app shell — app bar and G1 tab navigation remain visible while scrolling long dashboard pages (roster, grid, dossier).
 
 ### FR Coverage Map
 
@@ -156,7 +182,7 @@ FR12: Epic 3 - Create dictation with label and date
 FR13: Epic 3 - Block dictation creation when roster empty or matrix missing
 FR14: Epic 3 - Enter error counts on condensed class grid (A2)
 FR15: Epic 3 - Keyboard-first grid navigation (Tab, arrows, digits)
-FR16: Epic 3 - Show category name/definition on hover/tap
+FR16: Epic 3 / Epic 6 - Category name only on column header hover (amended by Epic 6)
 FR17: Epic 3 - Block save when Σ errors > word total per row
 FR18: Epic 3 - Display ⬆️ promotion indicator on grid row (D3)
 FR19: Epic 3 - Display + button with inline Valider/Refuser dialog (D3+)
@@ -186,19 +212,30 @@ FR42: Epic 3 - Dictation lifecycle: create, save, edit (no delete in MVP)
 FR43: Epic 2 - Annual year reset from Config with confirmation modal
 FR44: Epic 2 - Atomic cascade delete of all Class-scoped data on reset
 FR45: Epic 2 - Redirect to year-start wizard E3 after reset
+FR-AUTH-1: Epic 1 - Registration password visibility toggle
+FR-AUTH-2: Epic 1 - Password confirmation with mismatch blocking
+FR-AUTH-3: Epic 1 - Real-time French password requirements checklist
+FR-AUTH-4: Epic 1 - reCAPTCHA v2 on registration with server verification
+FR-AUTH-5: Epic 1 - Login password visibility toggle
+FR-AUTH-6: Epic 1 - French auth form microcopy
+FR46: Epic 1 - Public landing hero and auth CTAs
+FR47: Epic 1 - Authenticated redirect from `/` to `/dictations`
+FR48: Epic 6 - Sticky app bar and tab navigation
+FR49: Epic 6 - Edit dictation label and date
+FR50: Epic 6 - Config-first hint before « Nouvelle dictée »
 
 ## Epic List
 
 ### Epic 1: Foundation & Teacher Access
-Teacher can register, log in, and navigate the application shell with brand identity applied.
-**FRs covered:** FR1, FR2, FR41
+Teacher can register, log in, access a branded public landing, and navigate the application shell with CHAMPIONS identity applied.
+**FRs covered:** FR1, FR2, FR41, FR-AUTH-1, FR-AUTH-2, FR-AUTH-3, FR-AUTH-4, FR-AUTH-5, FR-AUTH-6, FR46, FR47
 
 ### Epic 2: Year Setup & Roster Management
 Teacher can configure the school year: import roster via CSV, assign color levels, configure word-count matrix, manage mid-year roster changes, and reset for a new year.
 **FRs covered:** FR3, FR4, FR5, FR6, FR7, FR8, FR9, FR10, FR11, FR43, FR44, FR45
 
 ### Epic 3: Dictation Capture & Scoring (Laptop)
-Teacher can create dictations, enter error counts on the condensed class grid with keyboard-first UX, save with auto-calculated global %, edit past dictations, and see inline promotion indicators during entry.
+Teacher can create dictations, enter error counts on the condensed class grid with keyboard-first UX, save with auto-calculated global %, edit past dictation error counts, and see inline promotion indicators during entry.
 **FRs covered:** FR12, FR13, FR14, FR15, FR16, FR17, FR18, FR19, FR20, FR21, FR22, FR42
 
 ### Epic 4: Student Progress, Levels & Parent Meetings
@@ -208,6 +245,10 @@ Teacher can view auto-generated student dossiers with progression curves, manage
 ### Epic 5: Mobile Dictation Capture
 Teacher can capture dictation errors on mobile via the dictation hub and hybrid per-student entry form with quick-tap mode.
 **FRs covered:** FR37, FR38, FR39, FR40
+
+### Epic 6: Daily Workflow Polish
+Teacher benefits from smoother daily workflows: persistent navigation while scrolling, clearer dictation setup guidance, faster grid entry with lighter tooltips, and the ability to correct dictation metadata after creation.
+**FRs covered:** FR16 (amendment), FR48, FR49, FR50
 
 ## Epic 1: Foundation & Teacher Access
 
@@ -522,7 +563,7 @@ So that I can capture all student errors in one view as fast as on paper.
 **And** Tab / Shift+Tab moves between cells in row-major order (C→S, then next student) (FR15)
 **And** arrow keys move between cells when a cell is focused (FR15)
 **And** digit keys 0–9 enter values directly in the focused cell (FR15)
-**And** hover/tap on a column header shows the full category name and definition (FR16)
+**And** hover/tap on a column header shows the category name only — no definition text (FR16)
 **And** grid cells have min 44×40px with horizontal scroll when viewport is narrow (UX-DR4, UX-DR10, UX-DR14)
 **And** grid cells have `aria-label` = « {displayName}, {catégorie}, {valeur} erreurs » (UX-DR25)
 
@@ -768,4 +809,113 @@ So that I know I must assign one on my laptop before capturing errors.
 **Then** entry is blocked with « Niveau requis pour {displayName}. Assignez le niveau depuis un ordinateur. » (FR39)
 **And** no DictationEntry is created until a level is assigned on laptop (Élèves tab)
 **And** there is no mobile navigation to level assignment — laptop is required for E1
+
+## Epic 6: Daily Workflow Polish
+
+Teacher benefits from smoother daily workflows: persistent navigation while scrolling, clearer dictation setup guidance, faster grid entry with lighter tooltips, and the ability to correct dictation metadata after creation.
+
+### Story 6.1: Config-First Hint Before « Nouvelle dictée »
+
+As a primary teacher,
+I want clear guidance when creating a dictation that labels must exist in the Config word-count matrix first,
+So that I understand why a dictation may be missing from the picker and know where to add it.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Dictées tab with a configured roster and word-count matrix
+**When** I click « Nouvelle dictée »
+**Then** the create-dictation dialog displays a short hint: dictation labels come from the Config word-count matrix — add new dictations there first (FR50)
+**And** the hint includes a link or button « Aller à Config » that navigates to the Config tab (FR50)
+**And** all hint microcopy is in French (NFR14)
+
+**Given** the word-count matrix has no rows yet
+**When** I click « Nouvelle dictée »
+**Then** creation remains blocked per FR13
+**And** the empty-state message still directs me to Config (existing Story 2.7 behavior preserved)
+
+**Given** the matrix has rows but I have not yet created a dictation for a given label
+**When** I open the create-dictation picker
+**Then** only matrix-defined labels appear as selectable options (unchanged from Story 3.1)
+**And** the config-first hint is visible so I do not confuse an empty picker with a bug
+
+### Story 6.2: Category Header Hover — Title Only
+
+As a primary teacher during fast grid entry,
+I want column headers to show the category name on hover without the long definition text,
+So that tooltips stay lightweight while I still disambiguate CHAMPIONS letters.
+
+**Acceptance Criteria:**
+
+**Given** I am viewing the class grid on a dictation (Story 3.2)
+**When** I hover or tap a CHAMPIONS column header (C–S)
+**Then** a tooltip or popover shows the category name only (e.g. « Conjugaison ») — no definition paragraph (FR16)
+**And** the full definition text is not shown anywhere in the header hover/tap interaction
+
+**Given** I need the full category definition
+**When** I consult reference material outside the grid
+**Then** definitions remain available in `error-categories.md` and project documentation — the grid does not surface them (FR16)
+
+**Given** I use keyboard navigation on the grid
+**When** focus moves to a column header
+**Then** the same name-only tooltip behavior applies (UX-DR25, NFR13)
+
+### Story 6.3: Sticky App Bar & Navigation Tabs
+
+As a primary teacher on long dashboard pages,
+I want the app bar and main tabs to stay visible while I scroll,
+So that I can switch sections without scrolling back to the top.
+
+**Acceptance Criteria:**
+
+**Given** I am authenticated on a laptop viewport (≥ 1024px)
+**When** I scroll a long dashboard page (Élèves roster, dictation grid, student dossier, Alertes queue)
+**Then** the app bar remains fixed at the top of the viewport (FR48, UX-DR32)
+**And** the G1 tab navigation (Dictées · Élèves · Config · Alertes) remains visible directly below or within the fixed shell (FR48, UX-DR32)
+**And** page content scrolls underneath without layout jump or double scrollbars
+
+**Given** I am on mobile (< 768px)
+**When** I use the dictation hub (Story 5.1)
+**Then** the mobile app bar remains fixed at the top during scroll (FR48, UX-DR32)
+**And** G1 tabs remain hidden — mobile dictation-capture-only behavior is unchanged (UX-DR13)
+
+**Given** I open presentation mode (Story 4.7)
+**When** the full-screen RDV parents view is active
+**Then** no dashboard app bar or G1 tabs are shown — presentation chrome rules unchanged (UX-DR16)
+
+**Given** the sticky shell is applied
+**When** I switch tabs or navigate between pages
+**Then** the active tab highlight and CHAMPIONS wordmark sizing follow existing tokens (UX-DR5, UX-DR12)
+
+### Story 6.4: Edit Dictation Label and Date
+
+As a primary teacher,
+I want to correct a dictation's label and date after creation,
+So that typos and wrong session dates do not persist in history and dossiers.
+
+**Acceptance Criteria:**
+
+**Given** a dictation has been saved (with or without error entries)
+**When** I open it from the Dictées tab history list
+**Then** I can edit the dictation label and date (FR49)
+**And** label is required (non-empty trimmed string)
+**And** date accepts a valid calendar date (defaults unchanged if not edited)
+
+**Given** I save updated label and/or date
+**When** the mutation succeeds
+**Then** the Dictées history list reflects the new label and date immediately (FR49)
+**And** student dossier dictation history rows show the updated label and date (FR49)
+**And** existing DictationEntry snapshots, global percentages, and promotion state are unchanged — only metadata is updated (FR49, NFR4)
+
+**Given** I change only the date
+**When** dossier or presentation mode sorts dictations chronologically
+**Then** the dictation appears in the correct chronological position based on the new date (FR49)
+
+**Given** I change the label to match an existing matrix row label
+**When** I save
+**Then** the update succeeds if the label exists in the word-count matrix (FR10, FR13)
+**And** if the new label has no matrix row, save is blocked with a clear French error explaining the label must exist in Config
+
+**Given** error counts were previously saved for this dictation
+**When** I edit only metadata
+**Then** I can still reopen and edit error counts via Story 3.5 without conflict (FR22, FR42)
 

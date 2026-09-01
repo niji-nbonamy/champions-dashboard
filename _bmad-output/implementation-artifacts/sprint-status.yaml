@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 09-01-2026 11:24
+last_updated: 09-01-2026 15:15
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -82,6 +82,13 @@ development_status:
   5-2-mobile-per-student-entry-form-b4: done
   5-3-unleveled-student-block-on-mobile: done
   epic-5-retrospective: done
+
+  epic-6: backlog
+  6-1-config-first-hint-before-nouvelle-dictée: backlog
+  6-2-category-header-hover-title-only: backlog
+  6-3-sticky-app-bar-navigation-tabs: backlog
+  6-4-edit-dictation-label-and-date: backlog
+  epic-6-retrospective: optional
 action_items:
   - id: "epic-1-retro-item-1-add-github-actions-workflow-npm-ci-npm-t"
     epic: 1
@@ -121,7 +128,8 @@ action_items:
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-08-26-2026.md"
-    completed_note: "Added champions-app/test-utils/next-mocks.tsx; adopted in nav-tabs and app-bar tests"
+    completed_note: "Added champions-app/test-utils/next-mocks.tsx; adopted in nav-tabs
+      and app-bar tests"
   - id: "epic-1-retro-item-7-schedule-security-hardening-story-rate-l"
     epic: 1
     action: "Schedule security hardening story: rate limiting on register and login"
@@ -203,7 +211,8 @@ action_items:
     owner: "dev"
     status: done
     ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-3-retro-08-28-2026.md"
-    completed_note: "D3+ included in row-end Tab order; save button receives final Tab stop"
+    completed_note: "D3+ included in row-end Tab order; save button receives final
+      Tab stop"
   - id: "epic-4-retro-item-19-add-revalidatepath-for-students-id-and-a"
     epic: 4
     action: "Add revalidatePath for /students/[id] and /alerts to grid validatePromotionAction/refusePromotionAction
@@ -224,7 +233,8 @@ action_items:
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
-    completed_note: "Covered by saveDictation transaction contract tests (Epic 3 item 16)"
+    completed_note: "Covered by saveDictation transaction contract tests (Epic 3 item
+      16)"
   - id: "epic-4-retro-item-22-extract-promotion-row-ui-from-class-grid"
     epic: 4
     action: "Extract promotion row UI from class-grid.tsx before Epic 5 mobile surfaces"
@@ -238,14 +248,16 @@ action_items:
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
-    completed_note: "components/promotion/use-promotion-action.ts adopted by banner, roster, alerts, dictation dialog"
+    completed_note: "components/promotion/use-promotion-action.ts adopted by banner,
+      roster, alerts, dictation dialog"
   - id: "epic-4-retro-item-24-schedule-accessibility-pass-d3-tab-order"
     epic: 4
     action: "Schedule accessibility pass: D3+ Tab order + presentation focus restoration"
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-08-31-2026.md"
-    completed_note: "PresentationReturnFocus + DossierPresentationLink; presentation Fermer auto-focus"
+    completed_note: "PresentationReturnFocus + DossierPresentationLink; presentation
+      Fermer auto-focus"
   - id: "epic-5-retro-item-25-reconcile-spec-5-2-boundaries-for-5-3-du"
     epic: 5
     action: "Reconcile spec-5-2 Boundaries for 5-3 dual-query picker (all active students,
@@ -253,14 +265,16 @@ action_items:
     owner: "pm"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
-    completed_note: "Resolved 2026-09-01 — spec-5-2 Boundaries, I/O matrix, and code map updated"
+    completed_note: "Resolved 2026-09-01 — spec-5-2 Boundaries, I/O matrix, and code
+      map updated"
   - id: "epic-5-retro-item-26-add-e2e-smoke-with-mobile-viewport-g2-hu"
     epic: 5
     action: "Add E2E smoke with mobile viewport: G2 hub → Saisir → picker → B4 save"
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
-    completed_note: "Added champions-app/e2e/mobile-journey-smoke.spec.ts (375×667 viewport)"
+    completed_note: "Added champions-app/e2e/mobile-journey-smoke.spec.ts (375×667
+      viewport)"
   - id: "epic-5-retro-item-27-align-hub-vs-picker-zero-leveled-microco"
     epic: 5
     action: "Align hub vs picker zero-leveled microcopy"
@@ -274,4 +288,5 @@ action_items:
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
-    completed_note: "formatMobileHubCaptureAriaLabel / formatMobileHubSummaryAriaLabel on hub links"
+    completed_note: "formatMobileHubCaptureAriaLabel / formatMobileHubSummaryAriaLabel
+      on hub links"

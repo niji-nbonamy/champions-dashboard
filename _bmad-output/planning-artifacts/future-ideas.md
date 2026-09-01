@@ -53,7 +53,7 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-001 — Forgotten password reset (2026-08-28)
 
-- **Status:** captured
+- **Status:** considering
 - **Area:** auth
 - **Summary:** Teacher can request a password reset flow when they forget their login password.
 - **Context:** Auth covers register and login (FR1); no self-service recovery exists today — teachers locked out must rely on manual support or a new account.
@@ -61,7 +61,8 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-002 — Sticky app bar and navigation tabs (2026-08-28)
 
-- **Status:** captured
+- **Status:** scheduled
+- **Promoted to:** epic-6 / 6-3
 - **Area:** navigation
 - **Summary:** Keep the top banner (app bar) and main tab navigation fixed while scrolling dashboard content.
 - **Context:** Long pages (roster, dictation grid, student dossier) scroll the shell away — teachers lose quick access to tabs and branding until they scroll back up.
@@ -69,7 +70,8 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-003 — Edit dictation label and date (2026-08-31)
 
-- **Status:** captured
+- **Status:** scheduled
+- **Promoted to:** epic-6 / 6-4
 - **Area:** dictation
 - **Summary:** Teacher can correct a dictation's label and date after creation (typo, wrong date, session moved).
 - **Context:** Story 3.5 only allows editing error counts on reopen; metadata is fixed at create time — manual corrections require workarounds or living with bad labels/dates in history and dossier.
@@ -77,7 +79,7 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-004 — Interactive dossier progression curves (2026-08-31)
 
-- **Status:** captured
+- **Status:** considering
 - **Area:** dossier
 - **Summary:** Student dossier chart supports togglable per-category curves (C–S), richer Y-axis scale, and dictation labels on the X-axis — global curve shown by default.
 - **Context:** Weekend UX review: global-only curve (story 4.2) is insufficient for spotting category-specific trends before parent meetings; MVP explicitly deferred per-category curves (`mvp-scope.md`). Desired behavior: start with global only; click CHAMPIONS letters to add/remove category curves (any curve includable/excludable); Y-axis ticks at 0 / 20 / 40 / 60 / 80 / 100 % with optional horizontal guides; dictation names on X-axis (today only 0 % / 100 % labels, no X labels).
@@ -85,7 +87,8 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-005 — Category header hover: title only, no definition (2026-08-31)
 
-- **Status:** captured
+- **Status:** scheduled
+- **Promoted to:** epic-6 / 6-2
 - **Area:** dictation
 - **Summary:** On the class grid (Dictées → dictation), category column headers show the category name on hover/tap but not the long definition text.
 - **Context:** Full name + definition tooltip (FR16, story 3.2) feels noisy during fast entry; teachers know the CHAMPIONS categories — keep the title (e.g. « Conjugaison ») for disambiguation, drop definition from hover/popover.
@@ -93,7 +96,8 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-006 — Config-first hint before « Nouvelle dictée » (2026-08-31)
 
-- **Status:** captured
+- **Status:** scheduled
+- **Promoted to:** epic-6 / 6-1
 - **Area:** ux
 - **Summary:** When creating a dictation from the Dictées tab, show clear guidance that dictation labels must exist in the Config word-count matrix first (with link to Config).
 - **Context:** « Nouvelle dictée » opens a picker fed only by matrix rows — not obvious when working in Dictées; teachers may not realize they must add the dictation on Config before it appears here (story 2.7 covers empty roster / missing matrix blocking, not this mental-model gap once setup is complete).
