@@ -1,5 +1,12 @@
 # Deferred Work
 
+## Deferred from: code review of spec-6-2-category-header-hover-title-only.md (2026-09-01)
+
+- `ux-decisions.md` still documents name+definition hover — pre-existing doc drift; update when Epic 6 docs are reconciled
+- Native `title` + custom popover double-tooltip risk — pre-existing Story 3.2 pattern; acceptable MVP
+- No dedicated `category-header.test.tsx` — integration tests in `class-grid.test.tsx` sufficient for MVP
+- `spec-3-2` documents historical name+definition tooltip — amend when convenient
+
 ## Deferred from: code review of spec-6-1-config-first-hint-before-nouvelle-dictée.md (2026-09-01)
 
 - Dialog interaction tests (open modal, link click) — static markup tests sufficient for MVP; manual check covers click path

@@ -69,6 +69,20 @@ context:
 - Given I need the full category definition, when I consult reference material outside the grid, then definitions remain available in `error-categories.md` and project documentation — the grid does not surface them (FR16).
 - Given I use keyboard navigation on the grid, when a screen reader or assistive tech reads a column header, then the accessible label is the category name only (UX-DR25, NFR13); row-major Tab order through cells is unchanged.
 
+### Review Findings
+
+- [x] [Review][Decision] Popover CSS layout tweak vs Story 3.2 preserve constraint — **Resolved: A** — keep compact centered popover (`w-max whitespace-nowrap text-center px-2 py-1`) and commit with story.
+
+- [x] [Review][Patch] Assert name-only tooltip for all 9 category headers [`class-grid.test.tsx:471`]
+- [x] [Review][Patch] Assert name-only tooltip content on hover path [`class-grid.test.tsx:539`]
+- [x] [Review][Patch] Commit or drop uncommitted popover CSS before merge [`category-header.tsx:58`]
+- [x] [Review][Patch] Pin popover layout classes in tests if CSS tweak is kept (depends on Decision above) [`class-grid.test.tsx:471`]
+
+- [x] [Review][Defer] `ux-decisions.md` still documents name+definition hover [`_bmad-output/specs/spec-dashboards-dictees-champions-ce2/ux-decisions.md:18`] — deferred, pre-existing doc drift
+- [x] [Review][Defer] Native `title` + custom popover double-tooltip risk [`category-header.tsx:37`] — deferred, pre-existing Story 3.2 pattern
+- [x] [Review][Defer] No dedicated `category-header.test.tsx` — deferred, integration coverage sufficient for MVP
+- [x] [Review][Defer] `spec-3-2` documents historical name+definition tooltip — deferred, amend when convenient
+
 ## Design Notes
 
 Minimal diff — three touch points in one component:

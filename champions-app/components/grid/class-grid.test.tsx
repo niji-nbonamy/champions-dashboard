@@ -5,7 +5,10 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CHAMPIONS_ERROR_CATEGORY_LETTERS } from "@/lib/domain/error-categories";
+import {
+  CHAMPIONS_ERROR_CATEGORIES,
+  CHAMPIONS_ERROR_CATEGORY_LETTERS,
+} from "@/lib/domain/error-categories";
 import type { LeveledActiveStudent } from "@/lib/services/list-leveled-active-students";
 
 import { ClassGrid } from "./class-grid";
@@ -477,16 +480,25 @@ describe("ClassGrid", () => {
 
     expect(conjugationHeader).toBeTruthy();
     expect(conjugationHeader?.style.backgroundColor).toBe("#E70A16");
-    expect(conjugationHeader?.getAttribute("aria-label")).toBe("Conjugaison");
-    expect(conjugationHeader?.getAttribute("title")).toBe("Conjugaison");
-    const tooltip = conjugationHeader?.querySelector(
-      '[role="tooltip"]'
-    ) as HTMLDivElement | null;
-    expect(tooltip?.textContent).toBe("Conjugaison");
-    expect(tooltip?.textContent).not.toContain(
-      "Les verbes sont-ils correctement conjugués ?"
-    );
     expect(container.querySelectorAll('[role="tooltip"]')).toHaveLength(9);
+
+    for (const category of CHAMPIONS_ERROR_CATEGORIES) {
+      const header = container.querySelector(
+        `th[data-category-letter="${category.letter}"]`
+      ) as HTMLTableCellElement | null;
+      const tooltip = header?.querySelector(
+        '[role="tooltip"]'
+      ) as HTMLDivElement | null;
+
+      expect(header?.getAttribute("aria-label")).toBe(category.name);
+      expect(header?.getAttribute("title")).toBe(category.name);
+      expect(tooltip?.textContent).toBe(category.name);
+      expect(tooltip?.textContent).not.toContain(category.definition);
+      expect(tooltip?.className).toContain("w-max");
+      expect(tooltip?.className).toContain("text-center");
+      expect(tooltip?.className).toContain("whitespace-nowrap");
+      expect(tooltip?.className).not.toContain("w-56");
+    }
   });
 
   it("shows category tooltip on header tap", () => {
@@ -544,6 +556,10 @@ describe("ClassGrid", () => {
     ) as HTMLDivElement | null;
 
     expect(tooltip?.className).toContain("group-hover:opacity-100");
+    expect(tooltip?.textContent).toBe("Conjugaison");
+    expect(tooltip?.textContent).not.toContain(
+      "Les verbes sont-ils correctement conjugués ?"
+    );
   });
 
   it("enables Enregistrer when all rows are valid", () => {

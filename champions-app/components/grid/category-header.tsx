@@ -55,7 +55,7 @@ export function CategoryHeader({ category, className }: CategoryHeaderProps) {
         id={tooltipId}
         role="tooltip"
         className={cn(
-          "absolute left-1/2 top-full z-20 mt-1 w-56 -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-2 text-left text-xs font-normal text-popover-foreground shadow-md transition-opacity",
+          "absolute left-1/2 top-full z-20 mt-1 w-max max-w-none -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-center text-xs font-normal text-popover-foreground shadow-md transition-opacity",
           open
             ? "opacity-100"
             : "pointer-events-none opacity-0 group-hover:opacity-100"
