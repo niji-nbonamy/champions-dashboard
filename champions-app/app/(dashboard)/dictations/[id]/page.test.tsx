@@ -12,6 +12,7 @@ const {
   mockListWordCountMatrixRows,
   mockListPendingPromotionsForStudents,
   mockClassGrid,
+  mockEditDictationMetadataDialog,
 } = vi.hoisted(() => ({
   auth: vi.fn(),
   redirect: vi.fn((url: string): never => {
@@ -27,6 +28,7 @@ const {
   mockListWordCountMatrixRows: vi.fn(),
   mockListPendingPromotionsForStudents: vi.fn(),
   mockClassGrid: vi.fn(),
+  mockEditDictationMetadataDialog: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
@@ -69,6 +71,13 @@ vi.mock("@/components/grid/class-grid", () => ({
   },
 }));
 
+vi.mock("@/components/dictations/edit-dictation-metadata-dialog", () => ({
+  EditDictationMetadataDialog: (props: unknown) => {
+    mockEditDictationMetadataDialog(props);
+    return null;
+  },
+}));
+
 import DictationDetailPage from "./page";
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
@@ -93,6 +102,7 @@ describe("DictationDetailPage", () => {
     vi.clearAllMocks();
     mockGetDictationEntriesByDictationId.mockResolvedValue([]);
     mockListPendingPromotionsForStudents.mockResolvedValue({});
+    mockListWordCountMatrixRows.mockResolvedValue([]);
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -180,6 +190,14 @@ describe("DictationDetailPage", () => {
       })
     );
     expect(mockClassGrid).toHaveBeenCalledTimes(1);
+    expect(mockEditDictationMetadataDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dictationId,
+        currentLabelKey: "Dictée 1",
+        currentDate: "2026-08-27",
+        matrixLabelOptions: [{ value: "Dictée 1", label: "Dictée 1" }],
+      })
+    );
   });
 
   it("passes non-empty pending promotions to ClassGrid on new entry", async () => {
@@ -219,6 +237,12 @@ describe("DictationDetailPage", () => {
         pendingPromotionsByStudentId: {
           [marieStudentId]: { targetLevel: "green" },
         },
+      })
+    );
+    expect(mockEditDictationMetadataDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dictationId,
+        currentLabelKey: "Dictée 1",
       })
     );
   });
@@ -373,6 +397,15 @@ describe("DictationDetailPage", () => {
         level: "yellow",
       },
     ]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([
+      {
+        dictationLabelKey: "Dictée 1",
+        wordsYellow: 10,
+        wordsGreen: 12,
+        wordsViolet: 14,
+        wordsGold: 16,
+      },
+    ]);
     mockListPendingPromotionsForStudents.mockResolvedValueOnce({
       [marieStudentId]: { targetLevel: "green" },
     });
@@ -418,6 +451,13 @@ describe("DictationDetailPage", () => {
         pendingPromotionsByStudentId: {
           [marieStudentId]: { targetLevel: "green" },
         },
+      })
+    );
+    expect(mockEditDictationMetadataDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dictationId,
+        currentLabelKey: "Dictée 1",
+        currentDate: "2026-08-27",
       })
     );
   });

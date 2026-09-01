@@ -87,7 +87,7 @@ development_status:
   6-1-config-first-hint-before-nouvelle-dictée: done
   6-2-category-header-hover-title-only: done
   6-3-sticky-app-bar-navigation-tabs: done
-  6-4-edit-dictation-label-and-date: backlog
+  6-4-edit-dictation-label-and-date: review
   epic-6-retrospective: optional
 action_items:
   - id: "epic-1-retro-item-1-add-github-actions-workflow-npm-ci-npm-t"

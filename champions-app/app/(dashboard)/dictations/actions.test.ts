@@ -20,6 +20,9 @@ const {
   mockRefuseStudentPromotion,
   mockSaveDictation,
   mockSaveDictationStudentEntry,
+  mockUpdateDictation,
+  mockGetDictationEntriesByDictationId,
+  mockRevalidateDictationMetadataPaths,
 } = vi.hoisted(() => ({
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
@@ -33,6 +36,9 @@ const {
   mockRefuseStudentPromotion: vi.fn(),
   mockSaveDictation: vi.fn(),
   mockSaveDictationStudentEntry: vi.fn(),
+  mockUpdateDictation: vi.fn(),
+  mockGetDictationEntriesByDictationId: vi.fn(),
+  mockRevalidateDictationMetadataPaths: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -100,6 +106,24 @@ vi.mock("@/lib/services/dictation-save", async () => {
     saveDictationStudentEntry: mockSaveDictationStudentEntry,
   };
 });
+
+vi.mock("@/lib/services/update-dictation", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/services/update-dictation")
+  >("@/lib/services/update-dictation");
+  return {
+    ...actual,
+    updateDictation: mockUpdateDictation,
+  };
+});
+
+vi.mock("@/lib/services/get-dictation-entries", () => ({
+  getDictationEntriesByDictationId: mockGetDictationEntriesByDictationId,
+}));
+
+vi.mock("@/lib/revalidation/dictation-metadata-paths", () => ({
+  revalidateDictationMetadataPaths: mockRevalidateDictationMetadataPaths,
+}));
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
 const classId = "660e8400-e29b-41d4-a716-446655440001";
@@ -647,5 +671,86 @@ describe("saveDictationStudentEntryAction", () => {
 
     expect(result.error).toBeTruthy();
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateDictationAction", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("updates metadata and revalidates dossier paths for affected students", async () => {
+    mockAuthenticatedTeacherClass();
+    mockUpdateDictation.mockResolvedValueOnce({
+      id: dictationId,
+      label: "Dictée 2",
+      dictationDate: "2026-09-01",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      { studentId },
+    ]);
+
+    const { updateDictationAction } = await import("./actions");
+    const result = await updateDictationAction(
+      { error: null },
+      makeFormData({
+        dictation_id: dictationId,
+        label: "Dictée 2",
+        dictation_date: "2026-09-01",
+      })
+    );
+
+    expect(result).toEqual({ error: null });
+    expect(mockUpdateDictation).toHaveBeenCalledWith(classId, dictationId, {
+      label: "Dictée 2",
+      dictationDate: "2026-09-01",
+    });
+    expect(mockRevalidateDictationMetadataPaths).toHaveBeenCalledWith(
+      dictationId,
+      [studentId]
+    );
+  });
+
+  it("returns a service error without revalidating paths", async () => {
+    mockAuthenticatedTeacherClass();
+    const { UpdateDictationError } = await import(
+      "@/lib/services/update-dictation"
+    );
+    mockUpdateDictation.mockRejectedValueOnce(
+      new UpdateDictationError(DICTATION_DATE_INVALID_ERROR)
+    );
+
+    const { updateDictationAction } = await import("./actions");
+    const result = await updateDictationAction(
+      { error: null },
+      makeFormData({
+        dictation_id: dictationId,
+        label: "Dictée 1",
+        dictation_date: "bad-date",
+      })
+    );
+
+    expect(result).toEqual({ error: DICTATION_DATE_INVALID_ERROR });
+    expect(mockRevalidateDictationMetadataPaths).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed dictation ids", async () => {
+    mockAuthenticatedTeacherClass();
+
+    const { updateDictationAction } = await import("./actions");
+    const { UPDATE_DICTATION_GENERIC_ERROR } = await import(
+      "@/lib/services/update-dictation"
+    );
+    const result = await updateDictationAction(
+      { error: null },
+      makeFormData({
+        dictation_id: "not-a-uuid",
+        label: "Dictée 1",
+        dictation_date: "2026-08-27",
+      })
+    );
+
+    expect(result).toEqual({ error: UPDATE_DICTATION_GENERIC_ERROR });
+    expect(mockUpdateDictation).not.toHaveBeenCalled();
   });
 });

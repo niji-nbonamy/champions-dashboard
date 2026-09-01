@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { EditDictationMetadataDialog } from "@/components/dictations/edit-dictation-metadata-dialog";
 import { ClassGrid } from "@/components/grid/class-grid";
 import {
   formatDictationDateForDisplay,
@@ -10,7 +11,11 @@ import {
 } from "@/lib/domain/dictation";
 import { dbColumnsToCategoryErrors } from "@/lib/domain/error-categories";
 import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
-import { buildWordTotalsByStudentId } from "@/lib/domain/word-count-matrix";
+import {
+  buildWordTotalsByStudentId,
+  isCompleteMatrixRow,
+  normalizeDictationLabelKey,
+} from "@/lib/domain/word-count-matrix";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getDictationById } from "@/lib/services/list-dictations";
@@ -24,6 +29,49 @@ type DictationDetailPageProps = {
     id: string;
   }>;
 };
+
+type DictationHeaderProps = {
+  label: string;
+  dictationDate: string;
+  dictationId: string;
+  dictationLabelKey: string;
+  matrixLabelOptions: Array<{ value: string; label: string }>;
+};
+
+function DictationDetailHeader({
+  label,
+  dictationDate,
+  dictationId,
+  dictationLabelKey,
+  matrixLabelOptions,
+}: DictationHeaderProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <Link
+        href="/dictations"
+        className="text-sm text-muted-foreground underline underline-offset-4"
+      >
+        Retour aux dictées
+      </Link>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold tracking-tight">{label}</h1>
+          <p className="text-sm text-muted-foreground">
+            {formatDictationDateForDisplay(dictationDate)}
+          </p>
+        </div>
+        {matrixLabelOptions.length > 0 ? (
+          <EditDictationMetadataDialog
+            dictationId={dictationId}
+            currentLabelKey={dictationLabelKey}
+            currentDate={dictationDate}
+            matrixLabelOptions={matrixLabelOptions}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 async function loadPendingPromotionsForGrid(
   classId: string,
@@ -62,6 +110,24 @@ export default async function DictationDetailPage({
   if (!dictation) {
     notFound();
   }
+
+  const matrixRows = await listWordCountMatrixRows(teacherClass.id);
+  const matrixLabelOptions = matrixRows
+    .filter(isCompleteMatrixRow)
+    .sort((left, right) =>
+      left.dictationLabelKey.localeCompare(right.dictationLabelKey, "fr")
+    )
+    .map((row) => ({
+      value: row.dictationLabelKey,
+      label: row.dictationLabelKey,
+    }));
+
+  const currentLabelOptionValue =
+    matrixLabelOptions.find(
+      (option) =>
+        normalizeDictationLabelKey(option.value) ===
+        normalizeDictationLabelKey(dictation.dictationLabelKey)
+    )?.value ?? dictation.dictationLabelKey;
 
   const savedEntries = await getDictationEntriesByDictationId(teacherClass.id, id);
   const activeStudents = await listLeveledActiveStudents(teacherClass.id);
@@ -117,20 +183,13 @@ export default async function DictationDetailPage({
 
     return (
       <main className="flex flex-1 flex-col gap-4 p-6">
-        <div className="flex flex-col gap-1">
-          <Link
-            href="/dictations"
-            className="text-sm text-muted-foreground underline underline-offset-4"
-          >
-            Retour aux dictées
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {dictation.label}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {formatDictationDateForDisplay(dictation.dictationDate)}
-          </p>
-        </div>
+        <DictationDetailHeader
+          label={dictation.label}
+          dictationDate={dictation.dictationDate}
+          dictationId={dictation.id}
+          dictationLabelKey={currentLabelOptionValue}
+          matrixLabelOptions={matrixLabelOptions}
+        />
         <h2 className="text-lg font-medium">Saisie des erreurs</h2>
         <ClassGrid
           dictationId={dictation.id}
@@ -144,7 +203,6 @@ export default async function DictationDetailPage({
     );
   }
 
-  const matrixRows = await listWordCountMatrixRows(teacherClass.id);
   const matchingMatrixRow = findMatchingMatrixRow(
     matrixRows,
     dictation.dictationLabelKey
@@ -161,20 +219,13 @@ export default async function DictationDetailPage({
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
-      <div className="flex flex-col gap-1">
-        <Link
-          href="/dictations"
-          className="text-sm text-muted-foreground underline underline-offset-4"
-        >
-          Retour aux dictées
-        </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {dictation.label}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {formatDictationDateForDisplay(dictation.dictationDate)}
-        </p>
-      </div>
+      <DictationDetailHeader
+        label={dictation.label}
+        dictationDate={dictation.dictationDate}
+        dictationId={dictation.id}
+        dictationLabelKey={dictation.dictationLabelKey}
+        matrixLabelOptions={matrixLabelOptions}
+      />
       <h2 className="text-lg font-medium">Saisie des erreurs</h2>
       {activeStudents.length > 0 && !matchingMatrixRow ? (
         <p className="text-sm text-muted-foreground">

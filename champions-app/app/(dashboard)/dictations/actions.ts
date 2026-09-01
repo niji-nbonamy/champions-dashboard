@@ -10,6 +10,7 @@ import {
   canCreateDictation,
   getCreateDictationBlockedMessage,
 } from "@/lib/domain/dictation-readiness";
+import { isValidUuidV4 } from "@/lib/domain/dictation";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getYearStartWizardStatus } from "@/lib/services/get-year-start-wizard-status";
 import {
@@ -22,6 +23,13 @@ import {
   DictationSaveError,
   DICTATION_SAVE_GENERIC_ERROR,
 } from "@/lib/services/dictation-save";
+import {
+  updateDictation,
+  UpdateDictationError,
+  UPDATE_DICTATION_GENERIC_ERROR,
+} from "@/lib/services/update-dictation";
+import { revalidateDictationMetadataPaths } from "@/lib/revalidation/dictation-metadata-paths";
+import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import {
   refuseStudentPromotion,
   PROMOTION_REFUSE_GENERIC_ERROR,
@@ -39,6 +47,10 @@ export type CreateDictationActionState = {
 };
 
 const CREATE_DICTATION_GENERIC_ERROR = "Création impossible. Réessayez.";
+
+export type UpdateDictationActionState = {
+  error: string | null;
+};
 
 export type SaveDictationActionResult = {
   error: string | null;
@@ -96,6 +108,59 @@ export async function createDictationAction(
     }
 
     return { error: CREATE_DICTATION_GENERIC_ERROR };
+  }
+}
+
+export async function updateDictationAction(
+  _prevState: UpdateDictationActionState,
+  formData: FormData
+): Promise<UpdateDictationActionState> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  const dictationIdField = formData.get("dictation_id");
+  const labelField = formData.get("label");
+  const dateField = formData.get("dictation_date");
+  const dictationId =
+    typeof dictationIdField === "string" ? dictationIdField.trim() : "";
+  const label = typeof labelField === "string" ? labelField : "";
+  const dictationDate = typeof dateField === "string" ? dateField : "";
+
+  if (!dictationId || !isValidUuidV4(dictationId)) {
+    return { error: UPDATE_DICTATION_GENERIC_ERROR };
+  }
+
+  try {
+    await updateDictation(teacherClass.id, dictationId, {
+      label,
+      dictationDate,
+    });
+
+    const entries = await getDictationEntriesByDictationId(
+      teacherClass.id,
+      dictationId
+    );
+    revalidateDictationMetadataPaths(
+      dictationId,
+      entries.map((entry) => entry.studentId)
+    );
+
+    return { error: null };
+  } catch (error) {
+    if (error instanceof UpdateDictationError) {
+      return { error: error.message };
+    }
+
+    return { error: UPDATE_DICTATION_GENERIC_ERROR };
   }
 }
 
