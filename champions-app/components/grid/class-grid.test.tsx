@@ -171,7 +171,7 @@ describe("ClassGrid", () => {
     );
   });
 
-  it("wraps focus from the last cell to the first on Tab", () => {
+  it("moves focus from the last cell to the save button on Tab", () => {
     renderGrid();
 
     const inputs = getCellInputs();
@@ -184,7 +184,7 @@ describe("ClassGrid", () => {
       );
     });
 
-    expect(document.activeElement).toBe(inputs[0]);
+    expect(document.activeElement).toBe(getSaveButton());
   });
 
   it("moves focus backward with Shift+Tab wrap from the first cell", () => {
@@ -889,6 +889,29 @@ describe("ClassGrid", () => {
         'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
       )
     ).not.toBeNull();
+  });
+
+  it("moves focus to the promotion plus button when Tab leaves the last category cell", () => {
+    renderGrid(sampleStudents.slice(0, 1), defaultWordTotalsByStudentId, {
+      pendingPromotionsByStudentId: {
+        [sampleStudents[0].id]: { targetLevel: "green" },
+      },
+    });
+
+    const inputs = getCellInputs();
+    const lastCategoryInput = inputs[inputs.length - 1];
+    const promotionButton = container.querySelector(
+      'button[aria-label="Ouvrir la promotion pour DUPONT Marie"]'
+    ) as HTMLButtonElement | null;
+
+    act(() => {
+      lastCategoryInput?.focus();
+      lastCategoryInput?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Tab", bubbles: true })
+      );
+    });
+
+    expect(document.activeElement).toBe(promotionButton);
   });
 
   it("hides the promotion plus button on read-only archived rows", () => {

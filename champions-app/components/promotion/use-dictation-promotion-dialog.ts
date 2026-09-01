@@ -1,19 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   refusePromotionAction,
   validatePromotionAction,
 } from "@/app/(dashboard)/dictations/actions";
 import type { ChampionsLevel } from "@/lib/design/tokens";
-import {
-  PROMOTION_REFUSE_GENERIC_ERROR,
-  PROMOTION_VALIDATE_GENERIC_ERROR,
-} from "@/lib/domain/promotion-messages";
 import type { PendingPromotionByStudent } from "@/lib/services/list-pending-promotions";
+
+import { usePromotionAction } from "./use-promotion-action";
 
 type PromotionStudentMeta = {
   id: string;
@@ -31,11 +28,9 @@ export function useDictationPromotionDialog({
   studentMeta,
   pendingPromotionsByStudentId,
 }: UseDictationPromotionDialogOptions) {
-  const router = useRouter();
   const [promotionDialogStudentId, setPromotionDialogStudentId] = useState<
     string | null
   >(null);
-  const [isPromotionPending, startPromotionTransition] = useTransition();
 
   const promotionDialogStudent = useMemo(() => {
     if (!promotionDialogStudentId) {
@@ -64,6 +59,17 @@ export function useDictationPromotionDialog({
     }
   }, [promotionDialogStudent, promotionDialogStudentId]);
 
+  const {
+    isPending: isPromotionPending,
+    handleValidate: handlePromotionValidate,
+    handleRefuse: handlePromotionRefuse,
+  } = usePromotionAction({
+    validate: () =>
+      validatePromotionAction(promotionDialogStudentId!, dictationId),
+    refuse: () => refusePromotionAction(promotionDialogStudentId!, dictationId),
+    onSuccess: () => setPromotionDialogStudentId(null),
+  });
+
   const closePromotionDialog = useCallback(() => {
     if (isPromotionPending) {
       return;
@@ -75,62 +81,6 @@ export function useDictationPromotionDialog({
   const openPromotionDialog = useCallback((studentId: string) => {
     setPromotionDialogStudentId(studentId);
   }, []);
-
-  const handlePromotionValidate = useCallback(() => {
-    if (!promotionDialogStudentId || isPromotionPending) {
-      return;
-    }
-
-    startPromotionTransition(async () => {
-      try {
-        const result = await validatePromotionAction(
-          promotionDialogStudentId,
-          dictationId
-        );
-
-        if (result.error) {
-          toast.error(result.error);
-          router.refresh();
-          return;
-        }
-
-        toast.success("Niveau mis à jour.");
-        setPromotionDialogStudentId(null);
-        router.refresh();
-      } catch {
-        toast.error(PROMOTION_VALIDATE_GENERIC_ERROR);
-        router.refresh();
-      }
-    });
-  }, [dictationId, isPromotionPending, promotionDialogStudentId, router]);
-
-  const handlePromotionRefuse = useCallback(() => {
-    if (!promotionDialogStudentId || isPromotionPending) {
-      return;
-    }
-
-    startPromotionTransition(async () => {
-      try {
-        const result = await refusePromotionAction(
-          promotionDialogStudentId,
-          dictationId
-        );
-
-        if (result.error) {
-          toast.error(result.error);
-          router.refresh();
-          return;
-        }
-
-        toast.success("Promotion refusée.");
-        setPromotionDialogStudentId(null);
-        router.refresh();
-      } catch {
-        toast.error(PROMOTION_REFUSE_GENERIC_ERROR);
-        router.refresh();
-      }
-    });
-  }, [dictationId, isPromotionPending, promotionDialogStudentId, router]);
 
   const isPromotionBlocking =
     isPromotionPending || promotionDialogStudentId !== null;

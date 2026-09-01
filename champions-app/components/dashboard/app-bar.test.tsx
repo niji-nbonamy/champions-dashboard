@@ -2,25 +2,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { SPACING } from "@/lib/design/tokens";
+import { nextImageMockModule } from "@/test-utils/next-mocks";
 
-vi.mock("next/image", () => ({
-  default: ({
-    src,
-    alt,
-    className,
-    width,
-    height,
-  }: {
-    src: string;
-    alt: string;
-    className?: string;
-    width: number;
-    height: number;
-  }) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} className={className} width={width} height={height} />
-  ),
-}));
+vi.mock("next/image", () => nextImageMockModule);
 
 vi.mock("./sign-out-button", () => ({
   SignOutButton: () => <button type="submit">Se déconnecter</button>,

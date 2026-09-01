@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { buttonVariants } from "@/components/ui/button";
+import { DossierPresentationLink } from "@/components/dossier/dossier-presentation-link";
+import { PresentationReturnFocus } from "@/components/dossier/presentation-return-focus";
 import { LevelHistoryList } from "@/components/dossier/level-history-list";
 import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
 import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
@@ -83,6 +84,7 @@ export default async function StudentDossierPage({
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
+      <PresentationReturnFocus />
       <div className="flex flex-col gap-1">
         <Link
           href="/students"
@@ -93,12 +95,7 @@ export default async function StudentDossierPage({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <h1 className="text-display">{student.displayName}</h1>
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href={`/students/${id}/present`}
-              className={buttonVariants({ variant: "accent" })}
-            >
-              RDV parents
-            </Link>
+            <DossierPresentationLink studentId={id} />
             {showArchiveAction ? (
               <ArchiveStudentButton
                 studentId={id}

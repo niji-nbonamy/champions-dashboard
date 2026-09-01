@@ -1,34 +1,44 @@
 "use client";
 
-import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { useCallback, useState } from "react";
 
 import {
   refuseDossierPromotionAction,
   validateDossierPromotionAction,
 } from "@/app/(dashboard)/students/actions";
 import { getChampionsLevelFrenchLabel } from "@/lib/domain/champions-level";
-import {
-  PROMOTION_REFUSE_GENERIC_ERROR,
-  PROMOTION_VALIDATE_GENERIC_ERROR,
-} from "@/lib/domain/promotion-messages";
 import type { PendingPromotionQueueItem } from "@/lib/services/list-pending-promotion-queue";
 
 import { PromotionDialog } from "./promotion-dialog";
+import { usePromotionAction } from "./use-promotion-action";
 
 type AlertsPromotionQueueProps = {
   items: PendingPromotionQueueItem[];
 };
 
 export function AlertsPromotionQueue({ items }: AlertsPromotionQueueProps) {
-  const router = useRouter();
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
   const activeItem =
     items.find((item) => item.studentId === activeStudentId) ?? null;
+
+  const { isPending, handleValidate, handleRefuse } = usePromotionAction({
+    validate: async () => {
+      if (!activeItem) {
+        return { error: null };
+      }
+
+      return validateDossierPromotionAction(activeItem.studentId);
+    },
+    refuse: async () => {
+      if (!activeItem) {
+        return { error: null };
+      }
+
+      return refuseDossierPromotionAction(activeItem.studentId);
+    },
+    onSuccess: () => setActiveStudentId(null),
+  });
 
   const closeDialog = useCallback(() => {
     if (isPending) {
@@ -37,68 +47,6 @@ export function AlertsPromotionQueue({ items }: AlertsPromotionQueueProps) {
 
     setActiveStudentId(null);
   }, [isPending]);
-
-  const handleValidate = useCallback(() => {
-    if (!activeItem || isPending) {
-      return;
-    }
-
-    const studentId = activeItem.studentId;
-
-    startTransition(async () => {
-      try {
-        const result = await validateDossierPromotionAction(studentId);
-
-        if (result.error) {
-          toast.error(result.error);
-          router.refresh();
-          return;
-        }
-
-        toast.success("Niveau mis à jour.");
-        setActiveStudentId(null);
-        router.refresh();
-      } catch (error) {
-        if (isRedirectError(error)) {
-          throw error;
-        }
-
-        toast.error(PROMOTION_VALIDATE_GENERIC_ERROR);
-        router.refresh();
-      }
-    });
-  }, [activeItem, isPending, router]);
-
-  const handleRefuse = useCallback(() => {
-    if (!activeItem || isPending) {
-      return;
-    }
-
-    const studentId = activeItem.studentId;
-
-    startTransition(async () => {
-      try {
-        const result = await refuseDossierPromotionAction(studentId);
-
-        if (result.error) {
-          toast.error(result.error);
-          router.refresh();
-          return;
-        }
-
-        toast.success("Promotion refusée.");
-        setActiveStudentId(null);
-        router.refresh();
-      } catch (error) {
-        if (isRedirectError(error)) {
-          throw error;
-        }
-
-        toast.error(PROMOTION_REFUSE_GENERIC_ERROR);
-        router.refresh();
-      }
-    });
-  }, [activeItem, isPending, router]);
 
   return (
     <>

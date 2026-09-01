@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import { nextLinkMockModule } from "@/test-utils/next-mocks";
+
 const { usePathname } = vi.hoisted(() => ({
   usePathname: vi.fn(),
 }));
@@ -9,23 +11,7 @@ vi.mock("next/navigation", () => ({
   usePathname,
 }));
 
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    className,
-    "aria-current": ariaCurrent,
-  }: {
-    href: string;
-    children: React.ReactNode;
-    className?: string;
-    "aria-current"?: "page";
-  }) => (
-    <a href={href} className={className} aria-current={ariaCurrent}>
-      {children}
-    </a>
-  ),
-}));
+vi.mock("next/link", () => nextLinkMockModule);
 
 import { NavTabs } from "./nav-tabs";
 

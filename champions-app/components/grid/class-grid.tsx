@@ -88,6 +88,8 @@ export function ClassGrid({
   );
   const [isPending, startTransition] = useTransition();
   const inputRefs = useRef<Array<Array<HTMLInputElement | null>>>([]);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const promotionButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const gridContainerRef = useRef<HTMLDivElement>(null);
 
   const studentMeta = useMemo(
@@ -251,6 +253,47 @@ export function ClassGrid({
     [findEditableStudentIndex, focusCell, lastCategoryIndex, lastStudentIndex]
   );
 
+  const handleTabFromRowEnd = useCallback(
+    (studentIndex: number) => {
+      const student = students[studentIndex];
+      if (!student) {
+        return false;
+      }
+
+      const hasPromotion =
+        pendingPromotionsByStudentId[student.id] != null &&
+        !readOnlyIds.has(student.id);
+
+      if (hasPromotion) {
+        promotionButtonRefs.current[studentIndex]?.focus();
+        return true;
+      }
+
+      if (studentIndex === lastStudentIndex) {
+        saveButtonRef.current?.focus();
+        return true;
+      }
+
+      return false;
+    },
+    [lastStudentIndex, pendingPromotionsByStudentId, readOnlyIds, students]
+  );
+
+  const handlePromotionTabForward = useCallback(
+    (studentIndex: number) => {
+      if (studentIndex === lastStudentIndex) {
+        saveButtonRef.current?.focus();
+        return;
+      }
+
+      const nextStudent = findEditableStudentIndex(studentIndex + 1, 1);
+      if (nextStudent !== null) {
+        focusCell(nextStudent, 0);
+      }
+    },
+    [findEditableStudentIndex, focusCell, lastStudentIndex]
+  );
+
   const handleValueChange = useCallback(
     (
       studentId: string,
@@ -409,10 +452,14 @@ export function ClassGrid({
                       studentIndex={studentIndex}
                       categoryIndex={categoryIndex}
                       isFirstCell={studentIndex === 0 && categoryIndex === 0}
-                      isLastCell={
+                      isLastGridCell={
                         studentIndex === lastStudentIndex &&
-                        categoryIndex === lastCategoryIndex
+                        categoryIndex === lastCategoryIndex &&
+                        (pendingPromotionsByStudentId[student.id] == null ||
+                          readOnlyIds.has(student.id))
                       }
+                      isRowEndCategory={categoryIndex === lastCategoryIndex}
+                      onTabFromRowEnd={() => handleTabFromRowEnd(studentIndex)}
                       hasValidationError={rowInvalid}
                       disabled={isPending || readOnlyIds.has(student.id)}
                       inputRef={(element) => {
@@ -435,6 +482,10 @@ export function ClassGrid({
                       isReadOnlyRow={isReadOnlyRow}
                       disabled={isPending || isPromotionPending}
                       onOpen={openPromotionDialog}
+                      buttonRef={(element) => {
+                        promotionButtonRefs.current[studentIndex] = element;
+                      }}
+                      onTabForward={() => handlePromotionTabForward(studentIndex)}
                     />
                   </td>
                 </tr>
@@ -444,6 +495,7 @@ export function ClassGrid({
         </table>
       </div>
       <Button
+        ref={saveButtonRef}
         type="button"
         disabled={
           !allRowsValid ||

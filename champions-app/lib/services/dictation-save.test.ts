@@ -550,6 +550,128 @@ describe("saveDictation edit path", () => {
   });
 });
 
+describe("saveDictation transaction contract", () => {
+  const classId = "660e8400-e29b-41d4-a716-446655440001";
+  const dictationId = "880e8400-e29b-41d4-a716-446655440006";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    mockSelectLimit.mockReset();
+    mockSelectLimit.mockResolvedValue([]);
+  });
+
+  it("throws DictationAlreadySavedError when a row exists inside the first-save transaction", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce(students.slice(0, 1));
+    mockListWordCountMatrixRows.mockResolvedValueOnce([matrixRow]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit.mockResolvedValueOnce([{ id: "existing-entry" }]);
+      await callback(tx);
+    });
+
+    const { saveDictation, DictationAlreadySavedError } = await import(
+      "./dictation-save"
+    );
+
+    await expect(
+      saveDictation(classId, dictationId, {
+        [students[0].id]: { ...emptyCounts, C: 2 },
+      })
+    ).rejects.toThrow(DictationAlreadySavedError);
+    expect(mockInsertValues).not.toHaveBeenCalled();
+  });
+
+  it("propagates promotion failures from the first-save transaction", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce(students.slice(0, 1));
+    mockListWordCountMatrixRows.mockResolvedValueOnce([matrixRow]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockRejectedValueOnce(new Error("promotion insert failed"));
+      await callback(tx);
+    });
+
+    const { saveDictation } = await import("./dictation-save");
+
+    await expect(
+      saveDictation(classId, dictationId, {
+        [students[0].id]: { ...emptyCounts, C: 2 },
+      })
+    ).rejects.toThrow("promotion insert failed");
+    expect(mockTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("propagates promotion failures from the edit-save transaction", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: students[0].id,
+        displayName: "DUPONT Marie",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 50,
+        globalPercent: 80,
+        errorsC: 10,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit.mockRejectedValueOnce(new Error("promotion reevaluation failed"));
+      await callback(tx);
+    });
+
+    const { saveDictation } = await import("./dictation-save");
+
+    await expect(
+      saveDictation(classId, dictationId, {
+        [students[0].id]: { ...emptyCounts, C: 2 },
+      })
+    ).rejects.toThrow("promotion reevaluation failed");
+    expect(mockTransaction).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("saveDictation first-save path", () => {
   const classId = "660e8400-e29b-41d4-a716-446655440001";
   const dictationId = "880e8400-e29b-41d4-a716-446655440004";

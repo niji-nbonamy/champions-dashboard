@@ -25,7 +25,9 @@ type GridCellProps = {
   studentIndex: number;
   categoryIndex: number;
   isFirstCell?: boolean;
-  isLastCell?: boolean;
+  isLastGridCell?: boolean;
+  isRowEndCategory?: boolean;
+  onTabFromRowEnd?: () => boolean;
   hasValidationError?: boolean;
   disabled?: boolean;
 };
@@ -57,7 +59,9 @@ export function GridCell({
   studentIndex,
   categoryIndex,
   isFirstCell = false,
-  isLastCell = false,
+  isLastGridCell = false,
+  isRowEndCategory = false,
+  onTabFromRowEnd,
   hasValidationError = false,
   disabled = false,
 }: GridCellProps) {
@@ -77,7 +81,12 @@ export function GridCell({
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Tab") {
-      if (!event.shiftKey && isLastCell) {
+      if (!event.shiftKey && isRowEndCategory && onTabFromRowEnd?.()) {
+        event.preventDefault();
+        return;
+      }
+
+      if (!event.shiftKey && isLastGridCell) {
         event.preventDefault();
         onTabWrap?.("forward");
         return;

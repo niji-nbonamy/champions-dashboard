@@ -28,6 +28,7 @@ export function PresentationMode({
 }: PresentationModeProps) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const ariaLabel = `Mode RDV parents, ${displayName}`;
   const hasHistory = history.length > 0;
   const curvePoints = toCurvePoints(history);
@@ -37,6 +38,8 @@ export function PresentationMode({
     if (dialog && !dialog.open) {
       dialog.showModal();
     }
+
+    closeButtonRef.current?.focus();
 
     return () => {
       if (dialog?.open) {
@@ -66,7 +69,12 @@ export function PresentationMode({
       <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto p-6 lg:p-10">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-display">{displayName}</h1>
-          <Button type="button" variant="outline" onClick={handleClose}>
+          <Button
+            ref={closeButtonRef}
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+          >
             Fermer
           </Button>
         </div>
