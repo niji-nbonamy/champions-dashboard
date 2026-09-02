@@ -128,7 +128,7 @@ NFR-AUTH-3: Existing NFR9 preserved — generic errors, no email-exists leak on 
 - **Auth security (AD-12):** Server-side password policy + reCAPTCHA v2 verification via `lib/services/recaptcha-verify.ts`; shared auth components under `components/auth/` (`password-field.tsx`, `password-requirements.tsx`, `recaptcha-field.tsx`); env vars `RECAPTCHA_SITE_KEY` + `RECAPTCHA_SECRET_KEY` required in production.
 - **Public landing:** `app/page.tsx` branded hero + CTAs; middleware extends `/` matcher — logged-in redirect to `/dictations`; assets `public/logo-champions-method-full.jpg` (landing) and `public/logo-champions-wordmark.jpg` (app bar).
 - **Deferred (not in MVP stories):** Per-category %, full mobile class grid, pixel-perfect paper layout, dictation delete/purge, word-count matrix CSV import (F3), PWA/offline, WebSocket sync, Postgres RLS, email verification, automated GDPR export/erasure.
-- **Future (captured in future-ideas.md, not scheduled):** Password reset self-service (IDEA-001); interactive per-category dossier curves with toggles, Y-axis ticks, and X-axis dictation labels (IDEA-004).
+- **Future (captured in future-ideas.md, scheduled Epic 7):** Password reset self-service (IDEA-001 → 7-1); interactive dossier curves — axis labels + per-category toggles (IDEA-004 → 7-2, 7-3).
 
 ### UX Design Requirements
 
@@ -249,6 +249,11 @@ Teacher can capture dictation errors on mobile via the dictation hub and hybrid 
 ### Epic 6: Daily Workflow Polish
 Teacher benefits from smoother daily workflows: persistent navigation while scrolling, clearer dictation setup guidance, faster grid entry with lighter tooltips, and the ability to correct dictation metadata after creation.
 **FRs covered:** FR16 (amendment), FR48, FR49, FR50
+
+### Epic 7: Post-MVP — Auth Recovery & Dossier Analytics
+Teacher can recover a forgotten password without support intervention, and explore richer progression visualizations on student dossiers before parent meetings.
+**FRs covered:** FR-AUTH-7, FR-AUTH-8, FR-DOSSIER-1, FR-DOSSIER-2 (new — see stories below)
+**Source ideas:** IDEA-001, IDEA-004 (triaged 2026-09-02)
 
 ## Epic 1: Foundation & Teacher Access
 
@@ -918,4 +923,99 @@ So that typos and wrong session dates do not persist in history and dossiers.
 **Given** error counts were previously saved for this dictation
 **When** I edit only metadata
 **Then** I can still reopen and edit error counts via Story 3.5 without conflict (FR22, FR42)
+
+## Epic 7: Post-MVP — Auth Recovery & Dossier Analytics
+
+Teacher can recover a forgotten password without support intervention, and explore richer progression visualizations on student dossiers before parent meetings.
+
+### Story 7.1: Forgotten Password Reset Flow
+
+As a primary teacher,
+I want to reset my password via email when I forget it,
+So that I can regain access without creating a new account or contacting support.
+
+**Acceptance Criteria:**
+
+**Given** I am on the login page
+**When** I click « Mot de passe oublié ? »
+**Then** I reach a request form asking for my registered email (FR-AUTH-7)
+**And** all microcopy is in French (NFR14)
+
+**Given** I submit a registered email
+**When** the request is processed
+**Then** a time-limited reset link is sent via transactional email (FR-AUTH-7)
+**And** the UI shows a generic success message regardless of whether the email exists (NFR9 — no account enumeration)
+**And** the request endpoint is rate-limited per IP (reuse `auth-rate-limit.ts` pattern)
+
+**Given** I open a valid reset link within the expiry window
+**When** I submit a new password meeting the existing policy (FR-AUTH-3 rules)
+**Then** my password is updated and I can log in with the new credentials (FR-AUTH-8)
+**And** the reset token is invalidated after use (single-use)
+
+**Given** I open an expired or already-used reset link
+**When** I attempt to set a new password
+**Then** I see a clear French error and a link back to request a new reset
+
+**Given** I am authenticated
+**When** I visit the forgot-password or reset pages
+**Then** I am redirected to `/dictations` (consistent with `/register` middleware policy)
+
+### Story 7.2: Global Curve Axis Labels and Y-Axis Scale
+
+As a primary teacher preparing for a parent meeting,
+I want the dossier global progression curve to show dictation names on the X-axis and a readable Y-axis scale,
+So that I can orient myself on the chart without guessing which point is which dictation.
+
+**Acceptance Criteria:**
+
+**Given** a student dossier with at least two saved dictations
+**When** I view the hero global curve (Story 4.2)
+**Then** the X-axis shows dictation labels (truncated with tooltip on hover if needed) (FR-DOSSIER-1)
+**And** the Y-axis shows ticks at 0, 20, 40, 60, 80, and 100 % with optional horizontal guide lines (FR-DOSSIER-1)
+**And** the global % curve behavior is unchanged — only axis presentation improves
+
+**Given** presentation mode (Story 4.7)
+**When** the global curve is displayed
+**Then** the same axis labels and Y-axis scale apply (FR-DOSSIER-1, NFR16)
+
+**Given** only one dictation exists
+**When** the curve renders
+**Then** a single point is shown with appropriate axis labels — no layout break
+
+**Given** I use keyboard or screen reader
+**When** I focus the chart
+**Then** the aria-label describes the curve and dictation count (NFR13)
+
+### Story 7.3: Toggleable Per-Category Progression Curves
+
+As a primary teacher before a parent meeting,
+I want to toggle individual CHAMPIONS category curves on the dossier chart,
+So that I can spot category-specific trends beyond the global % line.
+
+**Acceptance Criteria:**
+
+**Given** a student dossier with saved dictations
+**When** I view the hero curve area
+**Then** the global % curve is shown by default (FR24 unchanged)
+**And** CHAMPIONS letter controls (C–S) let me add or remove per-category curves (FR-DOSSIER-2)
+**And** any combination of category curves can be shown or hidden independently
+
+**Given** I toggle a category curve on
+**When** the chart updates
+**Then** a distinct curve appears using the per-category % formula defined in the spec companion (to be authored before build — see `scoring-model.md` extension)
+**And** the curve uses the same dictation ordering as the global curve (chronological by `dictationDate`)
+
+**Given** presentation mode (Story 4.7)
+**When** category toggles are used
+**Then** the same toggle behavior applies on the presentation curve (FR-DOSSIER-2, NFR16)
+
+**Given** a dictation has zero word denominator for a category (edge case)
+**When** the per-category curve is computed
+**Then** the point is omitted or shown as N/A per the spec companion rule — never divide by zero
+
+**Given** I use keyboard navigation
+**When** I activate category toggles
+**Then** toggles are reachable and announce state changes (NFR13)
+
+**Pre-build gate:** Author per-category % definition in `_bmad-output/specs/spec-dashboards-dictees-champions-ce2/scoring-model.md` before `bmad-build` on this story — MVP explicitly deferred this metric (`mvp-scope.md`).
 

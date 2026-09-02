@@ -47,21 +47,41 @@ Product ideas and enhancements captured during development — not committed wor
 - **Promoted to:** Optional — epic/story key when scheduled (e.g. `4-8-…`, `epic-6`).
 ```
 
+## Triage sessions
+
+### 2026-09-02 — Post-MVP (Epic 6 retro action item #5)
+
+**Context:** MVP backlog complete (Epics 1–6, 36 stories). Two ideas remain in `considering`.
+
+| Idea | Decision | Rationale | Next step |
+|------|----------|-----------|-----------|
+| IDEA-001 | **scheduled** → Epic 7 / 7-1 | Ops blocker before wide rollout — no self-service recovery today; rate limiting already in place for register/login | Requires email provider choice (Resend, etc.) + token storage before build |
+| IDEA-004 | **scheduled** → Epic 7 / 7-2 + 7-3 | High value for RDV parents job; MVP deferral still valid for full per-category curves — split into incremental delivery | 7-2 (axis labels + Y ticks) ships first; 7-3 needs per-category % spec spike |
+| IDEA-002–006 | **done** | Shipped in Epic 6 | — |
+
+**Recommended Epic 7 order:** 7-1 (auth) → 7-2 (curve polish) → 7-3 (per-category curves). Auth is P1 for production; curve enhancements are P2 UX.
+
+**Out of scope for Epic 7 (stay deferred):** dictation delete/purge, matrix CSV import, full mobile class grid — per `mvp-scope.md`.
+
+---
+
 ## Ideas
 
 <!-- Add new entries below. Newest at the bottom of this section. -->
 
 ### IDEA-001 — Forgotten password reset (2026-08-28)
 
-- **Status:** considering
+- **Status:** scheduled
+- **Promoted to:** epic-7 / 7-1
 - **Area:** auth
 - **Summary:** Teacher can request a password reset flow when they forget their login password.
 - **Context:** Auth covers register and login (FR1); no self-service recovery exists today — teachers locked out must rely on manual support or a new account.
 - **Related:** Epic 1 auth stories (`spec-1-2-teacher-registration`, `spec-1-3-teacher-login-session-management`); deferred-work rate-limiting / security hardening items.
+- **Triage (2026-09-02):** P1 post-MVP — schedule before production rollout. Needs transactional email + reset token table + rate limiting on request endpoint.
 
 ### IDEA-002 — Sticky app bar and navigation tabs (2026-08-28)
 
-- **Status:** scheduled
+- **Status:** done
 - **Promoted to:** epic-6 / 6-3
 - **Area:** navigation
 - **Summary:** Keep the top banner (app bar) and main tab navigation fixed while scrolling dashboard content.
@@ -70,7 +90,7 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-003 — Edit dictation label and date (2026-08-31)
 
-- **Status:** scheduled
+- **Status:** done
 - **Promoted to:** epic-6 / 6-4
 - **Area:** dictation
 - **Summary:** Teacher can correct a dictation's label and date after creation (typo, wrong date, session moved).
@@ -79,15 +99,17 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-004 — Interactive dossier progression curves (2026-08-31)
 
-- **Status:** considering
+- **Status:** scheduled
+- **Promoted to:** epic-7 / 7-2, 7-3
 - **Area:** dossier
 - **Summary:** Student dossier chart supports togglable per-category curves (C–S), richer Y-axis scale, and dictation labels on the X-axis — global curve shown by default.
 - **Context:** Weekend UX review: global-only curve (story 4.2) is insufficient for spotting category-specific trends before parent meetings; MVP explicitly deferred per-category curves (`mvp-scope.md`). Desired behavior: start with global only; click CHAMPIONS letters to add/remove category curves (any curve includable/excludable); Y-axis ticks at 0 / 20 / 40 / 60 / 80 / 100 % with optional horizontal guides; dictation names on X-axis (today only 0 % / 100 % labels, no X labels).
 - **Related:** `spec-4-2-hero-curve-collapsed-dictation-table-c1`; `global-success-curve.tsx`; `mvp-scope.md` deferred « Per-category % and per-category curves »; FR24–FR25.
+- **Triage (2026-09-02):** Split delivery — 7-2 (axis labels + Y ticks, low risk) before 7-3 (per-category toggles, needs per-category % definition spike in spec companion).
 
 ### IDEA-005 — Category header hover: title only, no definition (2026-08-31)
 
-- **Status:** scheduled
+- **Status:** done
 - **Promoted to:** epic-6 / 6-2
 - **Area:** dictation
 - **Summary:** On the class grid (Dictées → dictation), category column headers show the category name on hover/tap but not the long definition text.
@@ -96,7 +118,7 @@ Product ideas and enhancements captured during development — not committed wor
 
 ### IDEA-006 — Config-first hint before « Nouvelle dictée » (2026-08-31)
 
-- **Status:** scheduled
+- **Status:** done
 - **Promoted to:** epic-6 / 6-1
 - **Area:** ux
 - **Summary:** When creating a dictation from the Dictées tab, show clear guidance that dictation labels must exist in the Config word-count matrix first (with link to Config).

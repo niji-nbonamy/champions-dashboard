@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 09-01-2026 17:52
+last_updated: 09-02-2026 10:13
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -83,12 +83,12 @@ development_status:
   5-3-unleveled-student-block-on-mobile: done
   epic-5-retrospective: done
 
-  epic-6: in-progress
+  epic-6: done
   6-1-config-first-hint-before-nouvelle-dictée: done
   6-2-category-header-hover-title-only: done
   6-3-sticky-app-bar-navigation-tabs: done
   6-4-edit-dictation-label-and-date: done
-  epic-6-retrospective: optional
+  epic-6-retrospective: done
 action_items:
   - id: "epic-1-retro-item-1-add-github-actions-workflow-npm-ci-npm-t"
     epic: 1
@@ -290,3 +290,37 @@ action_items:
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-09-01-2026.md"
     completed_note: "formatMobileHubCaptureAriaLabel / formatMobileHubSummaryAriaLabel
       on hub links"
+  - id: "epic-6-retro-item-29-reconcile-ux-decisions-md-and-spec-3-2-f"
+    epic: 6
+    action: "Reconcile ux-decisions.md and spec-3-2 for name-only category header
+      hover (Story 6.2)"
+    owner: "pm"
+    status: open
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-6-retro-09-02-2026.md"
+  - id: "epic-6-retro-item-30-add-integration-test-for-chronological-d"
+    epic: 6
+    action: "Add integration test for chronological dossier/history reorder after
+      date-only metadata change"
+    owner: "dev"
+    status: open
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-6-retro-09-02-2026.md"
+  - id: "epic-6-retro-item-31-ios-safe-area-inset-on-sticky-dashboard"
+    epic: 6
+    action: "iOS safe-area inset on sticky dashboard shell (dashboard-chrome.tsx)"
+    owner: "dev"
+    status: open
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-6-retro-09-02-2026.md"
+  - id: "epic-6-retro-item-32-e2e-smoke-create-dictation-edit-metadata"
+    epic: 6
+    action: "E2E smoke: create dictation, edit metadata (label + date), verify history
+      order"
+    owner: "dev"
+    status: open
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-6-retro-09-02-2026.md"
+  - id: "epic-6-retro-item-33-triage-post-mvp-ideas-idea-001-password"
+    epic: 6
+    action: "Triage post-MVP ideas (IDEA-001 password reset, IDEA-004 interactive
+      dossier curves) into Epic 7 or future-ideas.md"
+    owner: "pm"
+    status: done
+    ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-6-retro-09-02-2026.md"
