@@ -45,6 +45,8 @@ cd champions-app
    | `AUTH_TRUST_HOST` | Yes on Vercel | Set to `true` so Auth.js trusts the `Host` header behind Vercel's reverse proxy. Omit or leave unset for local `npm run dev`. |
    | `RECAPTCHA_SITE_KEY` | Prod when captcha enabled | Google reCAPTCHA v2 site key (registration widget) |
    | `RECAPTCHA_SECRET_KEY` | Prod when captcha enabled | Google reCAPTCHA v2 secret for server verification. In non-production, verification is bypassed when this variable is absent |
+   | `RESEND_API_KEY` | For email sending | Resend API key (`re_…`). Replace `re_xxxxxxxxx` in `.env.example` with your real key from the [Resend dashboard](https://resend.com/api-keys) |
+   | `EMAIL_FROM` | For email sending | With a verified domain: `CHAMPIONS <noreply@votredomaine.fr>`. **Without a domain** (Vercel `*.vercel.app` does not work for email): use `onboarding@resend.dev` — Resend only delivers to the email on your Resend account (sandbox mode) |
 
    In the Neon dashboard → **Connect**, copy both connection strings (pooled + direct). Using only the pooled URL for `db:push` can hang at « Pulling schema from database... ».
 
