@@ -77,8 +77,7 @@ export function MobileErrorField({
       return;
     }
 
-    const nextValue = value > 3 ? 1 : value >= 3 ? 0 : value + 1;
-    onChange(categoryLetter, nextValue);
+    onChange(categoryLetter, value + 1);
   }
 
   function handlePointerDown() {
@@ -162,7 +161,7 @@ export function MobileErrorField({
         <div className="flex items-center justify-between gap-2">
           {!showManualInput ? (
             <p className="text-xs text-muted-foreground">
-              Appuyer pour 0–3 · maintenir pour saisir un nombre
+              Appuyer pour incrémenter · maintenir pour saisir un nombre
             </p>
           ) : (
             <p className="text-xs text-muted-foreground">Saisir un nombre</p>

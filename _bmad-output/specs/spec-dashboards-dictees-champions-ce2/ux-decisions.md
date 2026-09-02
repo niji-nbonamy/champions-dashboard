@@ -26,7 +26,7 @@ Chosen interaction patterns for MVP. Implementation details live here; capabilit
 **B4 — Hybrid per-student**
 
 - Default: per-student form with nine large numeric fields (CAP-7) — accepts any non-negative integer.
-- **Quick-tap mode**: one tap per category cycles 0 → 1 → 2 → 3 for common low-error counts; a long-press or dedicated numeric field accepts values ≥ 4.
+- **Quick-tap mode**: one tap per category increments the error count by +1 (no 0–3 cap); long-press or a dedicated numeric field accepts manual entry for any value, including decrease.
 - Entry blocked for students without an assigned level; redirect to level assignment (E1).
 - Full mobile class-grid remains deferred (`mvp-scope.md`).
 

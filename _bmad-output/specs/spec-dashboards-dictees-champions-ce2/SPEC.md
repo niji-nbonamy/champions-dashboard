@@ -49,7 +49,7 @@ sources:
 
 - **CAP-7**
   - **intent:** Teacher can enter dictation errors on mobile via a hybrid per-student flow — numeric fields plus optional quick-tap mode — with large targets and minimal taps.
-  - **success:** On a phone-sized screen, teacher completes one leveled student's nine category counts using either full numeric entry or quick-tap cycling with overflow to numeric for values ≥ 4 (see `ux-decisions.md`).
+  - **success:** On a phone-sized screen, teacher completes one leveled student's nine category counts using tap-to-increment (+1 per tap, no cap) or manual numeric entry via long-press or dedicated field (see `ux-decisions.md`).
 
 ## Constraints
 

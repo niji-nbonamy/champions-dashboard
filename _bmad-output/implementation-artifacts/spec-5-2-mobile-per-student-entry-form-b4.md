@@ -25,7 +25,7 @@ context:
 - Picker subtitle shows remaining count (e.g. « 3 restants ») = `totalLeveledCount - enteredCount` (leveled only); when `totalLeveledCount === 0`, subtitle is « Aucun élève nivelé pour saisir. »
 - Nine error-category fields from `CHAMPIONS_ERROR_CATEGORIES` (label + value side-by-side per field, full row width); min 48px height (`min-h-12`), `inputMode="numeric"` on manual input, min 44px touch targets.
 - Pre-fill fields when an entry exists (`dbColumnsToCategoryErrors` on existing entry).
-- Quick-tap: tap cycles 0→1→2→3 per field (FR38). Values ≥4 via long-press **or** a dedicated numeric input affordance on the field.
+- Quick-tap mode: tap increments error count by +1 per field (no 0–3 cap, FR38). Long-press **or** a dedicated numeric input affordance for manual entry (any value, including decrease).
 - « Enregistrer » saves one student, then navigates back to picker with updated counts.
 - Prev/next **arrow icon buttons** (← / →) on the form navigate between leveled students in roster sort order (no swipe).
 - New `saveDictationStudentEntry` service: insert for new entry (word denominator from matrix + current level), update for existing (immutable `levelAtSave` + `wordDenominator` snapshot). Reuse `normalizeCategoryCounts`, `validateGridRow`, `calculateGlobalPercent`, `categoryErrorsToDbColumns`, `cascadePromotionReevaluation`.
@@ -33,7 +33,7 @@ context:
 - French microcopy. Auth + class scope unchanged. No schema changes. No student names in server logs.
 
 **Ask First:**
-- Long-press vs explicit « Saisir un nombre » text input for values ≥4 — default **both**: long-press opens native numeric input overlay; tap still cycles 0–3.
+- Long-press vs explicit « Saisir un nombre » text input — default **both**: long-press opens native numeric input overlay; tap increments +1 without cap.
 - Show student first name only (`getStudentFirstName`) vs full `displayName` in picker rows — **resolved: full `displayName`** (code review 2026-08-31, choice 1B).
 - Field layout full-width stacked vs label/value side-by-side — **resolved: side-by-side** (code review 2026-08-31, choice 2B).
 
@@ -52,7 +52,7 @@ context:
 | Picker mixed roster | 3 leveled + 1 unleveled active | 4 rows; unleveled shows `RequiredLevelBadge`; subtitle counts leveled only | N/A |
 | New entry save | Student has no entry, valid counts | Insert with matrix word denominator + `levelAtSave`; redirect to picker; remaining count decrements | Validation fail → inline French message from `formatGridRowValidationMessage`; no DB write |
 | Edit entry save | Student has entry, changed counts | Update scores using frozen snapshot denominator; redirect to picker | Missing entry on update path → generic save error |
-| Quick-tap cycle | Field value 3, tap | Value becomes 0 | N/A |
+| Quick-tap increment | Field value 3, tap | Value becomes 4 | N/A |
 | High count | Long-press or numeric input, enter 7 | Field shows 7; save accepts if valid | Reject negative or non-integer |
 | Prev/next | Middle student in roster | Arrows navigate to adjacent leveled students without saving draft | First/last student disables prev/next respectively |
 | Empty roster | Zero active students | Picker shows « Aucun élève actif. » | N/A |
@@ -77,8 +77,8 @@ context:
 - `champions-app/components/grid/grid-cell.tsx` -- **READ** L33–45 `parseNonNegativeInteger` pattern for numeric parsing in mobile field.
 - `champions-app/app/(dashboard)/students/roster-list.tsx` -- **READ** L73–79 row layout pattern for large touch list rows.
 - `champions-app/components/ui/level-badge.tsx` -- **REUSE** level color dot in picker rows.
-- `champions-app/components/dictations/mobile-error-field.tsx` -- **CREATE** client field: tap cycle 0–3, long-press/input for ≥4, `min-h-12`, `inputMode="numeric"`.
-- `champions-app/components/dictations/mobile-error-field.test.tsx` -- **CREATE** cycle, long-press/input, aria labels.
+- `champions-app/components/dictations/mobile-error-field.tsx` -- **CREATE** client field: tap +1 increment (no 0–3 cap), long-press/manual input, `min-h-12`, `inputMode="numeric"`.
+- `champions-app/components/dictations/mobile-error-field.test.tsx` -- **CREATE** increment, long-press/input, aria labels.
 - `champions-app/components/dictations/mobile-student-picker.tsx` -- **CREATE** presentational picker: rows, « saisi » badge, remaining subtitle, links to `/mobile/[studentId]`.
 - `champions-app/components/dictations/mobile-student-picker.test.tsx` -- **CREATE** saisi markers, remaining count, empty state.
 - `champions-app/components/dictations/mobile-per-student-form.tsx` -- **CREATE** client form: nine `MobileErrorField`s, validation display, Enregistrer, prev/next arrows, calls action.
@@ -93,7 +93,7 @@ context:
 **Execution:**
 - [x] `champions-app/lib/services/dictation-save.ts` + test -- `saveDictationStudentEntry` upsert -- enables incremental mobile capture without breaking batch grid save.
 - [x] `champions-app/app/(dashboard)/dictations/actions.ts` -- `saveDictationStudentEntryAction` + revalidation -- server-authoritative mobile mutation path.
-- [x] `champions-app/components/dictations/mobile-error-field.tsx` + test -- quick-tap 0–3 + ≥4 input -- FR38 / UX-DR21 touch targets.
+- [x] `champions-app/components/dictations/mobile-error-field.tsx` + test -- quick-tap +1 increment + manual input -- FR38 / UX-DR21 touch targets.
 - [x] `champions-app/components/dictations/mobile-student-picker.tsx` + test -- picker UI with saisi + restants -- B4 entry point from hub « Saisir ».
 - [x] `champions-app/components/dictations/mobile-per-student-form.tsx` + test -- nine fields, save, prev/next -- per-student capture surface.
 - [x] `champions-app/app/(dashboard)/dictations/[id]/mobile/page.tsx` -- wire picker server data -- replace 5.1 stub.
@@ -102,7 +102,7 @@ context:
 **Acceptance Criteria:**
 - Given I tap « Saisir » on the mobile hub for an open dictation, when the student picker loads, then all active leveled non-archived students are listed with « saisi » on those who have an entry and a subtitle showing remaining count.
 - Given I select a student, when the per-student form loads, then nine full-width numeric fields (min 48px height, `inputmode="numeric"`) are shown and pre-filled if an entry exists.
-- Given quick-tap mode is active, when I tap a field repeatedly, then values cycle 0→1→2→3, and I can enter values ≥4 via long-press or dedicated input.
+- Given quick-tap mode is active, when I tap a field repeatedly, then each tap increments the value by +1 with no 0–3 cap, and I can enter or correct any value via long-press or dedicated input.
 - Given valid counts, when I tap Enregistrer, then the entry is saved with the same scoring and snapshot rules as the laptop grid and I return to the picker with updated completion counts.
 - Given I am on the per-student form, when I use prev/next arrows, then I navigate between leveled students in roster order without swipe gestures.
 
@@ -112,7 +112,7 @@ Single-student save extracts one iteration from `prepareDictationEntries` (new) 
 
 After save, `router.push` back to `/dictations/{id}/mobile` (client) plus server `revalidatePath` keeps hub summary fresh on next visit.
 
-Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or expandable `<input>` for manual entry — keeps 48px touch target without laptop grid keyboard nav.
+Quick-tap fields use a `<button>` for tap-to-increment with an expandable `<input>` for manual entry — keeps 48px touch target without laptop grid keyboard nav.
 
 ## Verification
 
@@ -121,12 +121,13 @@ Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or ex
 - `cd champions-app && npm run build` -- expected: production build succeeds.
 
 **Manual checks (if no CLI):**
-- Below 768px: hub → Saisir → picker shows students and restants → select student → enter counts via tap cycle → Enregistrer → picker updates « saisi ». Edit existing entry pre-fills. Prev/next moves between students. Laptop grid save still works unchanged at ≥768px.
+- Below 768px: hub → Saisir → picker shows students and restants → select student → enter counts via tap increment → Enregistrer → picker updates « saisi ». Edit existing entry pre-fills. Prev/next moves between students. Laptop grid save still works unchanged at ≥768px.
 
 ## Spec Change Log
 
 - Review loop 1: Matrix-missing case shows inline alert on student form page instead of `notFound()`; added picker page integration test.
 - Code review 2026-08-31: Resolved Ask First — keep full `displayName` (1B), keep label/value side-by-side layout (2B), adopt arrow icon prev/next (3A).
+- Product reconciliation 2026-09-02: FR38 amended — tap increments +1 without 0–3 cap; manual entry for decrease or exact values.
 
 ## Suggested Review Order
 
@@ -143,8 +144,8 @@ Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or ex
 - Picker lists all active students; saisi badges and remaining count use leveled-only math.
   [`mobile-student-picker.tsx:57`](../../champions-app/components/dictations/mobile-student-picker.tsx#L57)
 
-- Quick-tap field cycles 0–3 with dedicated manual numeric affordance.
-  [`mobile-error-field.tsx:36`](../../champions-app/components/dictations/mobile-error-field.tsx#L36)
+- Quick-tap field increments +1 per tap with dedicated manual numeric affordance.
+  [`mobile-error-field.tsx:66`](../../champions-app/components/dictations/mobile-error-field.tsx#L66)
 
 - Per-student form validates, saves, and navigates prev/next in roster order.
   [`mobile-per-student-form.tsx:52`](../../champions-app/components/dictations/mobile-per-student-form.tsx#L52)
@@ -193,4 +194,5 @@ Quick-tap fields use a `<button>` for tap-to-cycle with an visually hidden or ex
 
 - Post-delivery (2026-09-01): Mobile B4 validation and field aria-labels use full `displayName`; `getStudentFirstName` removed (picker already used full name per decision 1B).
 - Post-5.3 reconciliation (2026-09-01): Boundaries, I/O matrix, and code map updated — picker displays all active students (`listActiveStudents`); completion math and prev/next remain leveled-only. Unleveled block UI owned by spec 5-3.
+- Product reconciliation (2026-09-02): FR38 amended — tap increments +1 without 0–3 cap; manual entry for decrease or exact values.
 - [x] [Review][Defer] Incohérence statut spec `done` vs sprint `review` — hygiène artefact [`spec-5-2-*.md`, `sprint-status.yaml`] — deferred, pre-existing

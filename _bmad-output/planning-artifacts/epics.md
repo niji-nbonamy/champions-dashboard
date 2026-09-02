@@ -72,7 +72,7 @@ FR34: Teacher opens full-screen presentation mode « RDV parents » from dossier
 FR35: Presentation mode shows global curve, last dictation %, trend delta vs previous dictation, and current level badge — presentable in ~30 seconds.
 FR36: Presentation mode provides per-category error counts on demand via collapsed table toggle; no pedagogical narrative.
 FR37: Teacher enters dictation errors on mobile via per-student hybrid form with nine large numeric fields (B4, CAP-7).
-FR38: Mobile quick-tap mode cycles 0→1→2→3 per category; long-press or dedicated field for values ≥ 4.
+FR38: Mobile quick-tap mode increments error count by +1 on each tap (no 0–3 cap); long-press or dedicated field for manual numeric entry (including decrease).
 FR39: Mobile entry blocked for students without assigned level; redirect to level assignment (E1).
 FR40: Mobile dictation hub (G2) shows last dictation label + date with shortcuts « Saisir » and « Voir ».
 FR41: Laptop navigation uses four tabs: Dictées · Élèves · Config · Alertes (G1).
@@ -152,7 +152,7 @@ UX-DR17: Implement alerts queue (D2) with tab badge count « N élèves prêts �
 UX-DR18: Implement level dot picker (E1) — four color dots per unassigned student row on Élèves tab.
 UX-DR19: Implement year-start wizard (E3) — linear 3-step flow with back navigation, cannot skip level assignment.
 UX-DR20: Implement word matrix table (F1) on Config tab — rows = dictations, columns = four level colors, cells = word count integer > 0.
-UX-DR21: Implement mobile per-student form (B4) — full width, 48px min field height, inputmode="numeric", quick-tap 0→1→2→3 cycling.
+UX-DR21: Implement mobile per-student form (B4) — full width, 48px min field height, inputmode="numeric", quick-tap +1 increment per tap (no cycle cap).
 UX-DR22: Implement empty states: empty roster CTA to Config CSV import; no dictations placeholder on dossier; unassigned levels badge on Élèves tab.
 UX-DR23: Implement loading states — shadcn Skeleton matching expected layout on cold load; save-in-progress spinner with optimistic lock on grid cells.
 UX-DR24: Implement error states — inline grid validation message « Σ erreurs ({N}) > total mots ({M}) pour {displayName} »; destructive Toast on save failure with data retained.
@@ -204,7 +204,7 @@ FR34: Epic 4 - Open full-screen presentation mode « RDV parents » (C3)
 FR35: Epic 4 - Show curve, last %, trend delta, level badge in presentation
 FR36: Epic 4 - Per-category error counts on demand in presentation mode
 FR37: Epic 5 - Mobile per-student hybrid error entry form (B4)
-FR38: Epic 5 - Quick-tap mode cycling 0→1→2→3 with overflow for ≥4
+FR38: Epic 5 - Quick-tap mode +1 per tap (no 0–3 cap); manual entry via long-press or dedicated field
 FR39: Epic 5 - Block mobile entry for unleveled students, redirect to E1
 FR40: Epic 5 - Mobile dictation hub with last dictation and shortcuts (G2)
 FR41: Epic 1 - Four-tab laptop navigation (Dictées · Élèves · Config · Alertes)
@@ -795,8 +795,8 @@ So that I can complete remaining entries without my laptop.
 **And** if the student already has an entry, fields are pre-filled with existing counts for correction
 **And** each field uses `inputmode="numeric"` with min 44px touch targets (UX-DR21, UX-DR25)
 **When** quick-tap mode is active
-**Then** tapping a field cycles 0→1→2→3 for common low-error counts (FR38)
-**And** long-press or a dedicated field accepts values ≥ 4 (FR38)
+**Then** each tap increments the field value by +1 with no 0–3 cap (FR38)
+**And** long-press or a dedicated field accepts manual numeric entry for any value, including decrease (FR38)
 **When** I tap Enregistrer
 **Then** the entry is saved via the same server-authoritative scoring and snapshot logic as the laptop grid (NFR2)
 **And** I return to the student picker with updated completion counts

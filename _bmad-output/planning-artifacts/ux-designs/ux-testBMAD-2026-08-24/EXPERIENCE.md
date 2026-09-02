@@ -81,7 +81,7 @@ Behavioral. Visual specs in `DESIGN.md.Components` or shadcn defaults.
 | **Year-start wizard (E3)** | Post-import | Linear 3 steps with back navigation. Cannot skip level assignment before first scored dictation. |
 | **Word matrix (F1)** | Config | Rows = dictations, columns = four level colors. Cells = word count (integer > 0). Required before dictation save. |
 | **CSV import** | Config | Single column `NOM + prénom`, UTF-8. Reject with specific error per `roster-import.md`. |
-| **Mobile per-student form (B4)** | Mobile | Nine large numeric fields. Quick-tap mode: tap cycles 0→1→2→3; long-press or dedicated field for ≥ 4. Blocked if student has no level — redirect to E1. |
+| **Mobile per-student form (B4)** | Mobile | Nine large numeric fields. Quick-tap mode: +1 per tap (no 0–3 cap); long-press or dedicated field for manual entry. Blocked if student has no level — redirect to E1. |
 | **Mobile dictation hub (G2)** | Mobile home | Shows last dictation label + date. Shortcuts: « Saisir » (opens B4 student picker), « Voir » (read-only summary). |
 
 ## State Patterns
@@ -117,8 +117,8 @@ Behavioral. Visual specs in `DESIGN.md.Components` or shadcn defaults.
 **Mobile — touch-first (B4):**
 
 - Tap field — Focus numeric input
-- Tap (quick-tap mode) — Cycle 0→1→2→3 per category
-- Long-press field — Open numeric keypad for values ≥ 4
+- Tap (quick-tap mode) — Increment error count by +1 per category (no 0–3 cap)
+- Long-press field — Open numeric keypad for manual entry (any value, including decrease)
 - Swipe between students — [ASSUMPTION] prev/next arrows instead of swipe for MVP simplicity
 
 **Banned everywhere:** Auto level promotion without teacher validation. Per-category % display. Pedagogical narrative generation. Dictation delete/purge.

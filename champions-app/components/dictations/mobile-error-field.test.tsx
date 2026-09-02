@@ -47,7 +47,7 @@ describe("MobileErrorField", () => {
     return container.querySelector("button");
   }
 
-  it("cycles values from 0 through 3 and back to 0", () => {
+  it("increments the value on each tap without a 0–3 cap", () => {
     renderField(0);
 
     act(() => {
@@ -61,17 +61,15 @@ describe("MobileErrorField", () => {
     act(() => {
       getCycleButton()!.click();
     });
-    expect(onChange).toHaveBeenCalledWith("C", 0);
-  });
+    expect(onChange).toHaveBeenCalledWith("C", 4);
 
-  it("enters the quick-tap cycle from values greater than 3", () => {
+    onChange.mockReset();
     renderField(7);
 
     act(() => {
       getCycleButton()!.click();
     });
-
-    expect(onChange).toHaveBeenCalledWith("C", 1);
+    expect(onChange).toHaveBeenCalledWith("C", 8);
   });
 
   it("renders a category color stripe matching the official CHAMPIONS palette", () => {
