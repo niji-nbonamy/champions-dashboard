@@ -8,6 +8,7 @@ const {
   mockGetTeacherClass,
   mockGetDictationById,
   mockGetClassStudent,
+  mockListActiveStudents,
   mockListLeveledActiveStudents,
   mockGetDictationEntriesByDictationId,
   mockListWordCountMatrixRows,
@@ -22,6 +23,7 @@ const {
   mockGetTeacherClass: vi.fn(),
   mockGetDictationById: vi.fn(),
   mockGetClassStudent: vi.fn(),
+  mockListActiveStudents: vi.fn(),
   mockListLeveledActiveStudents: vi.fn(),
   mockGetDictationEntriesByDictationId: vi.fn(),
   mockListWordCountMatrixRows: vi.fn(),
@@ -50,6 +52,10 @@ vi.mock("@/lib/services/list-dictations", () => ({
 
 vi.mock("@/lib/services/get-class-student", () => ({
   getClassStudent: mockGetClassStudent,
+}));
+
+vi.mock("@/lib/services/list-active-students", () => ({
+  listActiveStudents: mockListActiveStudents,
 }));
 
 vi.mock("@/lib/services/list-leveled-active-students", () => ({
@@ -87,6 +93,13 @@ describe("MobileStudentEntryPage", () => {
       level: "yellow",
       archived: false,
     });
+    mockListActiveStudents.mockResolvedValue([
+      {
+        id: studentId,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+    ]);
     mockListLeveledActiveStudents.mockResolvedValue([
       {
         id: studentId,
@@ -144,19 +157,36 @@ describe("MobileStudentEntryPage", () => {
     ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("returns notFound for an archived student", async () => {
-    mockGetClassStudent.mockResolvedValueOnce({
-      id: studentId,
-      displayName: "DUPONT Marie",
-      level: "yellow",
-      archived: true,
-    });
+  it("renders a read-only form for an archived participant with an entry", async () => {
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId,
+        displayName: "DUPONT Marie",
+        archived: true,
+        levelAtSave: "yellow",
+        wordDenominator: 50,
+        globalPercent: 96,
+        errorsC: 2,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
 
-    await expect(
-      MobileStudentEntryPage({
-        params: Promise.resolve({ id: dictationId, studentId }),
-      })
-    ).rejects.toThrow("NEXT_NOT_FOUND");
+    const page = await MobileStudentEntryPage({
+      params: Promise.resolve({ id: dictationId, studentId }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain("DUPONT Marie");
+    expect(html).toContain("Archivé — lecture seule");
+    expect(html).toContain("DUPONT Marie, Conjugaison, 2 erreurs");
+    expect(html).not.toContain("Enregistrer");
   });
 
   it("blocks unleveled students with the FR39 message", async () => {
@@ -166,6 +196,16 @@ describe("MobileStudentEntryPage", () => {
       level: null,
       archived: false,
     });
+    mockListActiveStudents.mockResolvedValueOnce([
+      {
+        id: studentId,
+        displayName: "DUPONT Marie",
+        level: null,
+      },
+    ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 
     const page = await MobileStudentEntryPage({
       params: Promise.resolve({ id: dictationId, studentId }),
@@ -176,14 +216,11 @@ describe("MobileStudentEntryPage", () => {
       "Niveau requis pour DUPONT Marie. Assignez le niveau depuis un ordinateur."
     );
     expect(html).toContain('role="alert"');
-    expect(html).toContain("Retour à la liste");
+    expect(html).toContain("Retour à la liste d&#x27;élèves");
     expect(html).not.toContain("Enregistrer");
     expect(html).not.toContain('inputmode="numeric"');
     expect(html).not.toContain("Conjugaison");
     expect(html).not.toContain('href="/students"');
-    expect(mockListLeveledActiveStudents).not.toHaveBeenCalled();
-    expect(mockGetDictationEntriesByDictationId).not.toHaveBeenCalled();
-    expect(mockListWordCountMatrixRows).not.toHaveBeenCalled();
   });
 
   it("limits prev/next navigation to leveled students only", async () => {
@@ -198,6 +235,23 @@ describe("MobileStudentEntryPage", () => {
       level: "green",
       archived: false,
     });
+    mockListActiveStudents.mockResolvedValueOnce([
+      {
+        id: firstLeveledId,
+        displayName: "DUPONT Marie",
+        level: "yellow",
+      },
+      {
+        id: middleLeveledId,
+        displayName: "MARTIN Paul",
+        level: "green",
+      },
+      {
+        id: thirdLeveledId,
+        displayName: "BERNARD Eve",
+        level: "violet",
+      },
+    ]);
     mockListLeveledActiveStudents.mockResolvedValueOnce([
       {
         id: firstLeveledId,
@@ -242,7 +296,7 @@ describe("MobileStudentEntryPage", () => {
     expect(html).toContain("DUPONT Marie");
     expect(html).toContain("DUPONT Marie, Conjugaison, 2 erreurs");
     expect(html).toContain("Enregistrer");
-    expect(html).toContain("Retour à la liste");
+    expect(html).toContain("Retour à la liste d&#x27;élèves");
   });
 
   it("shows a matrix error instead of notFound when no matrix row matches", async () => {

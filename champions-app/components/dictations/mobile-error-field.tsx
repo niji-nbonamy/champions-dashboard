@@ -4,17 +4,21 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   formatGridCellAriaLabel,
+  type ChampionsErrorCategory,
   type ChampionsErrorCategoryLetter,
 } from "@/lib/domain/error-categories";
 import { cn } from "@/lib/utils";
 
 type MobileErrorFieldProps = {
-  categoryLetter: ChampionsErrorCategoryLetter;
-  categoryName: string;
+  category: Pick<
+    ChampionsErrorCategory,
+    "letter" | "name" | "headerBackground"
+  >;
   displayName: string;
   value: number;
   onChange: (letter: ChampionsErrorCategoryLetter, value: number) => void;
   hasValidationError?: boolean;
+  disabled?: boolean;
 };
 
 const LONG_PRESS_MS = 500;
@@ -34,16 +38,17 @@ function parseNonNegativeInteger(rawValue: string): number | null {
 }
 
 export function MobileErrorField({
-  categoryLetter,
-  categoryName,
+  category,
   displayName,
   value,
   onChange,
   hasValidationError = false,
+  disabled = false,
 }: MobileErrorFieldProps) {
   const [showManualInput, setShowManualInput] = useState(false);
   const longPressTriggeredRef = useRef(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { letter: categoryLetter, name: categoryName } = category;
 
   useEffect(() => {
     return () => {
@@ -59,6 +64,10 @@ export function MobileErrorField({
   }
 
   function handleTap() {
+    if (disabled) {
+      return;
+    }
+
     if (longPressTriggeredRef.current) {
       longPressTriggeredRef.current = false;
       return;
@@ -102,61 +111,72 @@ export function MobileErrorField({
   const ariaLabel = formatGridCellAriaLabel(displayName, categoryName, value);
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium">
-          {categoryLetter} — {categoryName}
-        </span>
-        {!showManualInput ? (
-          <button
-            type="button"
-            className={cn(
-              "flex min-h-12 min-w-16 items-center justify-center rounded-lg border border-border bg-background text-2xl font-semibold tabular-nums",
-              hasValidationError && "border-destructive"
-            )}
-            aria-label={ariaLabel}
-            onClick={handleTap}
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-          >
-            {value}
-          </button>
-        ) : (
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            autoFocus
-            className={cn(
-              "min-h-12 w-1/2 shrink-0 rounded-lg border border-border bg-background px-3 text-center text-2xl font-semibold tabular-nums",
-              hasValidationError && "border-destructive"
-            )}
-            aria-label={`${ariaLabel}, saisie manuelle`}
-            value={String(value)}
-            onChange={handleManualChange}
-            onBlur={handleManualBlur}
-          />
-        )}
-      </div>
-      <div className="flex items-center justify-between gap-2">
-        {!showManualInput ? (
-          <p className="text-xs text-muted-foreground">
-            Appuyer pour 0–3 · maintenir pour saisir un nombre
-          </p>
-        ) : (
-          <p className="text-xs text-muted-foreground">Saisir un nombre</p>
-        )}
-        {!showManualInput ? (
-          <button
-            type="button"
-            className="min-h-11 min-w-11 text-xs font-medium text-primary underline-offset-4 hover:underline"
-            onClick={() => setShowManualInput(true)}
-          >
-            Saisir un nombre
-          </button>
-        ) : null}
+    <div className="flex overflow-hidden">
+      <span
+        aria-hidden="true"
+        className="w-2 shrink-0 self-stretch"
+        style={{ backgroundColor: category.headerBackground }}
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-1 pl-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm font-medium">
+            {categoryLetter} — {categoryName}
+          </span>
+          {!showManualInput ? (
+            <button
+              type="button"
+              className={cn(
+                "flex min-h-12 min-w-16 items-center justify-center rounded-lg border border-border bg-background text-2xl font-semibold tabular-nums",
+                hasValidationError && "border-destructive",
+                disabled && "cursor-not-allowed opacity-60"
+              )}
+              aria-label={ariaLabel}
+              disabled={disabled}
+              onClick={handleTap}
+              onPointerDown={disabled ? undefined : handlePointerDown}
+              onPointerUp={disabled ? undefined : handlePointerUp}
+              onPointerLeave={disabled ? undefined : handlePointerUp}
+              onPointerCancel={disabled ? undefined : handlePointerUp}
+            >
+              {value}
+            </button>
+          ) : (
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoFocus
+              disabled={disabled}
+              className={cn(
+                "min-h-12 w-1/2 shrink-0 rounded-lg border border-border bg-background px-3 text-center text-2xl font-semibold tabular-nums",
+                hasValidationError && "border-destructive",
+                disabled && "cursor-not-allowed opacity-60"
+              )}
+              aria-label={`${ariaLabel}, saisie manuelle`}
+              value={String(value)}
+              onChange={handleManualChange}
+              onBlur={handleManualBlur}
+            />
+          )}
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          {!showManualInput ? (
+            <p className="text-xs text-muted-foreground">
+              Appuyer pour 0–3 · maintenir pour saisir un nombre
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">Saisir un nombre</p>
+          )}
+          {!showManualInput && !disabled ? (
+            <button
+              type="button"
+              className="min-h-11 min-w-11 text-xs font-medium text-primary underline-offset-4 hover:underline"
+              onClick={() => setShowManualInput(true)}
+            >
+              Saisir un nombre
+            </button>
+          ) : null}
+        </div>
       </div>
     </div>
   );

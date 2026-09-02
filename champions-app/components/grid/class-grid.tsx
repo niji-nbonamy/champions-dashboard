@@ -497,6 +497,7 @@ export function ClassGrid({
       <Button
         ref={saveButtonRef}
         type="button"
+        className="self-start"
         disabled={
           !allRowsValid ||
           isPending ||

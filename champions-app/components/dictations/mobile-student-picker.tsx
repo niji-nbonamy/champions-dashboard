@@ -11,6 +11,7 @@ export type MobileStudentPickerStudent = {
   id: string;
   displayName: string;
   level: string | null;
+  readOnly?: boolean;
 };
 
 type MobileStudentPickerProps = {
@@ -84,6 +85,7 @@ export function MobileStudentPicker({
             student.level && isChampionsLevel(student.level)
               ? student.level
               : null;
+          const isReadOnly = student.readOnly ?? false;
 
           return (
             <li key={student.id} className="flex overflow-hidden">
@@ -94,33 +96,55 @@ export function MobileStudentPicker({
                   getLevelStripeClass(student.level)
                 )}
               />
-              <Link
-                href={`/dictations/${dictationId}/mobile/${student.id}`}
-                className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-4 py-3"
-                aria-label={
-                  level == null
-                    ? `${student.displayName}, niveau requis`
-                    : isEntered
-                      ? `${student.displayName}, saisi`
-                      : `Saisir les erreurs pour ${student.displayName}`
-                }
-              >
-                <span className="min-w-0 flex-1 break-words text-base font-medium leading-snug">
-                  {student.displayName}
-                </span>
-                <div className="flex shrink-0 items-center gap-2 self-center">
-                  {level ? (
-                    <LevelBadge level={level} />
-                  ) : (
-                    <RequiredLevelBadge />
-                  )}
-                  {level && isEntered ? (
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                      saisi
+              {isReadOnly ? (
+                <div
+                  className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-4 py-3"
+                  aria-label={`${student.displayName}, archivé, saisi`}
+                >
+                  <span className="min-w-0 flex-1 break-words text-base font-medium leading-snug">
+                    {student.displayName}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-2 self-center">
+                    {level ? <LevelBadge level={level} /> : null}
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                      archivé
                     </span>
-                  ) : null}
+                    {level ? (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        saisi
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
-              </Link>
+              ) : (
+                <Link
+                  href={`/dictations/${dictationId}/mobile/${student.id}`}
+                  className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-4 py-3"
+                  aria-label={
+                    level == null
+                      ? `${student.displayName}, niveau requis`
+                      : isEntered
+                        ? `${student.displayName}, saisi`
+                        : `Saisir les erreurs pour ${student.displayName}`
+                  }
+                >
+                  <span className="min-w-0 flex-1 break-words text-base font-medium leading-snug">
+                    {student.displayName}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-2 self-center">
+                    {level ? (
+                      <LevelBadge level={level} />
+                    ) : (
+                      <RequiredLevelBadge />
+                    )}
+                    {level && isEntered ? (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        saisi
+                      </span>
+                    ) : null}
+                  </div>
+                </Link>
+              )}
             </li>
           );
         })}

@@ -468,7 +468,67 @@ describe("DictationsPage", () => {
     );
   });
 
-  it("shows the mobile hub completion badge when the last dictation is complete", async () => {
+  it("renders every dictation in the mobile hub list", async () => {
+    mockGetDictationCompletionSummary.mockClear();
+    mockAuthenticatedClass({
+      dictations: [
+        {
+          id: "880e8400-e29b-41d4-a716-446655440003",
+          label: "Dictée récente",
+          dictationLabelKey: "dictée récente",
+          dictationDate: "2026-08-27",
+        },
+        {
+          id: "770e8400-e29b-41d4-a716-446655440002",
+          label: "Dictée ancienne",
+          dictationLabelKey: "dictée ancienne",
+          dictationDate: "2026-06-01",
+        },
+      ],
+      matrixRows: [
+        {
+          dictationLabelKey: "Dictée récente",
+          wordsYellow: 10,
+          wordsGreen: 12,
+          wordsViolet: 14,
+          wordsGold: 16,
+        },
+      ],
+    });
+    mockGetYearStartWizardStatus.mockResolvedValueOnce({
+      completed: true,
+      step: 3,
+      activeStudentCount: 2,
+      leveledActiveStudentCount: 2,
+      unassignedCount: 0,
+      matrixRowCount: 1,
+    });
+    mockGetDictationCompletionSummary
+      .mockResolvedValueOnce({
+        enteredCount: 1,
+        totalLeveledCount: 2,
+        isComplete: false,
+      })
+      .mockResolvedValueOnce({
+        enteredCount: 2,
+        totalLeveledCount: 2,
+        isComplete: true,
+      });
+
+    const html = renderToStaticMarkup(await DictationsPage());
+
+    expect(html).toContain("Dictée récente");
+    expect(html).toContain("Dictée ancienne");
+    expect(html).toContain(
+      'href="/dictations/880e8400-e29b-41d4-a716-446655440003/mobile"'
+    );
+    expect(html).toContain(
+      'href="/dictations/770e8400-e29b-41d4-a716-446655440002/mobile"'
+    );
+    expect(mockGetDictationCompletionSummary).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows the mobile hub completion badge when a dictation is complete", async () => {
     mockAuthenticatedClass({
       dictations: [
         {

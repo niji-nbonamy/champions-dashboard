@@ -53,7 +53,7 @@ export default async function MobileDictationSummaryPage({
         href="/dictations"
         className="text-sm text-primary underline-offset-4 hover:underline"
       >
-        Retour au hub
+        Retour aux dictées
       </Link>
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">

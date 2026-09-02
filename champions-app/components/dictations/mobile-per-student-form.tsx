@@ -27,6 +27,7 @@ type MobilePerStudentFormProps = {
   wordDenominator: number;
   initialCounts: CategoryErrorCounts;
   orderedStudentIds: string[];
+  readOnly?: boolean;
 };
 
 function getAdjacentStudentId(
@@ -103,6 +104,7 @@ export function MobilePerStudentForm({
   wordDenominator,
   initialCounts,
   orderedStudentIds,
+  readOnly = false,
 }: MobilePerStudentFormProps) {
   const router = useRouter();
   const [counts, setCounts] = useState<CategoryErrorCounts>(initialCounts);
@@ -175,7 +177,12 @@ export function MobilePerStudentForm({
   return (
     <div className="flex flex-1 flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">{displayName}</h1>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-semibold tracking-tight">{displayName}</h1>
+          {readOnly ? (
+            <p className="text-sm text-muted-foreground">Archivé — lecture seule</p>
+          ) : null}
+        </div>
         <div className="flex items-center gap-2">
           <StudentNavigationControl
             dictationId={dictationId}
@@ -196,12 +203,12 @@ export function MobilePerStudentForm({
         {CHAMPIONS_ERROR_CATEGORIES.map((category) => (
           <MobileErrorField
             key={category.letter}
-            categoryLetter={category.letter}
-            categoryName={category.name}
+            category={category}
             displayName={displayName}
             value={counts[category.letter]}
             onChange={handleValueChange}
             hasValidationError={!validation.valid}
+            disabled={readOnly}
           />
         ))}
       </div>
@@ -218,15 +225,17 @@ export function MobilePerStudentForm({
         </p>
       ) : null}
 
-      <Button
-        type="button"
-        size="lg"
-        className="min-h-12 w-full"
-        disabled={!validation.valid || isPending}
-        onClick={handleSave}
-      >
-        {isPending ? "Enregistrement…" : "Enregistrer"}
-      </Button>
+      {readOnly ? null : (
+        <Button
+          type="button"
+          size="lg"
+          className="min-h-12 w-full"
+          disabled={!validation.valid || isPending}
+          onClick={handleSave}
+        >
+          {isPending ? "Enregistrement…" : "Enregistrer"}
+        </Button>
+      )}
     </div>
   );
 }

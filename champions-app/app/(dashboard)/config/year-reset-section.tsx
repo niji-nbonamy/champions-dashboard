@@ -68,7 +68,12 @@ export function YearResetSection({
       <p className="text-sm text-muted-foreground">
         Année scolaire actuelle : {currentSchoolYearLabel}
       </p>
-      <Button type="button" variant="destructive" onClick={openDialog}>
+      <Button
+        type="button"
+        variant="destructive"
+        className="self-start"
+        onClick={openDialog}
+      >
         Remettre à zéro pour la nouvelle année
       </Button>
 

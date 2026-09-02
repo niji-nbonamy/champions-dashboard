@@ -1,3 +1,7 @@
+import {
+  buildHistoricalCompletionSummary,
+  hasHistoricalRosterShape,
+} from "@/lib/domain/mobile-dictation-roster";
 import { countUniqueEnteredLeveledStudents } from "@/lib/domain/dictation-entry-completion";
 
 import { getDictationEntriesByDictationId } from "./get-dictation-entries";
@@ -17,6 +21,10 @@ export async function getDictationCompletionSummary(
     listLeveledActiveStudents(classId),
     getDictationEntriesByDictationId(classId, dictationId),
   ]);
+
+  if (hasHistoricalRosterShape(entries, students)) {
+    return buildHistoricalCompletionSummary(entries);
+  }
 
   const leveledStudentIds = students.map((student) => student.id);
   const enteredCount = countUniqueEnteredLeveledStudents(

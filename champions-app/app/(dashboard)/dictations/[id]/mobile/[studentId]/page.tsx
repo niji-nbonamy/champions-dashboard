@@ -5,6 +5,7 @@ import { MobilePerStudentForm } from "@/components/dictations/mobile-per-student
 import { auth } from "@/auth";
 import { dbColumnsToCategoryErrors } from "@/lib/domain/error-categories";
 import { findMatchingMatrixRow, isValidUuidV4 } from "@/lib/domain/dictation";
+import { buildMobileDictationRosterState } from "@/lib/domain/mobile-dictation-roster";
 import { formatUnleveledMobileBlockMessage } from "@/lib/domain/student-display-name";
 import {
   getWordCountForLevel,
@@ -15,6 +16,7 @@ import type { CategoryErrorCounts } from "@/lib/domain/grid-validation";
 import { getClassStudent } from "@/lib/services/get-class-student";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
+import { listActiveStudents } from "@/lib/services/list-active-students";
 import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
 import { getDictationById } from "@/lib/services/list-dictations";
 import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
@@ -64,6 +66,69 @@ export default async function MobileStudentEntryPage({
     notFound();
   }
 
+  const [activeStudents, leveledStudents, entries, matrixRows] =
+    await Promise.all([
+      listActiveStudents(teacherClass.id),
+      listLeveledActiveStudents(teacherClass.id),
+      getDictationEntriesByDictationId(teacherClass.id, id),
+      listWordCountMatrixRows(teacherClass.id),
+    ]);
+
+  const rosterState = buildMobileDictationRosterState(
+    entries,
+    activeStudents,
+    leveledStudents
+  );
+  const rosterStudent = rosterState.students.find(
+    (student) => student.id === studentId
+  );
+
+  if (!rosterStudent) {
+    notFound();
+  }
+
+  if (rosterStudent.readOnly) {
+    const existingEntry = entries.find(
+      (entry) => entry.studentId === studentId
+    );
+
+    if (!existingEntry) {
+      notFound();
+    }
+
+    const initialCounts = dbColumnsToCategoryErrors({
+      errorsC: existingEntry.errorsC,
+      errorsH: existingEntry.errorsH,
+      errorsA: existingEntry.errorsA,
+      errorsM: existingEntry.errorsM,
+      errorsP: existingEntry.errorsP,
+      errorsI: existingEntry.errorsI,
+      errorsO: existingEntry.errorsO,
+      errorsN: existingEntry.errorsN,
+      errorsS: existingEntry.errorsS,
+    });
+
+    return (
+      <main className="flex flex-1 flex-col gap-4 p-6">
+        <Link
+          href={`/dictations/${id}/mobile`}
+          className="text-sm text-primary underline-offset-4 hover:underline"
+        >
+          Retour à la liste d'élèves
+        </Link>
+        <MobilePerStudentForm
+          dictationId={id}
+          studentId={studentId}
+          displayName={rosterStudent.displayName}
+          wordDenominator={existingEntry.wordDenominator}
+          initialCounts={initialCounts}
+          orderedStudentIds={rosterState.orderedEditableStudentIds}
+          readOnly
+        />
+      </main>
+    );
+  }
+
   const classStudent = await getClassStudent(teacherClass.id, studentId);
 
   if (!classStudent || classStudent.archived) {
@@ -79,7 +144,7 @@ export default async function MobileStudentEntryPage({
           href={`/dictations/${id}/mobile`}
           className="text-sm text-primary underline-offset-4 hover:underline"
         >
-          Retour à la liste
+          Retour à la liste d'élèves
         </Link>
         <p className="text-sm text-destructive" role="alert">
           {formatUnleveledMobileBlockMessage(classStudent.displayName)}
@@ -87,12 +152,6 @@ export default async function MobileStudentEntryPage({
       </main>
     );
   }
-
-  const [leveledStudents, entries, matrixRows] = await Promise.all([
-    listLeveledActiveStudents(teacherClass.id),
-    getDictationEntriesByDictationId(teacherClass.id, id),
-    listWordCountMatrixRows(teacherClass.id),
-  ]);
 
   const existingEntry = entries.find(
     (entry) => entry.studentId === studentId && !entry.archived
@@ -127,7 +186,7 @@ export default async function MobileStudentEntryPage({
             href={`/dictations/${id}/mobile`}
             className="text-sm text-primary underline-offset-4 hover:underline"
           >
-            Retour à la liste
+            Retour à la liste d'élèves
           </Link>
           <p className="text-sm text-destructive" role="alert">
             Saisie impossible : la matrice de mots pour cette dictée est
@@ -147,7 +206,7 @@ export default async function MobileStudentEntryPage({
         href={`/dictations/${id}/mobile`}
         className="text-sm text-primary underline-offset-4 hover:underline"
       >
-        Retour à la liste
+        Retour à la liste d'élèves
       </Link>
       <MobilePerStudentForm
         dictationId={id}
@@ -155,9 +214,7 @@ export default async function MobileStudentEntryPage({
         displayName={classStudent.displayName}
         wordDenominator={wordDenominator}
         initialCounts={initialCounts}
-        orderedStudentIds={leveledStudents.map(
-          (rosterStudent) => rosterStudent.id
-        )}
+        orderedStudentIds={rosterState.orderedEditableStudentIds}
       />
     </main>
   );

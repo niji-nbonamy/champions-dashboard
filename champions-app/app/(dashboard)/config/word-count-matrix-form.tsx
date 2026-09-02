@@ -53,13 +53,26 @@ const initialActionState: SaveWordCountMatrixActionState = {
   errorField: null,
 };
 
-function createClientId(): string {
-  return `row-${Math.random().toString(36).slice(2, 11)}`;
+function createStableClientId(existingRows: MatrixRowState[]): string {
+  let maxIndex = -1;
+
+  for (const row of existingRows) {
+    const match = /^row-(\d+)$/.exec(row.clientId);
+
+    if (match) {
+      maxIndex = Math.max(maxIndex, Number.parseInt(match[1], 10));
+    }
+  }
+
+  return `row-${maxIndex + 1}`;
 }
 
-function toMatrixRowState(row: WordCountMatrixRowInput): MatrixRowState {
+function toMatrixRowState(
+  row: WordCountMatrixRowInput,
+  index: number
+): MatrixRowState {
   return {
-    clientId: createClientId(),
+    clientId: `row-${index}`,
     label: row.label,
     wordsYellow: row.wordsYellow,
     wordsGreen: row.wordsGreen,
@@ -68,9 +81,9 @@ function toMatrixRowState(row: WordCountMatrixRowInput): MatrixRowState {
   };
 }
 
-function createEmptyRow(): MatrixRowState {
+function createEmptyRow(existingRows: MatrixRowState[]): MatrixRowState {
   return {
-    clientId: createClientId(),
+    clientId: createStableClientId(existingRows),
     label: "",
     wordsYellow: "",
     wordsGreen: "",
@@ -84,7 +97,7 @@ function mapInitialRows(initialRows: WordCountMatrixRowInput[]): MatrixRowState[
     return [];
   }
 
-  return initialRows.map((row) => toMatrixRowState(row));
+  return initialRows.map((row, index) => toMatrixRowState(row, index));
 }
 
 function isFieldInvalid(
@@ -171,7 +184,7 @@ export function WordCountMatrixForm({
     }
 
     setIsDirty(true);
-    setRows((currentRows) => [...currentRows, createEmptyRow()]);
+    setRows((currentRows) => [...currentRows, createEmptyRow(currentRows)]);
   }
 
   return (

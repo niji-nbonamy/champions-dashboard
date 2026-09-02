@@ -28,7 +28,7 @@ describe("getDictationCompletionSummary", () => {
     vi.clearAllMocks();
   });
 
-  it("counts entries only for leveled active students", async () => {
+  it("counts historical rosters from saved entries only", async () => {
     mockListLeveledActiveStudents.mockResolvedValueOnce([
       { id: studentA, displayName: "ÉLÈVE A", level: "yellow" },
       { id: studentB, displayName: "ÉLÈVE B", level: "green" },
@@ -74,13 +74,16 @@ describe("getDictationCompletionSummary", () => {
 
     expect(result).toEqual({
       enteredCount: 1,
-      totalLeveledCount: 2,
-      isComplete: false,
+      totalLeveledCount: 1,
+      isComplete: true,
     });
   });
 
-  it("returns zero counts when no leveled students exist", async () => {
-    mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+  it("counts entries only for leveled active students on open rosters", async () => {
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: studentA, displayName: "ÉLÈVE A", level: "yellow" },
+      { id: studentB, displayName: "ÉLÈVE B", level: "green" },
+    ]);
     mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
       {
         studentId: studentA,
@@ -100,6 +103,19 @@ describe("getDictationCompletionSummary", () => {
         errorsS: 0,
       },
     ]);
+
+    const result = await getDictationCompletionSummary(classId, dictationId);
+
+    expect(result).toEqual({
+      enteredCount: 1,
+      totalLeveledCount: 2,
+      isComplete: false,
+    });
+  });
+
+  it("returns zero counts when no leveled students exist on open rosters", async () => {
+    mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([]);
 
     const result = await getDictationCompletionSummary(classId, dictationId);
 

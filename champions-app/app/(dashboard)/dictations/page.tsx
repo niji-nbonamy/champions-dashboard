@@ -57,10 +57,20 @@ export default async function DictationsPage() {
 
   const matrixMissing = wizardStatus.matrixRowCount === 0;
   const isClassSetupBlocked = isEmptyRoster || !canCreate;
-  const lastDictation = dictations[0];
-  const completionSummary = lastDictation
-    ? await getDictationCompletionSummary(teacherClass.id, lastDictation.id)
-    : undefined;
+  const completionSummariesByDictationId =
+    dictations.length > 0
+      ? Object.fromEntries(
+          await Promise.all(
+            dictations.map(async (dictation) => [
+              dictation.id,
+              await getDictationCompletionSummary(
+                teacherClass.id,
+                dictation.id
+              ),
+            ])
+          )
+        )
+      : {};
 
   return (
     <>
@@ -163,9 +173,10 @@ export default async function DictationsPage() {
       </main>
       <div className="flex flex-1 flex-col md:hidden">
         <MobileDictationHub
-          lastDictation={lastDictation}
-          completionSummary={completionSummary}
+          dictations={dictations}
+          completionSummariesByDictationId={completionSummariesByDictationId}
           isClassSetupBlocked={isClassSetupBlocked}
+          hasNoLeveledStudents={hasUnleveledStudents}
         />
       </div>
     </>

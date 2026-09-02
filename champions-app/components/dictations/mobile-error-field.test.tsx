@@ -5,11 +5,13 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MobileErrorField } from "./mobile-error-field";
+import { getChampionsErrorCategory } from "@/lib/domain/error-categories";
 
 describe("MobileErrorField", () => {
   let container: HTMLDivElement;
   let root: Root;
   const onChange = vi.fn();
+  const conjugationCategory = getChampionsErrorCategory("C");
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -32,8 +34,7 @@ describe("MobileErrorField", () => {
     act(() => {
       root.render(
         <MobileErrorField
-          categoryLetter="C"
-          categoryName="Conjugaison"
+          category={conjugationCategory}
           displayName="DUPONT Marie"
           value={value}
           onChange={onChange}
@@ -71,6 +72,15 @@ describe("MobileErrorField", () => {
     });
 
     expect(onChange).toHaveBeenCalledWith("C", 1);
+  });
+
+  it("renders a category color stripe matching the official CHAMPIONS palette", () => {
+    renderField(0);
+
+    const stripe = container.querySelector('[aria-hidden="true"]');
+
+    expect(stripe).not.toBeNull();
+    expect(stripe?.style.backgroundColor).toBe(conjugationCategory.headerBackground);
   });
 
   it("exposes an accessible label for the current value", () => {

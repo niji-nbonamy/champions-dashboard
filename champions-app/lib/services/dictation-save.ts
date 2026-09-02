@@ -6,6 +6,7 @@ import {
 } from "@/lib/domain/error-categories";
 import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
 import { findMatchingMatrixRow } from "@/lib/domain/dictation";
+import { hasHistoricalRosterShape } from "@/lib/domain/mobile-dictation-roster";
 import {
   sumCategoryErrors,
   validateGridRow,
@@ -387,6 +388,14 @@ export async function saveDictationStudentEntry(
   const existingEntry = existingEntries.find(
     (entry) => entry.studentId === studentId && !entry.archived
   );
+
+  if (
+    existingEntries.length > 0 &&
+    !existingEntry &&
+    hasHistoricalRosterShape(existingEntries, students)
+  ) {
+    throw new InvalidGridSaveError();
+  }
 
   const db = getDb();
 

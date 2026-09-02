@@ -102,7 +102,20 @@ describe("MobileDictationPage", () => {
     mockGetDictationEntriesByDictationId.mockResolvedValue([
       {
         studentId: "770e8400-e29b-41d4-a716-446655440002",
+        displayName: "DUPONT Marie",
         archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 10,
+        globalPercent: 90,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
       },
     ]);
   });
@@ -180,15 +193,54 @@ describe("MobileDictationPage", () => {
     mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
       {
         studentId: "770e8400-e29b-41d4-a716-446655440002",
+        displayName: "DUPONT Marie",
         archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 10,
+        globalPercent: 90,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
       },
       {
         studentId: "770e8400-e29b-41d4-a716-446655440002",
+        displayName: "DUPONT Marie",
         archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 10,
+        globalPercent: 88,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
       },
       {
         studentId: "770e8400-e29b-41d4-a716-446655440004",
+        displayName: "MARTIN Paul",
         archived: false,
+        levelAtSave: "green",
+        wordDenominator: 12,
+        globalPercent: 85,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
       },
     ]);
 
@@ -201,15 +253,41 @@ describe("MobileDictationPage", () => {
     expect(html).not.toContain("restant");
   });
 
-  it("ignores archived entries when deriving saisi state", async () => {
+  it("shows archived participants as read-only rows in historical rosters", async () => {
     mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
       {
         studentId: "770e8400-e29b-41d4-a716-446655440002",
+        displayName: "DUPONT Marie",
         archived: true,
+        levelAtSave: "yellow",
+        wordDenominator: 10,
+        globalPercent: 90,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
       },
       {
         studentId: "770e8400-e29b-41d4-a716-446655440004",
+        displayName: "MARTIN Paul",
         archived: false,
+        levelAtSave: "green",
+        wordDenominator: 12,
+        globalPercent: 85,
+        errorsC: 0,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
       },
     ]);
 
@@ -218,8 +296,10 @@ describe("MobileDictationPage", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("1 restant");
-    expect(html).toContain("Saisir les erreurs pour DUPONT Marie");
+    expect(html).toContain("archivé");
+    expect(html).toContain("DUPONT Marie");
     expect(html).toContain("MARTIN Paul, saisi");
+    expect(html).not.toContain("Saisir les erreurs pour DUPONT Marie");
+    expect(html).not.toContain("PETIT Lucas");
   });
 });

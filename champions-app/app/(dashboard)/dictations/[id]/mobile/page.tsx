@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { MobileStudentPicker } from "@/components/dictations/mobile-student-picker";
 import { auth } from "@/auth";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
-import { getUniqueEnteredLeveledStudentIds } from "@/lib/domain/dictation-entry-completion";
+import { buildMobileDictationRosterState } from "@/lib/domain/mobile-dictation-roster";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { listActiveStudents } from "@/lib/services/list-active-students";
@@ -49,12 +49,11 @@ export default async function MobileDictationPage({
     getDictationEntriesByDictationId(teacherClass.id, id),
   ]);
 
-  const leveledStudentIds = leveledStudents.map((student) => student.id);
-  const enteredStudentIds = getUniqueEnteredLeveledStudentIds(
-    leveledStudentIds,
-    entries
+  const rosterState = buildMobileDictationRosterState(
+    entries,
+    activeStudents,
+    leveledStudents
   );
-  const remainingCount = leveledStudents.length - enteredStudentIds.length;
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
@@ -62,7 +61,7 @@ export default async function MobileDictationPage({
         href="/dictations"
         className="text-sm text-primary underline-offset-4 hover:underline"
       >
-        Retour au hub
+        Retour aux dictées
       </Link>
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold tracking-tight">
@@ -72,10 +71,10 @@ export default async function MobileDictationPage({
       </div>
       <MobileStudentPicker
         dictationId={id}
-        students={activeStudents}
-        enteredStudentIds={enteredStudentIds}
-        remainingCount={remainingCount}
-        leveledStudentCount={leveledStudents.length}
+        students={rosterState.students}
+        enteredStudentIds={rosterState.enteredStudentIds}
+        remainingCount={rosterState.remainingCount}
+        leveledStudentCount={rosterState.leveledStudentCount}
       />
     </main>
   );
