@@ -10,10 +10,33 @@
 
 ## Per-category data
 
-No per-category percentage is calculated or displayed — **global % only**.
+### Per-category error counts (presentation mode — Story 7.3)
+
+Les erreurs par catégorie sont des **entiers** (0, 1, 2, …) — pas des pourcentages. Une catégorie CHAMPIONS ne représente pas une part du total de mots ; un % par catégorie serait trompeur.
+
+**Valeur affichée** (une catégorie, une dictée sauvegardée) :
+
+```
+categoryErrorCount = snapshot error count for that CHAMPIONS letter (C–S)
+```
+
+- Source : colonnes d'erreurs snapshottées sur `dictation_entries` au moment de la sauvegarde.
+- Plage : entier ≥ 0.
+- Aucun calcul de dénominateur — lecture directe du snapshot.
+
+**Règles d'affichage :**
+
+- Courbes d'erreurs **uniquement** en mode présentation RDV parents (C3) — panneau droit, axe Y entier.
+- Le dossier élève (C1) et la grille de saisie restent inchangés.
+- La table dictée dépliée continue d'afficher les comptes bruts — pas de % par catégorie (FR25 inchangé).
+- Par défaut en C3 : seule la courbe **C (Conjugaison)** est active.
+
+### Raw error counts (unchanged elsewhere)
+
+No per-category percentage anywhere — **global % only** outside the presentation error-curve panel.
 
 - Nine error-count columns (C–S) are captured on the class grid per `error-categories.md`.
-- The student dossier dictation table may show raw error counts per category on expand — counts only, never percentages.
+- The student dossier dictation table may show raw error counts per category on expand — counts only, never percentages in the table.
 
 ## Denominator rules
 
@@ -35,6 +58,6 @@ No per-category percentage is calculated or displayed — **global % only**.
 
 ## Parent-meeting presentation
 
-- Global curve is front and center.
+- Global curve is front and center (left panel); optional category **error-count** curves on the right (Story 7.3).
 - Dictation table provides per-category **error counts** on demand (no per-category %).
-- No auto-generated interpretation — facts and percentages only.
+- No auto-generated interpretation — facts and percentages (global only) plus integer error trends.

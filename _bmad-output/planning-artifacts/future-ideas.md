@@ -55,8 +55,8 @@ Product ideas and enhancements captured during development — not committed wor
 
 | Idea | Decision | Rationale | Next step |
 |------|----------|-----------|-----------|
-| IDEA-001 | **scheduled** → Epic 7 / 7-1 | Ops blocker before wide rollout — no self-service recovery today; rate limiting already in place for register/login | Requires email provider choice (Resend, etc.) + token storage before build |
-| IDEA-004 | **scheduled** → Epic 7 / 7-2 + 7-3 | High value for RDV parents job; MVP deferral still valid for full per-category curves — split into incremental delivery | 7-2 (axis labels + Y ticks) ships first; 7-3 needs per-category % spec spike |
+| IDEA-001 | **scheduled** → Epic 7 / 7-1 | Ops blocker before wide rollout | **Resend validé** — DPA + DNS domaine avant build |
+| IDEA-004 | **scheduled** → Epic 7 / 7-2 + 7-3 | Erreurs entières en C3 uniquement — panneau droit RDV parents, défaut C, pas de limite | 7-2 = axes global % ; 7-3 = courbes erreurs entières |
 | IDEA-002–006 | **done** | Shipped in Epic 6 | — |
 
 **Recommended Epic 7 order:** 7-1 (auth) → 7-2 (curve polish) → 7-3 (per-category curves). Auth is P1 for production; curve enhancements are P2 UX.
@@ -77,7 +77,7 @@ Product ideas and enhancements captured during development — not committed wor
 - **Summary:** Teacher can request a password reset flow when they forget their login password.
 - **Context:** Auth covers register and login (FR1); no self-service recovery exists today — teachers locked out must rely on manual support or a new account.
 - **Related:** Epic 1 auth stories (`spec-1-2-teacher-registration`, `spec-1-3-teacher-login-session-management`); deferred-work rate-limiting / security hardening items.
-- **Triage (2026-09-02):** P1 post-MVP — schedule before production rollout. Needs transactional email + reset token table + rate limiting on request endpoint.
+- **Triage (2026-09-02):** P1 post-MVP. **Provider validé : Resend** (`RESEND_API_KEY`, région envoi `eu-west-1`, DPA+CCT, tracking désactivé). Voir section RGPD story 7-1.
 
 ### IDEA-002 — Sticky app bar and navigation tabs (2026-08-28)
 
@@ -102,10 +102,10 @@ Product ideas and enhancements captured during development — not committed wor
 - **Status:** scheduled
 - **Promoted to:** epic-7 / 7-2, 7-3
 - **Area:** dossier
-- **Summary:** Student dossier chart supports togglable per-category curves (C–S), richer Y-axis scale, and dictation labels on the X-axis — global curve shown by default.
-- **Context:** Weekend UX review: global-only curve (story 4.2) is insufficient for spotting category-specific trends before parent meetings; MVP explicitly deferred per-category curves (`mvp-scope.md`). Desired behavior: start with global only; click CHAMPIONS letters to add/remove category curves (any curve includable/excludable); Y-axis ticks at 0 / 20 / 40 / 60 / 80 / 100 % with optional horizontal guides; dictation names on X-axis (today only 0 % / 100 % labels, no X labels).
+- **Summary:** In presentation mode (RDV parents), a second chart beside the global % curve shows per-category **error counts** (integers) as togglable curves — default C (Conjugaison) active; toggles C–S below the charts; no max limit.
+- **Context:** Global-only curve (story 4.2) insufficient for spotting category-specific trends before parent meetings; errors are counts not percentages. MVP deferred per-category metrics (`mvp-scope.md`). **Refined 2026-09-02:** C3 only (not dossier C1); dual-panel layout; integer Y-axis on right.
 - **Related:** `spec-4-2-hero-curve-collapsed-dictation-table-c1`; `global-success-curve.tsx`; `mvp-scope.md` deferred « Per-category % and per-category curves »; FR24–FR25.
-- **Triage (2026-09-02):** Split delivery — 7-2 (axis labels + Y ticks, low risk) before 7-3 (per-category toggles, needs per-category % definition spike in spec companion).
+- **Triage (2026-09-02):** Story 7-3 — **C3 presentation only**, panneau droit erreurs entières, défaut C actif, toggles sous les courbes, pas de limite max. Story 7-2 garde les axes du panneau global %.
 
 ### IDEA-005 — Category header hover: title only, no definition (2026-08-31)
 

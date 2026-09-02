@@ -251,7 +251,7 @@ Teacher benefits from smoother daily workflows: persistent navigation while scro
 **FRs covered:** FR16 (amendment), FR48, FR49, FR50
 
 ### Epic 7: Post-MVP — Auth Recovery & Dossier Analytics
-Teacher can recover a forgotten password without support intervention, and explore richer progression visualizations on student dossiers before parent meetings.
+Teacher can recover a forgotten password without support intervention, and explore category error trends alongside the global curve during parent meetings.
 **FRs covered:** FR-AUTH-7, FR-AUTH-8, FR-DOSSIER-1, FR-DOSSIER-2 (new — see stories below)
 **Source ideas:** IDEA-001, IDEA-004 (triaged 2026-09-02)
 
@@ -926,7 +926,7 @@ So that typos and wrong session dates do not persist in history and dossiers.
 
 ## Epic 7: Post-MVP — Auth Recovery & Dossier Analytics
 
-Teacher can recover a forgotten password without support intervention, and explore richer progression visualizations on student dossiers before parent meetings.
+Teacher can recover a forgotten password without support intervention, and explore category error trends alongside the global curve during parent meetings.
 
 ### Story 7.1: Forgotten Password Reset Flow
 
@@ -934,31 +934,120 @@ As a primary teacher,
 I want to reset my password via email when I forget it,
 So that I can regain access without creating a new account or contacting support.
 
+**Technical decisions (validé 2026-09-02) :**
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Email provider | **Resend** (`resend` npm package) | Validé — DX Next.js, free tier 3 000/mois, pas de footer tiers dans l'email |
+| Env vars | `RESEND_API_KEY`, `EMAIL_FROM` (e.g. `CHAMPIONS <noreply@votredomaine.fr>`) | Documenter dans `README.md` + `.env.example` |
+| Sending region | `eu-west-1` (Irlande) sur le domaine Resend | Expédition depuis l'UE ; voir section RGPD pour le stockage |
+| SDK / service | `lib/services/send-transactional-email.ts` wrapping `resend.emails.send()` | Point d'extension unique si changement provider futur |
+| Token storage | New `password_reset_tokens` table: `id`, `teacher_id`, `token_hash`, `expires_at`, `used_at`, `created_at` | Store SHA-256 hash only — never persist raw token; single-use via `used_at` |
+| Token lifetime | 60 minutes | Balance security vs teacher friction |
+| Token delivery | Link: `{AUTH_URL}/reset-password?token={rawToken}` | Reuse existing `AUTH_URL` convention |
+| Rate limiting | Extend `auth-rate-limit.ts` with kind `password-reset`: 3 requests / 15 min / IP | Stricter than login — prevents email spam abuse |
+| Password update | Reuse `hashPassword` + `validatePasswordPolicy` from registration | Same FR-AUTH-3 rules, no divergent policy |
+| Email template | Plain French HTML + text fallback; subject « Réinitialisation de votre mot de passe CHAMPIONS » | No marketing content; link button + expiry notice |
+| Tracking | **Open/link tracking disabled** on all reset emails | Évite collecte IP/navigateur par Resend (voir RGPD) |
+| Dev fallback | When `RESEND_API_KEY` absent: token created + reset URL logged to server console | Local testing without Resend account |
+
+**RGPD — données transmises à Resend (sous-traitant Art. 28)**
+
+Ce flux concerne **uniquement les comptes enseignants** — aucune donnée élève (noms, notes, dictées) ne transite par Resend.
+
+| Donnée envoyée à l'API | Exemple | Donnée personnelle |
+|------------------------|---------|-------------------|
+| Email destinataire | `marie.dupont@ac-…` | ✅ Oui (enseignant) |
+| Expéditeur | `CHAMPIONS <noreply@…>` | Faible |
+| Objet + corps | Lien reset `{AUTH_URL}/reset-password?token=…` | ✅ Oui (token sensible 60 min) |
+| Mots de passe | — | ❌ Jamais transmis |
+
+**Données stockées par Resend (États-Unis, 30 jours sur free tier) :** contenu message, logs de livraison, métadonnées API, payloads webhooks. La région d'envoi `eu-west-1` (Irlande) ne change **pas** le lieu de stockage — toujours US ([Resend docs — Choosing a Region](https://resend.com/docs/dashboard/domains/regions)).
+
+**Garanties contractuelles Resend :** DPA pré-signé actif à l'inscription ([resend.com/legal/dpa](https://resend.com/legal/dpa)), Clauses Contractuelles Types UE→US, EU-US Data Privacy Framework.
+
+**Obligations projet (hors code story 7.1) :**
+- Signer/accepter le DPA Resend (automatique à la création du compte)
+- Mentionner Resend comme sous-traitant dans la politique de confidentialité / registre des traitements de l'établissement
+- Documenter le transfert hors UE de l'email enseignant (finalité : récupération de compte)
+- Configurer SPF/DKIM/DMARC sur le domaine d'envoi dans Resend
+
+**Comparatif providers (référence — décision : Resend)**
+
+Volume estimé : ~1–5 resets/mois. Alternatives évaluées avant validation Resend :
+
+| Provider | Free tier | Retenu ? | Motif écart |
+|----------|-----------|----------|-------------|
+| **Resend** ✅ | 3 000/mois | **Validé** | DX Next.js, pas de footer, transfert US encadré DPA+CCT |
+| Brevo | 300/jour | Écarté | Footer obligatoire free tier ; alternative si revue RGPD stricte EU-only |
+| Mailgun | 100/jour | Écarté | Logs 1 jour, moins généreux |
+| SendGrid | Trial 60 j | Écarté | Plus de free permanent |
+| Amazon SES | 12 mois | Écarté | Config AWS lourde |
+
+**Pre-build gate:** Configurer domaine d'envoi + DNS (SPF/DKIM) dans Resend et définir `EMAIL_FROM` avant `bmad-build` sur 7.1.
+
+**Routes & pages:**
+
+| Path | Purpose |
+|------|---------|
+| `/forgot-password` | Request form (email field + submit) |
+| `/reset-password?token=…` | New password + confirmation (reuse `PasswordField`, `PasswordRequirements`) |
+| Login page | Add link « Mot de passe oublié ? » below submit |
+
+**Out of scope for 7.1:** email verification on registration, change-password while logged in, SMS recovery.
+
 **Acceptance Criteria:**
 
 **Given** I am on the login page
 **When** I click « Mot de passe oublié ? »
-**Then** I reach a request form asking for my registered email (FR-AUTH-7)
+**Then** I reach `/forgot-password` with a form asking for my registered email (FR-AUTH-7)
 **And** all microcopy is in French (NFR14)
+**And** the page reuses auth layout styling from login/register (UX-DR29/DR30 family)
 
-**Given** I submit a registered email
+**Given** I submit any email address on `/forgot-password`
 **When** the request is processed
-**Then** a time-limited reset link is sent via transactional email (FR-AUTH-7)
-**And** the UI shows a generic success message regardless of whether the email exists (NFR9 — no account enumeration)
-**And** the request endpoint is rate-limited per IP (reuse `auth-rate-limit.ts` pattern)
+**Then** the UI always shows the same generic success message: « Si un compte existe pour cette adresse, un email de réinitialisation a été envoyé. » (NFR9 — no account enumeration)
+**And** if the email matches a registered teacher, Resend delivers a reset email within 60 s (FR-AUTH-7)
+**And** open/link tracking is disabled on the Resend send call (no IP or browser collection)
+**And** if the email is unknown, no email is sent and no error reveals that fact (NFR9)
+**And** the endpoint is rate-limited per IP via `password-reset` kind in `auth-rate-limit.ts`
 
-**Given** I open a valid reset link within the expiry window
-**When** I submit a new password meeting the existing policy (FR-AUTH-3 rules)
-**Then** my password is updated and I can log in with the new credentials (FR-AUTH-8)
-**And** the reset token is invalidated after use (single-use)
+**Given** a reset email is sent
+**When** I open the message
+**Then** it contains a single CTA link to `/reset-password?token=…` valid for 60 minutes
+**And** the email states the link expires and to ignore the message if not requested
+**And** the sender displays as `EMAIL_FROM`
 
-**Given** I open an expired or already-used reset link
-**When** I attempt to set a new password
-**Then** I see a clear French error and a link back to request a new reset
+**Given** I open a valid reset link within 60 minutes
+**When** I submit a new password meeting FR-AUTH-3 rules with matching confirmation
+**Then** my `password_hash` is updated in `teachers`
+**And** the token is marked used (`used_at` set) — single-use (FR-AUTH-8)
+**And** I am redirected to `/login` with a success flash: « Mot de passe mis à jour. Connectez-vous. »
+**And** I can log in with the new credentials
+
+**Given** I open an expired, already-used, or invalid token
+**When** I visit `/reset-password`
+**Then** I see a French error: « Ce lien n'est plus valide. » with a link to `/forgot-password`
+**And** no password form is shown for invalid tokens
 
 **Given** I am authenticated
-**When** I visit the forgot-password or reset pages
+**When** I visit `/forgot-password` or `/reset-password`
 **Then** I am redirected to `/dictations` (consistent with `/register` middleware policy)
+
+**Given** `RESEND_API_KEY` is absent in development
+**When** a reset is requested for a valid email
+**Then** the token is still created in DB
+**And** the reset URL is logged to server console (dev only) so local testing works without Resend
+**And** the UI still shows the generic success message
+
+**Given** the password-reset email is sent via Resend
+**When** reviewing what data leaves the application
+**Then** only the teacher's email address, sender, subject, and reset link body are transmitted — no student data and no passwords (RGPD scope documented in story technical decisions)
+
+**Given** I run the test suite
+**When** password-reset flows are tested
+**Then** Resend is mocked; token hashing, expiry, single-use, and rate limiting have unit/integration coverage
+**And** no test sends real email
 
 ### Story 7.2: Global Curve Axis Labels and Y-Axis Scale
 
@@ -986,36 +1075,118 @@ So that I can orient myself on the chart without guessing which point is which d
 **When** I focus the chart
 **Then** the aria-label describes the curve and dictation count (NFR13)
 
-### Story 7.3: Toggleable Per-Category Progression Curves
+### Story 7.3: Category Error Curves in Presentation Mode (RDV parents)
 
-As a primary teacher before a parent meeting,
-I want to toggle individual CHAMPIONS category curves on the dossier chart,
-So that I can spot category-specific trends beyond the global % line.
+As a primary teacher in parent-meeting presentation mode,
+I want to see how many errors occurred per CHAMPIONS category across dictations,
+So that I can show parents where difficulties concentrate — without mixing percentages and raw counts on the same scale.
+
+**Scope:** **Presentation mode (C3) only** — the regular student dossier (C1) keeps the global % curve unchanged. No category curves on the Élèves tab.
+
+**Depends on:** Story 7.2 (X-axis dictation labels on the global curve; category chart shares the same X-axis alignment).
+
+**UX design (locked for build):**
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Mode RDV parents — {student name}                          [Fermer]    │
+├──────────────────────────────┬───────────────────────────────────────────┤
+│  Réussite globale (%)        │  Erreurs par catégorie                      │
+│  ┌────────────────────────┐│  ┌─────────────────────────────────────┐  │
+│  │ GlobalSuccessCurve     ││  │ CategoryErrorCurves                 │  │
+│  │ Y: 0–100 %             ││  │ Y: 0 … max(errors) entiers           │  │
+│  │ (inherits 7-2 axes)    ││  │ Default: courbe C (Conjugaison) seule│  │
+│  └────────────────────────┘│  └─────────────────────────────────────┘  │
+│                              │  Même axe X (dictées chronologiques)     │
+├──────────────────────────────┴───────────────────────────────────────────┤
+│  [C][H][A][M][P][I][O][N][S]  ← toggles (contrôlent le panneau droit)     │
+│  ● actif = lettre remplie, couleur catégorie (headerBackground)           │
+│  ○ inactif = contour, muted                                               │
+│  Pas de limite — les 9 courbes peuvent être actives simultanément         │
+└──────────────────────────────────────────────────────────────────────────┘
+        PresentationHighlights (last %, trend, level) — inchangé, en dessous
+```
+
+| Règle | Décision |
+|-------|----------|
+| Surfaces | **C3 presentation only** — `presentation-mode.tsx`; dossier C1 inchangé |
+| Panneau droit — titre | **« Erreurs par catégorie »** (heading visible + `aria-label` sur la zone graphique) |
+| Layout laptop | Deux colonnes côte à côte (≥1024px) |
+| Layout tablette | **Empilé** — global % au-dessus, « Erreurs par catégorie » en dessous ; toggles sous les deux graphiques (**validé 2026-09-02**) |
+| Panneau gauche | Courbe globale % existante (`GlobalSuccessCurve` + axes 7-2) — toujours visible |
+| Panneau droit | Courbes d'**erreurs entières** par catégorie (pas de %) — une série par lettre active |
+| Métrique Y (droite) | `categoryErrors` (entier ≥ 0) depuis le snapshot `dictation_entries` — voir `scoring-model.md` |
+| Défaut | Seule la courbe **C (Conjugaison)** est active à l'ouverture ; toggle C en état actif |
+| Limite | **Aucune** — les 9 catégories peuvent être affichées en même temps |
+| Toggles | Rangée **sous** les deux graphiques, centrée ; contrôle uniquement le panneau droit |
+| Couleurs | `CHAMPIONS_ERROR_CATEGORIES[].headerBackground` par courbe |
+| Tooltip | `{label} — {categoryName}: {count} erreur(s)` |
+| A11y | Toggles `aria-pressed` ; panneau droit `aria-label="Erreurs par catégorie"` |
+
+**Interaction rules:**
+
+- Toggles affect only the right panel — the global % curve (left) is independent and always shown.
+- Activating a toggle adds a polyline; deactivating removes it immediately.
+- Y-axis on the right auto-scales to `max(active category errors across dictations) + 1` with integer ticks only.
+- X-axis dictation positions align between left and right panels (same chronological order by `dictationDate`).
+- State resets each time presentation mode opens — default back to C only (no localStorage).
+- Keyboard: Tab through toggles, Space/Enter to toggle.
+
+**Component plan:**
+
+- New `category-error-curves.tsx` — integer Y-axis chart, multi-series from snapshot error counts.
+- New `category-curve-toggles.tsx` — 9 letter buttons, no max limit.
+- New `presentation-charts-row.tsx` — two-column wrapper composing global + category charts + toggles below.
+- `presentation-mode.tsx` replaces single `GlobalSuccessCurve` section with `PresentationChartsRow`.
+- `students/[id]/page.tsx` (dossier C1) — **no changes** for this story.
 
 **Acceptance Criteria:**
 
-**Given** a student dossier with saved dictations
-**When** I view the hero curve area
-**Then** the global % curve is shown by default (FR24 unchanged)
-**And** CHAMPIONS letter controls (C–S) let me add or remove per-category curves (FR-DOSSIER-2)
-**And** any combination of category curves can be shown or hidden independently
+**Given** I open presentation mode (Story 4.7) for a student with saved dictations
+**When** the full-screen view loads
+**Then** I see two charts side by side on laptop (≥1024px): global % (left) and category errors (right) (FR-DOSSIER-2)
+**And** only the **C (Conjugaison)** error curve is active on the right panel by default
+**And** the C toggle appears in active state (filled, category color)
 
-**Given** I toggle a category curve on
+**Given** the right panel is visible
+**When** I view the Y-axis
+**Then** values are **integers** (error counts) — never percentages (FR-DOSSIER-2)
+**And** the axis label or aria description makes clear these are error counts, not %
+
+**Given** I click a category toggle (e.g. « H »)
 **When** the chart updates
-**Then** a distinct curve appears using the per-category % formula defined in the spec companion (to be authored before build — see `scoring-model.md` extension)
-**And** the curve uses the same dictation ordering as the global curve (chronological by `dictationDate`)
+**Then** a curve appears showing integer error counts per dictation for that category
+**And** the toggle shows active state
+**And** existing active curves remain visible — no maximum limit
 
-**Given** presentation mode (Story 4.7)
-**When** category toggles are used
-**Then** the same toggle behavior applies on the presentation curve (FR-DOSSIER-2, NFR16)
+**Given** all nine toggles are active
+**When** the chart renders
+**Then** all nine category curves display simultaneously without error or performance degradation for a typical CE2 class year (~15–20 dictations)
 
-**Given** a dictation has zero word denominator for a category (edge case)
-**When** the per-category curve is computed
-**Then** the point is omitted or shown as N/A per the spec companion rule — never divide by zero
+**Given** I deactivate the C toggle
+**When** the chart updates
+**Then** the Conjugaison curve is removed
+**And** other active curves remain
 
-**Given** I use keyboard navigation
-**When** I activate category toggles
-**Then** toggles are reachable and announce state changes (NFR13)
+**Given** I am on the regular student dossier (Élèves → student, not presentation)
+**When** I view the hero curve
+**Then** only the global % curve is shown — no category error panel, no toggles (FR24 unchanged)
 
-**Pre-build gate:** Author per-category % definition in `_bmad-output/specs/spec-dashboards-dictees-champions-ce2/scoring-model.md` before `bmad-build` on this story — MVP explicitly deferred this metric (`mvp-scope.md`).
+**Given** presentation mode on a viewport < 1024px (tablette)
+**When** charts render
+**Then** global curve stacks above the « Erreurs par catégorie » panel; toggles remain below both (**validé 2026-09-02**)
+
+**Given** the right panel is visible
+**When** I read the section heading
+**Then** it displays **« Erreurs par catégorie »** (FR-DOSSIER-2)
+
+**Given** a dictation has 0 errors in a category
+**When** that category curve is active
+**Then** the point shows 0 on the Y-axis (valid data point, not omitted)
+
+**Given** I use keyboard navigation on toggles
+**When** I press Space on a toggle
+**Then** `aria-pressed` updates and screen readers announce the category name + affichée/masquée (NFR13)
+
+**Pre-build gate:** Story 7.2 must be `done` (shared X-axis labels). Per-category error count metric defined in `scoring-model.md` (no % formula).
 
