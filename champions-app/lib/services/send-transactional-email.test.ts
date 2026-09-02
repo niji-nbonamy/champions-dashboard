@@ -38,7 +38,6 @@ describe("sendTransactionalEmail", () => {
       subject: "Test",
       html: "<p>Hello</p>",
       text: "Hello",
-      region: "eu-west-1",
     });
   });
 

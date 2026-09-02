@@ -55,7 +55,6 @@ export async function sendTransactionalEmail(
     subject: input.subject,
     html: input.html,
     text: input.text,
-    region: "eu-west-1",
   });
 
   if (error) {
