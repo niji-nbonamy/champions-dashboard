@@ -20,6 +20,8 @@ export const config = {
     "/",
     "/login",
     "/register",
+    "/forgot-password",
+    "/reset-password",
     "/onboarding/:path*",
     "/dictations/:path*",
     "/students/:path*",

@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  index,
   integer,
   pgTable,
   text,
@@ -17,6 +18,23 @@ export const teachers = pgTable("teachers", {
     .defaultNow()
     .notNull(),
 });
+
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    teacherId: uuid("teacher_id")
+      .notNull()
+      .references(() => teachers.id),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("password_reset_tokens_token_hash_idx").on(table.tokenHash)]
+);
 
 export const classes = pgTable("classes", {
   id: uuid("id").primaryKey().defaultRandom(),

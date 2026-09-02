@@ -1,4 +1,3 @@
-import { hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
 
 import {
@@ -7,6 +6,8 @@ import {
 } from "@/lib/domain/registration";
 import { getDb } from "@/lib/db";
 import { teachers } from "@/lib/db/schema";
+
+import { hashPassword } from "./password-hash";
 
 export class RegistrationFailedError extends Error {
   constructor() {
@@ -29,7 +30,7 @@ export async function registerTeacher(
     throw new RegistrationFailedError();
   }
 
-  const passwordHash = await hash(input.password, 12);
+  const passwordHash = await hashPassword(input.password);
   const db = getDb();
 
   const existing = await db

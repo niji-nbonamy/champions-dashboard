@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { PasswordField } from "@/components/auth/password-field";
 
@@ -52,6 +54,15 @@ export function LoginFormFields({
       <Button type="submit" disabled={pending}>
         {pending ? "Connexion…" : "Se connecter"}
       </Button>
+
+      <p className="text-center text-sm">
+        <Link
+          href="/forgot-password"
+          className="text-primary underline-offset-4 hover:underline"
+        >
+          Mot de passe oublié ?
+        </Link>
+      </p>
     </form>
   );
 }

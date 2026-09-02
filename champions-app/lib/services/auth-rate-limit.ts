@@ -5,7 +5,7 @@ import {
   type RateLimitStore,
 } from "@/lib/domain/auth-rate-limit";
 
-export type AuthRateLimitKind = "login" | "register";
+export type AuthRateLimitKind = "login" | "register" | "password-reset";
 
 const globalStore: RateLimitStore = new Map();
 
@@ -20,6 +20,12 @@ const AUTH_RATE_LIMITS: Record<
   register: {
     max: Number(process.env.AUTH_RATE_LIMIT_REGISTER_MAX ?? 5),
     windowMs: Number(process.env.AUTH_RATE_LIMIT_REGISTER_WINDOW_MS ?? 900_000),
+  },
+  "password-reset": {
+    max: Number(process.env.AUTH_RATE_LIMIT_PASSWORD_RESET_MAX ?? 3),
+    windowMs: Number(
+      process.env.AUTH_RATE_LIMIT_PASSWORD_RESET_WINDOW_MS ?? 900_000
+    ),
   },
 };
 

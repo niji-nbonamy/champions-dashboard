@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { PASSWORD_UPDATED_LOGIN_MESSAGE } from "@/lib/domain/password-reset";
 import { sanitizeCallbackUrl } from "@/lib/domain/auth-redirect";
 
 import { LoginForm } from "./login-form";
@@ -24,6 +25,12 @@ export default async function LoginPage({
   const registeredValue = Array.isArray(registered) ? registered[0] : registered;
   const showRegistrationSuccess = registeredValue === "1";
 
+  const passwordUpdated = params?.passwordUpdated;
+  const passwordUpdatedValue = Array.isArray(passwordUpdated)
+    ? passwordUpdated[0]
+    : passwordUpdated;
+  const showPasswordUpdatedSuccess = passwordUpdatedValue === "1";
+
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
       <div className="flex w-full max-w-sm flex-col gap-2 text-center">
@@ -39,6 +46,15 @@ export default async function LoginPage({
           role="status"
         >
           Compte créé avec succès. Vous pouvez vous connecter.
+        </p>
+      ) : null}
+
+      {showPasswordUpdatedSuccess ? (
+        <p
+          className="w-full max-w-sm rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-foreground"
+          role="status"
+        >
+          {PASSWORD_UPDATED_LOGIN_MESSAGE}
         </p>
       ) : null}
 

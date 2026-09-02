@@ -18,6 +18,8 @@ export const AUTH_MIDDLEWARE_MATCHER = [
   "/",
   "/login",
   "/register",
+  "/forgot-password",
+  "/reset-password",
   "/onboarding/:path*",
   "/dictations/:path*",
   "/students/:path*",
@@ -49,7 +51,11 @@ export function getAuthRedirectPath(
 ): string | null {
   if (
     isLoggedIn &&
-    (pathname === "/" || pathname === "/login" || pathname === "/register")
+    (pathname === "/" ||
+      pathname === "/login" ||
+      pathname === "/register" ||
+      pathname === "/forgot-password" ||
+      pathname === "/reset-password")
   ) {
     if (pathname === "/login") {
       const callbackUrl = new URLSearchParams(search).get("callbackUrl");

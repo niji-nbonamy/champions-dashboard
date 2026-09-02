@@ -33,9 +33,11 @@ describe("middleware policy", () => {
     );
   });
 
-  it("redirects authenticated users away from login, register, and home", () => {
+  it("redirects authenticated users away from login, register, forgot-password, and reset-password", () => {
     expect(getAuthRedirectPath("/login", true)).toBe("/dictations");
     expect(getAuthRedirectPath("/register", true)).toBe("/dictations");
+    expect(getAuthRedirectPath("/forgot-password", true)).toBe("/dictations");
+    expect(getAuthRedirectPath("/reset-password", true)).toBe("/dictations");
     expect(getAuthRedirectPath("/", true)).toBe("/dictations");
   });
 
@@ -58,12 +60,19 @@ describe("middleware policy", () => {
     expect(getAuthRedirectPath("/dictations", true)).toBeNull();
   });
 
+  it("allows public auth recovery routes without redirect", () => {
+    expect(getAuthRedirectPath("/forgot-password", false)).toBeNull();
+    expect(getAuthRedirectPath("/reset-password", false)).toBeNull();
+  });
+
   it("builds middleware matcher paths from dashboard prefixes", () => {
     const matcher = getAuthMiddlewareMatcher();
 
     expect(matcher).toContain("/");
     expect(matcher).toContain("/login");
     expect(matcher).toContain("/register");
+    expect(matcher).toContain("/forgot-password");
+    expect(matcher).toContain("/reset-password");
     expect(matcher).toContain("/onboarding/:path*");
     for (const prefix of DASHBOARD_ROUTE_PREFIXES) {
       expect(matcher).toContain(`${prefix}/:path*`);
