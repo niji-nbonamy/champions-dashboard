@@ -34,6 +34,7 @@ export function PresentationMode({
   const ariaLabel = `Mode RDV parents, ${displayName}`;
   const hasHistory = history.length > 0;
   const curvePoints = toCurvePoints(history);
+  const historyKey = history.map((entry) => entry.entryId).join(",");
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -82,6 +83,7 @@ export function PresentationMode({
         </div>
 
         <PresentationChartsRow
+          key={historyKey}
           history={history}
           curvePoints={curvePoints}
           hasHistory={hasHistory}

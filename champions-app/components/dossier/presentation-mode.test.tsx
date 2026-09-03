@@ -268,6 +268,57 @@ describe("PresentationMode", () => {
     ).toBeNull();
   });
 
+  it("resets category toggles to C-only when presentation mode remounts", () => {
+    const entry = makeEntry({ globalPercent: 87 });
+
+    act(() => {
+      root.render(
+        <PresentationMode
+          studentId={studentId}
+          displayName="DUPONT Marie"
+          level="green"
+          history={[entry]}
+        />
+      );
+    });
+
+    const hToggle = container.querySelector(
+      '[data-testid="category-toggle-H"]'
+    ) as HTMLButtonElement;
+
+    act(() => {
+      hToggle.click();
+    });
+
+    act(() => {
+      root.unmount();
+    });
+
+    root = createRoot(container);
+
+    act(() => {
+      root.render(
+        <PresentationMode
+          studentId={studentId}
+          displayName="DUPONT Marie"
+          level="green"
+          history={[entry]}
+        />
+      );
+    });
+
+    expect(
+      (container.querySelector('[data-testid="category-toggle-H"]') as HTMLButtonElement)
+        .getAttribute("aria-pressed")
+    ).toBe("false");
+    expect(
+      container.querySelector('[data-testid="category-series-H"]')
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="category-series-C"]')
+    ).not.toBeNull();
+  });
+
   it("uses a stacked responsive grid for charts", () => {
     act(() => {
       root.render(

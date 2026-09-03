@@ -42,7 +42,7 @@ export function CategoryCurveToggles({
             aria-label={getToggleAriaLabel(category.name, isActive)}
             data-testid={`category-toggle-${category.letter}`}
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               isActive
                 ? "border-transparent"
                 : "border-border bg-background text-muted-foreground"
@@ -56,6 +56,12 @@ export function CategoryCurveToggles({
                 : undefined
             }
             onClick={() => onToggle(category.letter)}
+            onKeyDown={(event) => {
+              if (event.key === " " || event.key === "Enter") {
+                event.preventDefault();
+                onToggle(category.letter);
+              }
+            }}
           >
             {category.letter}
           </button>

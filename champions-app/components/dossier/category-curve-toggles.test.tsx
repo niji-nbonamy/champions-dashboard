@@ -85,7 +85,7 @@ describe("CategoryCurveToggles", () => {
     expect(hToggle.getAttribute("aria-label")).toContain("masquée");
   });
 
-  it("toggles on Space key via button click semantics", () => {
+  it("toggles on Space key without a manual click", () => {
     const toggledLetters: string[] = [];
 
     act(() => {
@@ -108,7 +108,6 @@ describe("CategoryCurveToggles", () => {
       hToggle.dispatchEvent(
         new KeyboardEvent("keydown", { key: " ", bubbles: true })
       );
-      hToggle.click();
     });
 
     expect(toggledLetters).toContain("H");

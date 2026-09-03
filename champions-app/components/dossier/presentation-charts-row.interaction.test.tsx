@@ -85,7 +85,51 @@ describe("PresentationChartsRow interactions", () => {
     ).not.toBeNull();
   });
 
-  it("removes the C series when the C toggle is deactivated", () => {
+  it("removes the C series when another category is active", () => {
+    const entry = makeEntry();
+
+    act(() => {
+      root.render(
+        <PresentationChartsRow
+          history={[entry]}
+          curvePoints={[
+            {
+              entryId: entry.entryId,
+              date: entry.dictationDate,
+              label: entry.label,
+              percent: entry.globalPercent,
+            },
+          ]}
+          hasHistory
+        />
+      );
+    });
+
+    const hToggle = container.querySelector(
+      '[data-testid="category-toggle-H"]'
+    ) as HTMLButtonElement;
+    const cToggle = container.querySelector(
+      '[data-testid="category-toggle-C"]'
+    ) as HTMLButtonElement;
+
+    act(() => {
+      hToggle.click();
+    });
+
+    act(() => {
+      cToggle.click();
+    });
+
+    expect(cToggle.getAttribute("aria-pressed")).toBe("false");
+    expect(
+      container.querySelector('[data-testid="category-series-C"]')
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="category-series-H"]')
+    ).not.toBeNull();
+  });
+
+  it("keeps the last active category when its toggle is clicked", () => {
     const entry = makeEntry();
 
     act(() => {
@@ -113,10 +157,10 @@ describe("PresentationChartsRow interactions", () => {
       cToggle.click();
     });
 
-    expect(cToggle.getAttribute("aria-pressed")).toBe("false");
+    expect(cToggle.getAttribute("aria-pressed")).toBe("true");
     expect(
       container.querySelector('[data-testid="category-series-C"]')
-    ).toBeNull();
+    ).not.toBeNull();
   });
 
   it("resets to C-only when remounted with new history", () => {
@@ -180,5 +224,131 @@ describe("PresentationChartsRow interactions", () => {
     expect(
       container.querySelector('[data-testid="category-series-C"]')
     ).not.toBeNull();
+  });
+
+  it("resets to C-only when history changes via a new row key", () => {
+    const entry = makeEntry();
+    const secondEntry = makeEntry({
+      entryId: "bb0e8400-e29b-41d4-a716-446655440011",
+      label: "Dictée B",
+      dictationDate: "2026-08-27",
+    });
+
+    act(() => {
+      root.render(
+        <PresentationChartsRow
+          key={entry.entryId}
+          history={[entry]}
+          curvePoints={[
+            {
+              entryId: entry.entryId,
+              date: entry.dictationDate,
+              label: entry.label,
+              percent: entry.globalPercent,
+            },
+          ]}
+          hasHistory
+        />
+      );
+    });
+
+    const hToggle = container.querySelector(
+      '[data-testid="category-toggle-H"]'
+    ) as HTMLButtonElement;
+
+    act(() => {
+      hToggle.click();
+    });
+
+    act(() => {
+      root.render(
+        <PresentationChartsRow
+          key={`${entry.entryId},${secondEntry.entryId}`}
+          history={[entry, secondEntry]}
+          curvePoints={[
+            {
+              entryId: entry.entryId,
+              date: entry.dictationDate,
+              label: entry.label,
+              percent: entry.globalPercent,
+            },
+            {
+              entryId: secondEntry.entryId,
+              date: secondEntry.dictationDate,
+              label: secondEntry.label,
+              percent: secondEntry.globalPercent,
+            },
+          ]}
+          hasHistory
+        />
+      );
+    });
+
+    expect(
+      (container.querySelector('[data-testid="category-toggle-H"]') as HTMLButtonElement)
+        .getAttribute("aria-pressed")
+    ).toBe("false");
+    expect(
+      container.querySelector('[data-testid="category-series-H"]')
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="category-series-C"]')
+    ).not.toBeNull();
+  });
+
+  it("aligns chart point x positions between global and category panels", () => {
+    const firstEntry = makeEntry({
+      entryId: "entry-1",
+      label: "Dictée A",
+      dictationDate: "2026-08-01",
+    });
+    const secondEntry = makeEntry({
+      entryId: "entry-2",
+      label: "Dictée B",
+      dictationDate: "2026-08-08",
+    });
+
+    act(() => {
+      root.render(
+        <PresentationChartsRow
+          history={[firstEntry, secondEntry]}
+          curvePoints={[
+            {
+              entryId: firstEntry.entryId,
+              date: firstEntry.dictationDate,
+              label: firstEntry.label,
+              percent: firstEntry.globalPercent,
+            },
+            {
+              entryId: secondEntry.entryId,
+              date: secondEntry.dictationDate,
+              label: secondEntry.label,
+              percent: secondEntry.globalPercent,
+            },
+          ]}
+          hasHistory
+        />
+      );
+    });
+
+    const globalPoints = [
+      ...container.querySelectorAll(
+        '[data-testid="global-success-curve"] circle[r="4"]'
+      ),
+    ] as SVGCircleElement[];
+    const categoryPoints = [
+      ...container.querySelectorAll(
+        '[data-testid="category-error-curves"] circle[r="4"]'
+      ),
+    ] as SVGCircleElement[];
+
+    expect(globalPoints).toHaveLength(2);
+    expect(categoryPoints).toHaveLength(2);
+    expect(globalPoints[0].getAttribute("cx")).toBe(
+      categoryPoints[0].getAttribute("cx")
+    );
+    expect(globalPoints[1].getAttribute("cx")).toBe(
+      categoryPoints[1].getAttribute("cx")
+    );
   });
 });

@@ -171,3 +171,25 @@ Share X index mapping with global curve: `x = PADDING.left + (index / lastIndex)
 
 - Presentation mode dual-panel smoke tests.
   [`presentation-mode.test.tsx:214`](../../champions-app/components/dossier/presentation-mode.test.tsx#L214)
+
+### Review Findings
+
+- [x] [Review][Decision] `aria-label` du graphique catégorie — **résolu : option 1** — utiliser la chaîne exacte `"Erreurs par catégorie"` sur le SVG (spec L28).
+- [x] [Review][Decision] Toutes les catégories désactivées — **résolu : option 1** — empêcher la désactivation de la dernière catégorie active (minimum 1).
+- [x] [Review][Patch] Tooltip sans libellé de dictée [`category-error-curves.tsx:71`]
+- [x] [Review][Patch] `aria-label` exact `"Erreurs par catégorie"` sur le SVG catégorie [`category-error-curves.tsx:828`]
+- [x] [Review][Patch] Empêcher désactivation de la dernière catégorie active [`presentation-charts-row.tsx:44`]
+- [x] [Review][Patch] ESLint `react-hooks/set-state-in-effect` sur reset toggles [`presentation-charts-row.tsx:37`]
+- [x] [Review][Patch] ESLint `react-hooks/set-state-in-effect` sur clear hover [`category-error-curves.tsx:104`]
+- [x] [Review][Patch] Variable `chartHeight` inutilisée [`category-error-curves.tsx:120`]
+- [x] [Review][Patch] IDEA-007 hors périmètre dans le diff [`future-ideas.md`]
+- [x] [Review][Patch] Test Space simule `click()` manuellement au lieu de valider le comportement natif [`category-curve-toggles.test.tsx:311`]
+- [x] [Review][Patch] Pas de test 9 courbes sur ~15–20 dictées (AC4) [`category-error-curves.test.tsx`]
+- [x] [Review][Patch] Pas de test d'alignement X inter-graphiques [`presentation-charts-row.interaction.test.tsx`]
+- [x] [Review][Patch] Pas de test point à `cy=0` sur série mixte (AC8) [`category-error-curves.test.tsx`]
+- [x] [Review][Patch] Pas de test d'interaction tooltip catégorie (hover/focus) [`category-error-curves.interaction.test.tsx`]
+- [x] [Review][Patch] Pas de test reset C-only au changement `history` sans remount [`presentation-charts-row.interaction.test.tsx`]
+- [x] [Review][Patch] Pas de test session reset au niveau `PresentationMode` [`presentation-mode.test.tsx`]
+- [x] [Review][Patch] Hauteur fixe du tooltip peut clipper les noms longs [`category-error-curves.tsx:713`]
+- [x] [Review][Patch] Tooltip tactile disparaît immédiatement au `touchend` [`category-error-curves.tsx:943`]
+- [x] [Review][Defer] ESLint `set-state-in-effect` sur `GlobalSuccessCurve` hover reset — deferred, pre-existing [`global-success-curve.tsx:141`]

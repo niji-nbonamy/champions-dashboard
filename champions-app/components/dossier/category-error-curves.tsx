@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import {
   buildIntegerYTicks,
@@ -13,8 +13,6 @@ import {
   indexToChartX,
 } from "@/components/dossier/dossier-chart-layout";
 import {
-  getTooltipX,
-  getTooltipY,
   getXAxisDisplayLabel,
   selectVisibleLabelIndices,
   shouldUseDateLabels,
@@ -27,6 +25,35 @@ import { toCurvePoints } from "@/lib/domain/dossier-curve";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 import { cn } from "@/lib/utils";
 
+const CATEGORY_TOOLTIP_WIDTH = 208;
+const CATEGORY_TOOLTIP_HEIGHT = 72;
+const CATEGORY_TOOLTIP_OFFSET_Y = 12;
+const CATEGORY_TOOLTIP_EDGE_MARGIN = 4;
+const CATEGORY_TOUCH_DISMISS_MS = 2000;
+
+export const CATEGORY_ERROR_TOOLTIP_INNER_CLASS =
+  "max-w-full whitespace-normal break-words rounded-md border border-border bg-popover px-2 py-1 text-center text-xs leading-snug text-popover-foreground shadow-md";
+
+function getCategoryTooltipY(pointY: number): number {
+  const aboveY = pointY - CATEGORY_TOOLTIP_OFFSET_Y - CATEGORY_TOOLTIP_HEIGHT;
+
+  if (aboveY >= CATEGORY_TOOLTIP_EDGE_MARGIN) {
+    return aboveY;
+  }
+
+  return pointY + CATEGORY_TOOLTIP_OFFSET_Y;
+}
+
+function getCategoryTooltipX(pointX: number): number {
+  const minX = PADDING.left;
+  const maxX = SVG_WIDTH - PADDING.right - CATEGORY_TOOLTIP_WIDTH;
+
+  return Math.min(
+    Math.max(pointX - CATEGORY_TOOLTIP_WIDTH / 2, minX),
+    maxX
+  );
+}
+
 type CategoryErrorCurvesProps = {
   history: StudentDictationHistoryEntry[];
   activeCategories: ReadonlySet<ChampionsErrorCategoryLetter>;
@@ -36,9 +63,9 @@ type CategoryErrorCurvesProps = {
 type HoveredPoint = {
   entryId: string;
   letter: ChampionsErrorCategoryLetter;
+  label: string;
   x: number;
   y: number;
-  label: string;
   categoryName: string;
   count: number;
 };
@@ -48,7 +75,7 @@ export function formatCategoryPointTooltip(
   categoryName: string,
   count: number
 ): string {
-  const errorLabel = count === 1 ? "erreur" : "erreurs";
+  const errorLabel = count <= 1 ? "erreur" : "erreurs";
 
   return `${label} — ${categoryName}: ${count} ${errorLabel}`;
 }
@@ -59,12 +86,57 @@ function getCategoryByLetter(letter: ChampionsErrorCategoryLetter) {
   );
 }
 
+function resolveDisplayHoveredPoint(
+  hoveredPoint: HoveredPoint | null,
+  sortedHistory: StudentDictationHistoryEntry[],
+  activeCategories: ReadonlySet<ChampionsErrorCategoryLetter>,
+  yMax: number
+): HoveredPoint | null {
+  if (!hoveredPoint) {
+    return null;
+  }
+
+  if (!activeCategories.has(hoveredPoint.letter)) {
+    return null;
+  }
+
+  const index = sortedHistory.findIndex(
+    (entry) => entry.entryId === hoveredPoint.entryId
+  );
+
+  if (index < 0) {
+    return null;
+  }
+
+  const entry = sortedHistory[index];
+  const category = getCategoryByLetter(hoveredPoint.letter);
+
+  if (!category) {
+    return null;
+  }
+
+  const count = entry.categoryErrors[hoveredPoint.letter];
+
+  return {
+    entryId: entry.entryId,
+    letter: hoveredPoint.letter,
+    label: entry.label,
+    x: indexToChartX(index, sortedHistory.length),
+    y: countToChartY(count, yMax),
+    categoryName: category.name,
+    count,
+  };
+}
+
 export function CategoryErrorCurves({
   history,
   activeCategories,
   className,
 }: CategoryErrorCurvesProps) {
   const [hoveredPoint, setHoveredPoint] = useState<HoveredPoint | null>(null);
+  const touchDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const sortedHistory = useMemo(() => {
     const entryById = new Map(history.map((entry) => [entry.entryId, entry]));
@@ -75,10 +147,6 @@ export function CategoryErrorCurves({
   }, [history]);
 
   const curvePoints = useMemo(() => toCurvePoints(history), [history]);
-
-  useEffect(() => {
-    setHoveredPoint(null);
-  }, [history, activeCategories]);
 
   if (sortedHistory.length === 0) {
     return null;
@@ -93,12 +161,19 @@ export function CategoryErrorCurves({
   );
   const yMax = computeIntegerYMax(activeValues);
   const yTicks = buildIntegerYTicks(yMax);
-  const { chartWidth, chartHeight, xAxisY } = getDossierChartDimensions();
+  const { chartWidth, xAxisY } = getDossierChartDimensions();
   const xLabelY = xAxisY + 14;
   const useDateLabels = shouldUseDateLabels(sortedHistory.length);
   const visibleLabelIndices = selectVisibleLabelIndices(
     sortedHistory.length,
     chartWidth
+  );
+
+  const displayHoveredPoint = resolveDisplayHoveredPoint(
+    hoveredPoint,
+    sortedHistory,
+    activeCategories,
+    yMax
   );
 
   const series = activeLetters.map((letter) => {
@@ -117,9 +192,40 @@ export function CategoryErrorCurves({
     };
   });
 
-  const ariaLabel = `Erreurs par catégorie, ${sortedHistory.length} dictée${
-    sortedHistory.length > 1 ? "s" : ""
-  }`;
+  function showHoveredPoint(
+    entry: StudentDictationHistoryEntry,
+    letter: ChampionsErrorCategoryLetter,
+    x: number,
+    y: number,
+    categoryName: string,
+    count: number
+  ) {
+    if (touchDismissTimerRef.current) {
+      clearTimeout(touchDismissTimerRef.current);
+      touchDismissTimerRef.current = null;
+    }
+
+    setHoveredPoint({
+      entryId: entry.entryId,
+      letter,
+      label: entry.label,
+      x,
+      y,
+      categoryName,
+      count,
+    });
+  }
+
+  function scheduleTouchDismiss() {
+    if (touchDismissTimerRef.current) {
+      clearTimeout(touchDismissTimerRef.current);
+    }
+
+    touchDismissTimerRef.current = setTimeout(() => {
+      setHoveredPoint(null);
+      touchDismissTimerRef.current = null;
+    }, CATEGORY_TOUCH_DISMISS_MS);
+  }
 
   return (
     <div
@@ -130,7 +236,7 @@ export function CategoryErrorCurves({
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         className="h-56 w-full rounded-lg border border-border bg-background"
         role="img"
-        aria-label={ariaLabel}
+        aria-label="Erreurs par catégorie"
       >
         {yTicks.map((tick) => {
           const y = countToChartY(tick, yMax);
@@ -205,41 +311,38 @@ export function CategoryErrorCurves({
                     count
                   )}
                   onMouseEnter={() =>
-                    setHoveredPoint({
-                      entryId: entry.entryId,
+                    showHoveredPoint(
+                      entry,
                       letter,
                       x,
                       y,
-                      label: entry.label,
                       categoryName,
-                      count,
-                    })
+                      count
+                    )
                   }
                   onMouseLeave={() => setHoveredPoint(null)}
                   onFocus={() =>
-                    setHoveredPoint({
-                      entryId: entry.entryId,
+                    showHoveredPoint(
+                      entry,
                       letter,
                       x,
                       y,
-                      label: entry.label,
                       categoryName,
-                      count,
-                    })
+                      count
+                    )
                   }
                   onBlur={() => setHoveredPoint(null)}
                   onTouchStart={() =>
-                    setHoveredPoint({
-                      entryId: entry.entryId,
+                    showHoveredPoint(
+                      entry,
                       letter,
                       x,
                       y,
-                      label: entry.label,
                       categoryName,
-                      count,
-                    })
+                      count
+                    )
                   }
-                  onTouchEnd={() => setHoveredPoint(null)}
+                  onTouchEnd={scheduleTouchDismiss}
                   onTouchCancel={() => setHoveredPoint(null)}
                 />
                 <circle
@@ -276,12 +379,12 @@ export function CategoryErrorCurves({
             </text>
           );
         })}
-        {hoveredPoint ? (
+        {displayHoveredPoint ? (
           <foreignObject
-            x={getTooltipX(hoveredPoint.x)}
-            y={getTooltipY(hoveredPoint.y)}
-            width={160}
-            height={24}
+            x={getCategoryTooltipX(displayHoveredPoint.x)}
+            y={getCategoryTooltipY(displayHoveredPoint.y)}
+            width={CATEGORY_TOOLTIP_WIDTH}
+            height={CATEGORY_TOOLTIP_HEIGHT}
             className="pointer-events-none overflow-visible"
           >
             <div
@@ -289,14 +392,14 @@ export function CategoryErrorCurves({
                 xmlns: "http://www.w3.org/1999/xhtml",
                 role: "tooltip",
                 "data-testid": "category-error-curves-tooltip",
-                className: "flex h-full items-center justify-center",
+                className: "flex h-full w-full items-center justify-center",
               } as React.HTMLAttributes<HTMLDivElement>)}
             >
-              <div className="max-w-full truncate rounded-md border border-border bg-popover px-2 py-0.5 text-center text-xs leading-tight text-popover-foreground shadow-md">
+              <div className={CATEGORY_ERROR_TOOLTIP_INNER_CLASS}>
                 {formatCategoryPointTooltip(
-                  hoveredPoint.label,
-                  hoveredPoint.categoryName,
-                  hoveredPoint.count
+                  displayHoveredPoint.label,
+                  displayHoveredPoint.categoryName,
+                  displayHoveredPoint.count
                 )}
               </div>
             </div>

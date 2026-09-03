@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { CategoryCurveToggles } from "@/components/dossier/category-curve-toggles";
 import { CategoryErrorCurves } from "@/components/dossier/category-error-curves";
@@ -33,15 +33,15 @@ export function PresentationChartsRow({
     () => new Set(DEFAULT_ACTIVE_CATEGORIES)
   );
 
-  useEffect(() => {
-    setActiveCategories(new Set(DEFAULT_ACTIVE_CATEGORIES));
-  }, [history]);
-
   const handleToggle = useCallback((letter: ChampionsErrorCategoryLetter) => {
     setActiveCategories((current) => {
       const next = new Set(current);
 
       if (next.has(letter)) {
+        if (current.size <= 1) {
+          return current;
+        }
+
         next.delete(letter);
       } else {
         next.add(letter);

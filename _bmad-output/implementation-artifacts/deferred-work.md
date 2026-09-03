@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of spec-7-3-category-error-curves-in-presentation-mode-rdv-parents.md (2026-09-03)
+
+- ESLint `set-state-in-effect` sur reset hover `GlobalSuccessCurve` — pattern identique introduit en 7-2 ; hors périmètre correctif 7-3 (`global-success-curve.tsx:141`)
+
 ## Deferred from: code review of spec-7-2-global-curve-axis-labels-and-y-axis-scale.md (2026-09-03)
 
 - Chevauchement potentiel des labels X sur viewports étroits — limitation SVG responsive préexistante aggravée par plus de labels (`global-success-curve.tsx:48`)
