@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { MobileStudentPicker } from "@/components/dictations/mobile-student-picker";
 import { auth } from "@/auth";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
-import { buildMobileDictationRosterState } from "@/lib/domain/mobile-dictation-roster";
+import { buildDictationRosterState } from "@/lib/domain/dictation-roster";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { listActiveStudents } from "@/lib/services/list-active-students";
@@ -49,7 +49,7 @@ export default async function MobileDictationPage({
     getDictationEntriesByDictationId(teacherClass.id, id),
   ]);
 
-  const rosterState = buildMobileDictationRosterState(
+  const rosterState = buildDictationRosterState(
     entries,
     activeStudents,
     leveledStudents

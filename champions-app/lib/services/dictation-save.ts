@@ -6,7 +6,7 @@ import {
 } from "@/lib/domain/error-categories";
 import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
 import { findMatchingMatrixRow } from "@/lib/domain/dictation";
-import { hasHistoricalRosterShape } from "@/lib/domain/mobile-dictation-roster";
+import { hasHistoricalRosterShape } from "@/lib/domain/dictation-roster";
 import {
   sumCategoryErrors,
   validateGridRow,

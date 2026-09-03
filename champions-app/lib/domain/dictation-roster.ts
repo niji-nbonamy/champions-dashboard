@@ -6,15 +6,15 @@ import {
   getUniqueEnteredLeveledStudentIds,
 } from "./dictation-entry-completion";
 
-export type MobileDictationPickerStudent = {
+export type DictationRosterStudent = {
   id: string;
   displayName: string;
   level: string | null;
   readOnly?: boolean;
 };
 
-export type MobileDictationRosterState = {
-  students: MobileDictationPickerStudent[];
+export type DictationRosterState = {
+  students: DictationRosterStudent[];
   enteredStudentIds: string[];
   remainingCount: number;
   leveledStudentCount: number;
@@ -53,11 +53,11 @@ export function hasHistoricalRosterShape(
   );
 }
 
-export function buildMobileDictationRosterState(
+export function buildDictationRosterState(
   entries: ReadonlyArray<DictationEntryWithStudent>,
   activeStudents: ReadonlyArray<ActiveStudent>,
   leveledStudents: ReadonlyArray<LeveledActiveStudent>
-): MobileDictationRosterState {
+): DictationRosterState {
   const leveledStudentIds = leveledStudents.map((student) => student.id);
   const isHistoricalRoster = hasHistoricalRosterShape(entries, leveledStudents);
 
@@ -88,7 +88,7 @@ export function buildMobileDictationRosterState(
   const uniqueEntries = uniqueEntriesByStudentId(entries);
   const entryIds = new Set(uniqueEntries.map((entry) => entry.studentId));
 
-  const studentsFromEntries: MobileDictationPickerStudent[] = uniqueEntries.map(
+  const studentsFromEntries: DictationRosterStudent[] = uniqueEntries.map(
     (entry) => ({
       id: entry.studentId,
       displayName:
@@ -99,7 +99,7 @@ export function buildMobileDictationRosterState(
     })
   );
 
-  let students: MobileDictationPickerStudent[];
+  let students: DictationRosterStudent[];
 
   if (isHistoricalRoster) {
     students = studentsFromEntries;

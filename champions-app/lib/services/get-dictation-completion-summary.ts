@@ -1,7 +1,7 @@
 import {
   buildHistoricalCompletionSummary,
   hasHistoricalRosterShape,
-} from "@/lib/domain/mobile-dictation-roster";
+} from "@/lib/domain/dictation-roster";
 import { countUniqueEnteredLeveledStudents } from "@/lib/domain/dictation-entry-completion";
 
 import { getDictationEntriesByDictationId } from "./get-dictation-entries";

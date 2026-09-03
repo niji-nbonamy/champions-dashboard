@@ -5,7 +5,7 @@ import { MobilePerStudentForm } from "@/components/dictations/mobile-per-student
 import { auth } from "@/auth";
 import { dbColumnsToCategoryErrors } from "@/lib/domain/error-categories";
 import { findMatchingMatrixRow, isValidUuidV4 } from "@/lib/domain/dictation";
-import { buildMobileDictationRosterState } from "@/lib/domain/mobile-dictation-roster";
+import { buildDictationRosterState } from "@/lib/domain/dictation-roster";
 import { formatUnleveledMobileBlockMessage } from "@/lib/domain/student-display-name";
 import {
   getWordCountForLevel,
@@ -74,7 +74,7 @@ export default async function MobileStudentEntryPage({
       listWordCountMatrixRows(teacherClass.id),
     ]);
 
-  const rosterState = buildMobileDictationRosterState(
+  const rosterState = buildDictationRosterState(
     entries,
     activeStudents,
     leveledStudents

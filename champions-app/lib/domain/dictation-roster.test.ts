@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildDictationRosterState,
   buildHistoricalCompletionSummary,
-  buildMobileDictationRosterState,
-} from "./mobile-dictation-roster";
+} from "./dictation-roster";
 
 const studentA = "770e8400-e29b-41d4-a716-446655440002";
 const studentB = "770e8400-e29b-41d4-a716-446655440004";
@@ -35,9 +35,9 @@ function entry(
   };
 }
 
-describe("buildMobileDictationRosterState", () => {
+describe("buildDictationRosterState", () => {
   it("lists current active students when no entries exist", () => {
-    const state = buildMobileDictationRosterState(
+    const state = buildDictationRosterState(
       [],
       [
         { id: studentA, displayName: "DUPONT Marie", level: "yellow" },
@@ -55,7 +55,7 @@ describe("buildMobileDictationRosterState", () => {
   });
 
   it("extends partial capture with current leveled students missing entries", () => {
-    const state = buildMobileDictationRosterState(
+    const state = buildDictationRosterState(
       [entry(studentA)],
       [
         { id: studentA, displayName: "DUPONT Marie", level: "yellow" },
@@ -77,7 +77,7 @@ describe("buildMobileDictationRosterState", () => {
   });
 
   it("freezes the roster from entries when archived participants exist", () => {
-    const state = buildMobileDictationRosterState(
+    const state = buildDictationRosterState(
       [entry(studentA), entry(studentArchived, true, "ANCIEN Élève")],
       [{ id: studentB, displayName: "MARTIN Paul", level: "green" }],
       [{ id: studentB, displayName: "MARTIN Paul", level: "green" }]
@@ -98,7 +98,7 @@ describe("buildMobileDictationRosterState", () => {
   });
 
   it("freezes the roster when departed participants remain in entries", () => {
-    const state = buildMobileDictationRosterState(
+    const state = buildDictationRosterState(
       [entry(studentArchived, true, "ANCIEN Élève")],
       [{ id: studentB, displayName: "MARTIN Paul", level: "green" }],
       [{ id: studentB, displayName: "MARTIN Paul", level: "green" }]

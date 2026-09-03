@@ -12,6 +12,7 @@ import {
 } from "@/lib/domain/dictation";
 import { dbColumnsToCategoryErrors } from "@/lib/domain/error-categories";
 import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
+import { buildDictationRosterState } from "@/lib/domain/dictation-roster";
 import {
   buildWordTotalsByStudentId,
   isCompleteMatrixRow,
@@ -20,6 +21,7 @@ import {
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { getDictationEntriesByDictationId } from "@/lib/services/get-dictation-entries";
 import { getDictationById } from "@/lib/services/list-dictations";
+import { listActiveStudents } from "@/lib/services/list-active-students";
 import { listLeveledActiveStudents } from "@/lib/services/list-leveled-active-students";
 import { listPendingPromotionsForStudents } from "@/lib/services/list-pending-promotions";
 import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
@@ -143,23 +145,26 @@ export default async function DictationDetailPage({
         normalizeDictationLabelKey(dictation.dictationLabelKey)
     )?.value ?? dictation.dictationLabelKey;
 
-  const savedEntries = await getDictationEntriesByDictationId(teacherClass.id, id);
-  const activeStudents = await listLeveledActiveStudents(teacherClass.id);
+  const [savedEntries, activeStudents, leveledStudents] = await Promise.all([
+    getDictationEntriesByDictationId(teacherClass.id, id),
+    listActiveStudents(teacherClass.id),
+    listLeveledActiveStudents(teacherClass.id),
+  ]);
 
   if (savedEntries.length > 0) {
-    const activeStudentsById = new Map(
-      activeStudents.map((student) => [student.id, student])
+    const rosterState = buildDictationRosterState(
+      savedEntries,
+      activeStudents,
+      leveledStudents
     );
 
-    const gridStudents: LeveledActiveStudent[] = savedEntries.map((entry) => {
-      const activeStudent = activeStudentsById.get(entry.studentId);
-
-      return {
-        id: entry.studentId,
-        displayName: activeStudent?.displayName ?? entry.displayName,
-        level: entry.levelAtSave,
-      };
-    });
+    const gridStudents: LeveledActiveStudent[] = rosterState.students.map(
+      (student) => ({
+        id: student.id,
+        displayName: student.displayName,
+        level: student.level ?? "",
+      })
+    );
 
     const initialCounts = savedEntries.reduce<
       Record<string, Record<ChampionsErrorCategoryLetter, number>>
@@ -178,7 +183,7 @@ export default async function DictationDetailPage({
       return counts;
     }, {});
 
-    const wordTotalsByStudentId = savedEntries.reduce<Record<string, number>>(
+    const wordTotalsFromEntries = savedEntries.reduce<Record<string, number>>(
       (totals, entry) => {
         totals[entry.studentId] = entry.wordDenominator;
         return totals;
@@ -186,9 +191,25 @@ export default async function DictationDetailPage({
       {}
     );
 
-    const readOnlyStudentIds = savedEntries
-      .filter((entry) => entry.archived)
-      .map((entry) => entry.studentId);
+    const matchingMatrixRow = findMatchingMatrixRow(
+      matrixRows,
+      dictation.dictationLabelKey
+    );
+    const studentsWithoutSavedTotal = gridStudents.filter(
+      (student) => wordTotalsFromEntries[student.id] === undefined
+    );
+    const wordTotalsFromMatrix = matchingMatrixRow
+      ? buildWordTotalsByStudentId(studentsWithoutSavedTotal, matchingMatrixRow)
+      : {};
+
+    const wordTotalsByStudentId = {
+      ...wordTotalsFromMatrix,
+      ...wordTotalsFromEntries,
+    };
+
+    const readOnlyStudentIds = rosterState.students
+      .filter((student) => student.readOnly)
+      .map((student) => student.id);
 
     const pendingPromotionsByStudentId = await loadPendingPromotionsForGrid(
       teacherClass.id,
@@ -223,12 +244,12 @@ export default async function DictationDetailPage({
   );
 
   const wordTotalsByStudentId = matchingMatrixRow
-    ? buildWordTotalsByStudentId(activeStudents, matchingMatrixRow)
+    ? buildWordTotalsByStudentId(leveledStudents, matchingMatrixRow)
     : {};
 
   const pendingPromotionsByStudentId = await loadPendingPromotionsForGrid(
     teacherClass.id,
-    activeStudents.map((student) => student.id)
+    leveledStudents.map((student) => student.id)
   );
 
   return (
@@ -241,7 +262,7 @@ export default async function DictationDetailPage({
         matrixLabelOptions={matrixLabelOptions}
       />
       <h2 className="text-lg font-medium">Saisie des erreurs</h2>
-      {activeStudents.length > 0 && !matchingMatrixRow ? (
+      {leveledStudents.length > 0 && !matchingMatrixRow ? (
         <p className="text-sm text-muted-foreground">
           Aucune ligne de matrice pour cette dictée. Configurez la matrice sur{" "}
           <Link
@@ -255,7 +276,7 @@ export default async function DictationDetailPage({
       ) : (
         <ClassGrid
           dictationId={dictation.id}
-          students={activeStudents}
+          students={leveledStudents}
           wordTotalsByStudentId={wordTotalsByStudentId}
           pendingPromotionsByStudentId={pendingPromotionsByStudentId}
         />

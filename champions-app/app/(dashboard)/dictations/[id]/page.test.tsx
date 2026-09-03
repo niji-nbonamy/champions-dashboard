@@ -8,6 +8,7 @@ const {
   mockGetTeacherClass,
   mockGetDictationById,
   mockGetDictationEntriesByDictationId,
+  mockListActiveStudents,
   mockListLeveledActiveStudents,
   mockListWordCountMatrixRows,
   mockListPendingPromotionsForStudents,
@@ -24,6 +25,7 @@ const {
   mockGetTeacherClass: vi.fn(),
   mockGetDictationById: vi.fn(),
   mockGetDictationEntriesByDictationId: vi.fn(),
+  mockListActiveStudents: vi.fn(),
   mockListLeveledActiveStudents: vi.fn(),
   mockListWordCountMatrixRows: vi.fn(),
   mockListPendingPromotionsForStudents: vi.fn(),
@@ -50,6 +52,10 @@ vi.mock("@/lib/services/list-dictations", () => ({
 
 vi.mock("@/lib/services/get-dictation-entries", () => ({
   getDictationEntriesByDictationId: mockGetDictationEntriesByDictationId,
+}));
+
+vi.mock("@/lib/services/list-active-students", () => ({
+  listActiveStudents: mockListActiveStudents,
 }));
 
 vi.mock("@/lib/services/list-leveled-active-students", () => ({
@@ -84,6 +90,14 @@ const teacherId = "550e8400-e29b-41d4-a716-446655440000";
 const classId = "660e8400-e29b-41d4-a716-446655440001";
 const dictationId = "880e8400-e29b-41d4-a716-446655440003";
 const marieStudentId = "770e8400-e29b-41d4-a716-446655440002";
+const paulStudentId = "770e8400-e29b-41d4-a716-446655440004";
+
+function mockLeveledRoster(
+  students: Array<{ id: string; displayName: string; level: string }>
+) {
+  mockListLeveledActiveStudents.mockResolvedValueOnce(students);
+  mockListActiveStudents.mockResolvedValueOnce(students);
+}
 
 function mockAuthenticatedClass() {
   auth.mockResolvedValueOnce({
@@ -101,6 +115,8 @@ describe("DictationDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetDictationEntriesByDictationId.mockResolvedValue([]);
+    mockListActiveStudents.mockResolvedValue([]);
+    mockListLeveledActiveStudents.mockResolvedValue([]);
     mockListPendingPromotionsForStudents.mockResolvedValue({});
     mockListWordCountMatrixRows.mockResolvedValue([]);
   });
@@ -156,7 +172,7 @@ describe("DictationDetailPage", () => {
       dictationLabelKey: "dictée 1",
       dictationDate: "2026-08-27",
     });
-    mockListLeveledActiveStudents.mockResolvedValueOnce([
+    mockLeveledRoster([
       {
         id: marieStudentId,
         displayName: "DUPONT Marie",
@@ -208,7 +224,7 @@ describe("DictationDetailPage", () => {
       dictationLabelKey: "dictée 1",
       dictationDate: "2026-08-27",
     });
-    mockListLeveledActiveStudents.mockResolvedValueOnce([
+    mockLeveledRoster([
       {
         id: marieStudentId,
         displayName: "DUPONT Marie",
@@ -255,14 +271,14 @@ describe("DictationDetailPage", () => {
       dictationLabelKey: "dictée 1",
       dictationDate: "2026-08-27",
     });
-    mockListLeveledActiveStudents.mockResolvedValueOnce([
+    mockLeveledRoster([
       {
         id: marieStudentId,
         displayName: "DUPONT Marie",
         level: "yellow",
       },
       {
-        id: "770e8400-e29b-41d4-a716-446655440004",
+        id: paulStudentId,
         displayName: "MARTIN Paul",
         level: "green",
       },
@@ -286,7 +302,7 @@ describe("DictationDetailPage", () => {
         dictationId,
         wordTotalsByStudentId: {
           [marieStudentId]: 10,
-          "770e8400-e29b-41d4-a716-446655440004": 12,
+          [paulStudentId]: 12,
         },
       })
     );
@@ -300,7 +316,7 @@ describe("DictationDetailPage", () => {
       dictationLabelKey: "dictée 1",
       dictationDate: "2026-08-27",
     });
-    mockListLeveledActiveStudents.mockResolvedValueOnce([
+    mockLeveledRoster([
       {
         id: marieStudentId,
         displayName: "DUPONT Marie",
@@ -333,6 +349,7 @@ describe("DictationDetailPage", () => {
       dictationDate: "2026-08-27",
     });
     mockListLeveledActiveStudents.mockResolvedValueOnce([]);
+    mockListActiveStudents.mockResolvedValueOnce([]);
     mockListWordCountMatrixRows.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
@@ -393,7 +410,7 @@ describe("DictationDetailPage", () => {
         errorsS: 0,
       },
     ]);
-    mockListLeveledActiveStudents.mockResolvedValueOnce([
+    mockLeveledRoster([
       {
         id: marieStudentId,
         displayName: "DUPONT Marie",
@@ -465,6 +482,89 @@ describe("DictationDetailPage", () => {
     );
   });
 
+  it("extends partial capture with current leveled students missing entries", async () => {
+    mockAuthenticatedClass();
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      label: "Dictée 6",
+      dictationLabelKey: "dictée 6",
+      dictationDate: "2026-08-27",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: marieStudentId,
+        displayName: "JAVEL Aude",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 42,
+        globalPercent: 90,
+        errorsC: 2,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+    mockLeveledRoster([
+      {
+        id: marieStudentId,
+        displayName: "JAVEL Aude",
+        level: "yellow",
+      },
+      {
+        id: paulStudentId,
+        displayName: "MARTIN Paul",
+        level: "green",
+      },
+    ]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([
+      {
+        dictationLabelKey: "Dictée 6",
+        wordsYellow: 10,
+        wordsGreen: 12,
+        wordsViolet: 14,
+        wordsGold: 16,
+      },
+    ]);
+
+    renderToStaticMarkup(
+      await DictationDetailPage({ params: Promise.resolve({ id: dictationId }) })
+    );
+
+    expect(mockClassGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        students: [
+          {
+            id: marieStudentId,
+            displayName: "JAVEL Aude",
+            level: "yellow",
+          },
+          {
+            id: paulStudentId,
+            displayName: "MARTIN Paul",
+            level: "green",
+          },
+        ],
+        wordTotalsByStudentId: {
+          [marieStudentId]: 42,
+          [paulStudentId]: 12,
+        },
+        initialCounts: {
+          [marieStudentId]: expect.objectContaining({ C: 2 }),
+        },
+        readOnlyStudentIds: [],
+      })
+    );
+    expect(mockListPendingPromotionsForStudents).toHaveBeenCalledWith(classId, [
+      marieStudentId,
+      paulStudentId,
+    ]);
+  });
+
   it("renders the grid with an empty pending map when pending lookup fails", async () => {
     mockAuthenticatedClass();
     mockGetDictationById.mockResolvedValueOnce({
@@ -473,7 +573,7 @@ describe("DictationDetailPage", () => {
       dictationLabelKey: "dictée 1",
       dictationDate: "2026-08-27",
     });
-    mockListLeveledActiveStudents.mockResolvedValueOnce([
+    mockLeveledRoster([
       {
         id: marieStudentId,
         displayName: "DUPONT Marie",
