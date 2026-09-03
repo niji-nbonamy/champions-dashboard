@@ -273,10 +273,12 @@ export function GlobalSuccessCurve({
             className="pointer-events-none overflow-visible"
           >
             <div
-              xmlns="http://www.w3.org/1999/xhtml"
-              role="tooltip"
-              data-testid="global-success-curve-tooltip"
-              className="flex h-full items-center justify-center"
+              {...({
+                xmlns: "http://www.w3.org/1999/xhtml",
+                role: "tooltip",
+                "data-testid": "global-success-curve-tooltip",
+                className: "flex h-full items-center justify-center",
+              } as React.HTMLAttributes<HTMLDivElement>)}
             >
               <div className="max-w-full truncate rounded-md border border-border bg-popover px-2 py-0.5 text-center text-[10px] leading-tight text-popover-foreground shadow-md">
                 {formatPointTooltip(hoveredCoordinate.point)}
