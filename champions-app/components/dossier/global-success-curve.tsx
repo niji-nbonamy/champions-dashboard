@@ -8,7 +8,17 @@ type GlobalSuccessCurveProps = {
 
 const SVG_WIDTH = 400;
 const SVG_HEIGHT = 192;
-const PADDING = { top: 16, right: 16, bottom: 32, left: 40 };
+const PADDING = { top: 16, right: 16, bottom: 44, left: 40 };
+const Y_TICKS = [0, 20, 40, 60, 80, 100] as const;
+const MAX_X_LABEL_LENGTH = 12;
+
+function truncateLabel(label: string, maxLength = MAX_X_LABEL_LENGTH): string {
+  if (label.length <= maxLength) {
+    return label;
+  }
+
+  return `${label.slice(0, maxLength - 1)}…`;
+}
 
 function toChartCoordinates(
   points: CurvePoint[]
@@ -24,6 +34,10 @@ function toChartCoordinates(
   }));
 }
 
+function tickY(tick: number, chartHeight: number): number {
+  return PADDING.top + (1 - tick / 100) * chartHeight;
+}
+
 export function GlobalSuccessCurve({
   points,
   className,
@@ -32,10 +46,13 @@ export function GlobalSuccessCurve({
     return null;
   }
 
+  const chartHeight = SVG_HEIGHT - PADDING.top - PADDING.bottom;
   const coordinates = toChartCoordinates(points);
   const polylinePoints = coordinates
     .map(({ x, y }) => `${x},${y}`)
     .join(" ");
+  const xAxisY = SVG_HEIGHT - PADDING.bottom;
+  const xLabelY = xAxisY + 14;
 
   const ariaLabel = `Courbe de réussite globale, ${points.length} dictée${
     points.length > 1 ? "s" : ""
@@ -52,38 +69,52 @@ export function GlobalSuccessCurve({
         role="img"
         aria-label={ariaLabel}
       >
+        {Y_TICKS.map((tick) => {
+          const y = tickY(tick, chartHeight);
+
+          return (
+            <line
+              key={`grid-${tick}`}
+              x1={PADDING.left}
+              y1={y}
+              x2={SVG_WIDTH - PADDING.right}
+              y2={y}
+              className="stroke-border/50"
+              strokeWidth="1"
+            />
+          );
+        })}
         <line
           x1={PADDING.left}
           y1={PADDING.top}
           x2={PADDING.left}
-          y2={SVG_HEIGHT - PADDING.bottom}
+          y2={xAxisY}
           className="stroke-border"
           strokeWidth="1"
         />
         <line
           x1={PADDING.left}
-          y1={SVG_HEIGHT - PADDING.bottom}
+          y1={xAxisY}
           x2={SVG_WIDTH - PADDING.right}
-          y2={SVG_HEIGHT - PADDING.bottom}
+          y2={xAxisY}
           className="stroke-border"
           strokeWidth="1"
         />
-        <text
-          x={PADDING.left - 8}
-          y={PADDING.top + 4}
-          textAnchor="end"
-          className="fill-muted-foreground text-[10px] tabular-nums"
-        >
-          100 %
-        </text>
-        <text
-          x={PADDING.left - 8}
-          y={SVG_HEIGHT - PADDING.bottom}
-          textAnchor="end"
-          className="fill-muted-foreground text-[10px] tabular-nums"
-        >
-          0 %
-        </text>
+        {Y_TICKS.map((tick) => {
+          const y = tickY(tick, chartHeight);
+
+          return (
+            <text
+              key={`y-tick-${tick}`}
+              x={PADDING.left - 8}
+              y={y + 4}
+              textAnchor="end"
+              className="fill-muted-foreground text-[10px] tabular-nums"
+            >
+              {tick} %
+            </text>
+          );
+        })}
         {coordinates.length > 1 ? (
           <polyline
             points={polylinePoints}
@@ -105,6 +136,24 @@ export function GlobalSuccessCurve({
             <title>{`${point.label} : ${point.percent} %`}</title>
           </circle>
         ))}
+        {coordinates.map(({ x, point }) => {
+          const displayLabel = truncateLabel(point.label);
+
+          return (
+            <text
+              key={`x-label-${point.entryId}`}
+              x={x}
+              y={xLabelY}
+              textAnchor="middle"
+              className="fill-muted-foreground text-[10px]"
+            >
+              {displayLabel}
+              {displayLabel !== point.label ? (
+                <title>{point.label}</title>
+              ) : null}
+            </text>
+          );
+        })}
       </svg>
     </div>
   );
