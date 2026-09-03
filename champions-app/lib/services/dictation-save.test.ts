@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { dictationEntries } from "@/lib/db/schema";
+import { DICTATION_SAVE_ROSTER_MISMATCH_ERROR } from "@/lib/domain/dictation-save-messages";
 import {
   assertCountsMatchRoster,
   prepareDictationEntries,
@@ -139,14 +140,23 @@ describe("assertCountsMatchRoster", () => {
     ).toThrow();
   });
 
-  it("rejects when the counts payload includes an unknown student id", () => {
+  it("rejects when the counts payload includes an unknown student id", async () => {
+    const { DictationRosterMismatchError } = await import("./dictation-save");
+
     expect(() =>
       assertCountsMatchRoster(students, {
         [students[0].id]: { ...emptyCounts },
         [students[1].id]: { ...emptyCounts },
         "00000000-0000-4000-8000-000000000099": { ...emptyCounts },
       })
-    ).toThrow();
+    ).toThrow(DictationRosterMismatchError);
+    expect(() =>
+      assertCountsMatchRoster(students, {
+        [students[0].id]: { ...emptyCounts },
+        [students[1].id]: { ...emptyCounts },
+        "00000000-0000-4000-8000-000000000099": { ...emptyCounts },
+      })
+    ).toThrow(DICTATION_SAVE_ROSTER_MISMATCH_ERROR);
   });
 });
 
@@ -255,6 +265,11 @@ describe("saveDictation edit path", () => {
     vi.clearAllMocks();
     mockSelectLimit.mockReset();
     mockSelectLimit.mockResolvedValue([]);
+    mockGetDictationById.mockReset();
+    mockGetDictationEntriesByDictationId.mockReset();
+    mockListLeveledActiveStudents.mockReset();
+    mockListWordCountMatrixRows.mockReset();
+    mockTransaction.mockReset();
   });
 
   it("updates entries using snapshots and re-evaluates pending promotions", async () => {
@@ -280,6 +295,9 @@ describe("saveDictation edit path", () => {
         errorsN: 0,
         errorsS: 0,
       },
+    ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
     ]);
 
     mockTransaction.mockImplementationOnce(async (callback) => {
@@ -341,6 +359,9 @@ describe("saveDictation edit path", () => {
         errorsS: 0,
       },
     ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
+    ]);
 
     mockTransaction.mockImplementationOnce(async (callback) => {
       const tx = {
@@ -398,7 +419,7 @@ describe("saveDictation edit path", () => {
     expect(mockTransaction).not.toHaveBeenCalled();
   });
 
-  it("rejects edit payload that does not match editable roster", async () => {
+  it("rejects edit payload that is missing an existing editable student", async () => {
     mockGetDictationById.mockResolvedValueOnce({
       id: dictationId,
       dictationLabelKey: "dictée 1",
@@ -422,6 +443,10 @@ describe("saveDictation edit path", () => {
         errorsS: 0,
       },
     ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
+      { id: students[1].id, displayName: "MARTIN Paul", level: "green" },
+    ]);
 
     const { saveDictation } = await import("./dictation-save");
 
@@ -430,6 +455,135 @@ describe("saveDictation edit path", () => {
         [students[1].id]: { ...emptyCounts, C: 1 },
       })
     ).rejects.toThrow();
+    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it("inserts missing entries and updates existing ones on partial capture save", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 1",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: students[0].id,
+        displayName: "DUPONT Marie",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 50,
+        globalPercent: 90,
+        errorsC: 5,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
+      { id: students[1].id, displayName: "MARTIN Paul", level: "green" },
+    ]);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([matrixRow]);
+
+    mockTransaction.mockImplementationOnce(async (callback) => {
+      const tx = {
+        update: mockUpdate,
+        delete: mockDelete,
+        insert: mockInsert,
+        select: mockSelect,
+      };
+      mockSelectLimit
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+      await callback(tx);
+    });
+
+    const { saveDictation } = await import("./dictation-save");
+    const result = await saveDictation(classId, dictationId, {
+      [students[0].id]: { ...emptyCounts, C: 2 },
+      [students[1].id]: { ...emptyCounts, H: 1 },
+    });
+
+    expect(result).toEqual({ dictationId, entryCount: 2 });
+    expect(mockUpdateSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        globalPercent: 96,
+        errorsC: 2,
+      })
+    );
+    expect(mockInsertValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dictationId,
+        studentId: students[1].id,
+        levelAtSave: "green",
+        wordDenominator: 60,
+        globalPercent: 98,
+        errorsH: 1,
+      })
+    );
+  });
+
+  it("returns a roster mismatch error on historical roster when payload includes extra students", async () => {
+    mockGetDictationById.mockResolvedValueOnce({
+      id: dictationId,
+      dictationLabelKey: "dictée 6",
+    });
+    mockGetDictationEntriesByDictationId.mockResolvedValueOnce([
+      {
+        studentId: students[0].id,
+        displayName: "DUPONT Marie",
+        archived: false,
+        levelAtSave: "yellow",
+        wordDenominator: 50,
+        globalPercent: 90,
+        errorsC: 5,
+        errorsH: 0,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+      {
+        studentId: students[1].id,
+        displayName: "MARTIN Paul",
+        archived: true,
+        levelAtSave: "green",
+        wordDenominator: 60,
+        globalPercent: 90,
+        errorsC: 0,
+        errorsH: 6,
+        errorsA: 0,
+        errorsM: 0,
+        errorsP: 0,
+        errorsI: 0,
+        errorsO: 0,
+        errorsN: 0,
+        errorsS: 0,
+      },
+    ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
+      { id: students[1].id, displayName: "MARTIN Paul", level: "green" },
+    ]);
+
+    const { saveDictation } = await import("./dictation-save");
+
+    await expect(
+      saveDictation(classId, dictationId, {
+        [students[0].id]: { ...emptyCounts, C: 2 },
+        [students[1].id]: { ...emptyCounts, H: 1 },
+      })
+    ).rejects.toMatchObject({
+      name: "DictationRosterMismatchError",
+      message: DICTATION_SAVE_ROSTER_MISMATCH_ERROR,
+    });
     expect(mockTransaction).not.toHaveBeenCalled();
   });
 
@@ -473,6 +627,9 @@ describe("saveDictation edit path", () => {
         errorsN: 0,
         errorsS: 0,
       },
+    ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
     ]);
 
     mockTransaction.mockImplementationOnce(async (callback) => {
@@ -524,6 +681,9 @@ describe("saveDictation edit path", () => {
         errorsS: 0,
       },
     ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
+    ]);
 
     mockTransaction.mockImplementationOnce(async (callback) => {
       const tx = {
@@ -546,7 +706,9 @@ describe("saveDictation edit path", () => {
     });
 
     expect(mockDeleteWhere).toHaveBeenCalled();
-    expect(mockInsertValues).not.toHaveBeenCalled();
+    expect(mockInsertValues).not.toHaveBeenCalledWith(
+      expect.objectContaining({ targetLevel: expect.any(String) })
+    );
   });
 });
 
@@ -558,6 +720,11 @@ describe("saveDictation transaction contract", () => {
     vi.clearAllMocks();
     mockSelectLimit.mockReset();
     mockSelectLimit.mockResolvedValue([]);
+    mockGetDictationById.mockReset();
+    mockGetDictationEntriesByDictationId.mockReset();
+    mockListLeveledActiveStudents.mockReset();
+    mockListWordCountMatrixRows.mockReset();
+    mockTransaction.mockReset();
   });
 
   it("throws DictationAlreadySavedError when a row exists inside the first-save transaction", async () => {
@@ -649,6 +816,9 @@ describe("saveDictation transaction contract", () => {
         errorsS: 0,
       },
     ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
+    ]);
 
     mockTransaction.mockImplementationOnce(async (callback) => {
       const tx = {
@@ -680,6 +850,11 @@ describe("saveDictation first-save path", () => {
     vi.clearAllMocks();
     mockSelectLimit.mockReset();
     mockSelectLimit.mockResolvedValue([]);
+    mockGetDictationById.mockReset();
+    mockGetDictationEntriesByDictationId.mockReset();
+    mockListLeveledActiveStudents.mockReset();
+    mockListWordCountMatrixRows.mockReset();
+    mockTransaction.mockReset();
   });
 
   it("creates pending promotion via cascade when second consecutive dictation qualifies", async () => {
@@ -783,6 +958,9 @@ describe("saveDictation first-save path", () => {
         errorsS: 0,
       },
     ]);
+    mockListLeveledActiveStudents.mockResolvedValueOnce([
+      { id: students[0].id, displayName: "DUPONT Marie", level: "yellow" },
+    ]);
 
     mockTransaction.mockImplementationOnce(async (callback) => {
       const tx = {
@@ -823,6 +1001,11 @@ describe("saveDictationStudentEntry", () => {
     vi.clearAllMocks();
     mockSelectLimit.mockReset();
     mockSelectLimit.mockResolvedValue([]);
+    mockGetDictationById.mockReset();
+    mockGetDictationEntriesByDictationId.mockReset();
+    mockListLeveledActiveStudents.mockReset();
+    mockListWordCountMatrixRows.mockReset();
+    mockTransaction.mockReset();
   });
 
   it("inserts a single student entry without requiring the full roster", async () => {

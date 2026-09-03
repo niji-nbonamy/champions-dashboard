@@ -24,6 +24,7 @@ import { dictationEntries } from "@/lib/db/schema";
 
 import {
   DICTATION_SAVE_GENERIC_ERROR,
+  DICTATION_SAVE_ROSTER_MISMATCH_ERROR,
   DICTATION_SAVE_SUCCESS_MESSAGE,
 } from "@/lib/domain/dictation-save-messages";
 
@@ -32,7 +33,11 @@ import { listLeveledActiveStudents } from "./list-leveled-active-students";
 import { getDictationById } from "./list-dictations";
 import { listWordCountMatrixRows } from "./list-word-count-matrix-rows";
 
-export { DICTATION_SAVE_GENERIC_ERROR, DICTATION_SAVE_SUCCESS_MESSAGE };
+export {
+  DICTATION_SAVE_GENERIC_ERROR,
+  DICTATION_SAVE_ROSTER_MISMATCH_ERROR,
+  DICTATION_SAVE_SUCCESS_MESSAGE,
+};
 
 export class DictationSaveError extends Error {
   constructor(message: string) {
@@ -59,6 +64,13 @@ export class InvalidGridSaveError extends DictationSaveError {
   constructor() {
     super(DICTATION_SAVE_GENERIC_ERROR);
     this.name = "InvalidGridSaveError";
+  }
+}
+
+export class DictationRosterMismatchError extends DictationSaveError {
+  constructor() {
+    super(DICTATION_SAVE_ROSTER_MISMATCH_ERROR);
+    this.name = "DictationRosterMismatchError";
   }
 }
 
@@ -121,7 +133,7 @@ export function assertCountsMatchRoster(
 
   for (const studentId of Object.keys(countsByStudentId)) {
     if (!rosterIds.has(studentId)) {
-      throw new InvalidGridSaveError();
+      throw new DictationRosterMismatchError();
     }
   }
 }
@@ -240,12 +252,20 @@ export async function saveDictation(
   );
 
   if (existingEntries.length > 0) {
+    const leveledStudents = await listLeveledActiveStudents(classId);
+    const isHistoricalRoster = hasHistoricalRosterShape(
+      existingEntries,
+      leveledStudents
+    );
     const editableSnapshots: ExistingEntrySnapshot[] = [];
+    const entryStudentIds = new Set<string>();
 
     for (const entry of existingEntries) {
       if (entry.archived) {
         continue;
       }
+
+      entryStudentIds.add(entry.studentId);
 
       const levelAtSave = parseChampionsLevel(entry.levelAtSave);
       if (!levelAtSave) {
@@ -259,22 +279,62 @@ export async function saveDictation(
       });
     }
 
-    assertCountsMatchRoster(
-      editableSnapshots.map((snapshot) => ({ id: snapshot.studentId })),
-      countsByStudentId
-    );
-
     if (editableSnapshots.length === 0) {
       throw new InvalidGridSaveError();
     }
 
-    const preparedUpdates = prepareDictationEntryUpdates(
-      editableSnapshots,
-      countsByStudentId
-    );
-    const affectedStudentIds = existingEntries
-      .filter((entry) => !entry.archived)
-      .map((entry) => entry.studentId);
+    let preparedUpdates: PreparedDictationEntry[] = [];
+    let preparedInserts: PreparedDictationEntry[] = [];
+
+    if (isHistoricalRoster) {
+      assertCountsMatchRoster(
+        editableSnapshots.map((snapshot) => ({ id: snapshot.studentId })),
+        countsByStudentId
+      );
+
+      preparedUpdates = prepareDictationEntryUpdates(
+        editableSnapshots,
+        countsByStudentId
+      );
+    } else {
+      assertCountsMatchRoster(leveledStudents, countsByStudentId);
+
+      preparedUpdates = prepareDictationEntryUpdates(
+        editableSnapshots,
+        countsByStudentId
+      );
+
+      const newStudents = leveledStudents.filter(
+        (student) => !entryStudentIds.has(student.id)
+      );
+
+      if (newStudents.length > 0) {
+        const matrixRows = (await listWordCountMatrixRows(classId)).filter(
+          isCompleteMatrixRow
+        );
+        const matchingMatrixRow = findMatchingMatrixRow(
+          matrixRows,
+          dictation.dictationLabelKey
+        );
+
+        if (!matchingMatrixRow) {
+          throw new InvalidGridSaveError();
+        }
+
+        preparedInserts = prepareDictationEntries(
+          newStudents,
+          countsByStudentId,
+          matchingMatrixRow
+        );
+      }
+    }
+
+    const affectedStudentIds = [
+      ...new Set([
+        ...preparedUpdates.map((entry) => entry.studentId),
+        ...preparedInserts.map((entry) => entry.studentId),
+      ]),
+    ];
 
     await db.transaction(async (tx) => {
       for (const entry of preparedUpdates) {
@@ -297,12 +357,23 @@ export async function saveDictation(
         }
       }
 
+      for (const entry of preparedInserts) {
+        await tx.insert(dictationEntries).values({
+          dictationId,
+          studentId: entry.studentId,
+          levelAtSave: entry.levelAtSave,
+          wordDenominator: entry.wordDenominator,
+          globalPercent: entry.globalPercent,
+          ...entry.errorColumns,
+        });
+      }
+
       await cascadePromotionReevaluation(tx, classId, affectedStudentIds);
     });
 
     return {
       dictationId,
-      entryCount: preparedUpdates.length,
+      entryCount: preparedUpdates.length + preparedInserts.length,
     };
   }
 

@@ -700,6 +700,27 @@ describe("ClassGrid", () => {
     expect(mockToastSuccess).not.toHaveBeenCalled();
   });
 
+  it("shows the roster mismatch toast when save returns that error", async () => {
+    const { DICTATION_SAVE_ROSTER_MISMATCH_ERROR } = await import(
+      "@/lib/domain/dictation-save-messages"
+    );
+    mockSaveDictationAction.mockResolvedValueOnce({
+      error: DICTATION_SAVE_ROSTER_MISMATCH_ERROR,
+    });
+    renderGrid();
+
+    const saveButton = getSaveButton();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(mockToastError).toHaveBeenCalledWith(
+      DICTATION_SAVE_ROSTER_MISMATCH_ERROR
+    );
+    expect(mockToastSuccess).not.toHaveBeenCalled();
+  });
+
   it("locks cells and shows a spinner while save is pending", async () => {
     let resolveSave: ((value: { error: string | null }) => void) | undefined;
     mockSaveDictationAction.mockImplementationOnce(

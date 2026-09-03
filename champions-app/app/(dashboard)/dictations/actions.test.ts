@@ -440,6 +440,23 @@ describe("saveDictationAction", () => {
     expect(result.error).toBe("Sauvegarde impossible.");
     expect(revalidatePath).not.toHaveBeenCalled();
   });
+
+  it("returns the roster mismatch message from the service", async () => {
+    mockAuthenticatedTeacherClass();
+    const { DictationRosterMismatchError } = await import(
+      "@/lib/services/dictation-save"
+    );
+    mockSaveDictation.mockRejectedValueOnce(new DictationRosterMismatchError());
+
+    const { saveDictationAction } = await import("./actions");
+    const { DICTATION_SAVE_ROSTER_MISMATCH_ERROR } = await import(
+      "@/lib/domain/dictation-save-messages"
+    );
+    const result = await saveDictationAction(dictationId, {});
+
+    expect(result.error).toBe(DICTATION_SAVE_ROSTER_MISMATCH_ERROR);
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
 });
 
 describe("validatePromotionAction", () => {
@@ -696,7 +713,7 @@ describe("updateDictationAction", () => {
     ).rejects.toThrow("NEXT_REDIRECT:/login");
   });
 
-  it("updates metadata and revalidates dossier paths for affected students", async () => {
+  it("updates metadata and revalidates student sheet paths for affected students", async () => {
     mockAuthenticatedTeacherClass();
     mockUpdateDictation.mockResolvedValueOnce({
       id: dictationId,
