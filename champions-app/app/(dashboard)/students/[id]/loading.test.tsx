@@ -1,13 +1,13 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import StudentDossierLoading from "./loading";
+import StudentSheetLoading from "./loading";
 
-describe("StudentDossierLoading", () => {
-  it("renders a dossier layout skeleton during cold load", () => {
-    const html = renderToStaticMarkup(<StudentDossierLoading />);
+describe("StudentSheetLoading", () => {
+  it("renders a student sheet layout skeleton during cold load", () => {
+    const html = renderToStaticMarkup(<StudentSheetLoading />);
 
-    expect(html).toContain('data-testid="dossier-skeleton"');
+    expect(html).toContain('data-testid="student-sheet-skeleton"');
     expect(html).toContain("animate-pulse");
     expect(html).toContain("max-w-4xl");
     expect(html).toContain("flex flex-col gap-6");

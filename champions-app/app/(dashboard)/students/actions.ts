@@ -61,7 +61,7 @@ export type ArchiveStudentActionState = {
   error: string | null;
 };
 
-export type DossierPromotionActionResult = {
+export type StudentPromotionActionResult = {
   error: string | null;
 };
 
@@ -285,9 +285,9 @@ export async function archiveStudentAction(
   }
 }
 
-export async function validateDossierPromotionAction(
+export async function validateStudentPromotionAction(
   studentId: string
-): Promise<DossierPromotionActionResult> {
+): Promise<StudentPromotionActionResult> {
   const normalizedStudentId = studentId?.trim() ?? "";
   if (!normalizedStudentId) {
     return { error: PROMOTION_VALIDATE_GENERIC_ERROR };
@@ -323,9 +323,9 @@ export async function validateDossierPromotionAction(
   }
 }
 
-export async function refuseDossierPromotionAction(
+export async function refuseStudentPromotionAction(
   studentId: string
-): Promise<DossierPromotionActionResult> {
+): Promise<StudentPromotionActionResult> {
   const normalizedStudentId = studentId?.trim() ?? "";
   if (!normalizedStudentId) {
     return { error: PROMOTION_REFUSE_GENERIC_ERROR };

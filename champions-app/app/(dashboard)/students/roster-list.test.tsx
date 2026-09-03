@@ -70,7 +70,7 @@ describe("RosterList", () => {
     expect(html).toContain("Aucun élève archivé.");
   });
 
-  it("renders dossier links with an accessible aria-label", () => {
+  it("renders student sheet links with an accessible aria-label", () => {
     const html = renderToStaticMarkup(
       <RosterList
         students={[
@@ -85,13 +85,13 @@ describe("RosterList", () => {
       />
     );
 
-    expect(html).toContain('aria-label="Dossier de DUPONT Marie"');
+    expect(html).toContain('aria-label="Fiche de DUPONT Marie"');
     expect(html).toContain(
       'href="/students/770e8400-e29b-41d4-a716-446655440002"'
     );
   });
 
-  it("renders plain names without dossier links when linkToDossier is false", () => {
+  it("renders plain names without student sheet links when linkToStudentSheet is false", () => {
     const html = renderToStaticMarkup(
       <RosterList
         students={[
@@ -104,13 +104,13 @@ describe("RosterList", () => {
         ]}
         filter="active"
         showLevelUi={false}
-        linkToDossier={false}
+        linkToStudentSheet={false}
       />
     );
 
     expect(html).toContain("DUPONT Marie");
     expect(html).not.toContain('href="/students/');
-    expect(html).not.toContain("Dossier de");
+    expect(html).not.toContain("Fiche de");
   });
 
   it("renders names only when level UI is hidden", () => {

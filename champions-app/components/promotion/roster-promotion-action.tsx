@@ -3,8 +3,8 @@
 import { useCallback, useState } from "react";
 
 import {
-  refuseDossierPromotionAction,
-  validateDossierPromotionAction,
+  refuseStudentPromotionAction,
+  validateStudentPromotionAction,
 } from "@/app/(dashboard)/students/actions";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 
@@ -26,8 +26,8 @@ export function RosterPromotionAction({
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { isPending, handleValidate, handleRefuse } = usePromotionAction({
-    validate: () => validateDossierPromotionAction(studentId),
-    refuse: () => refuseDossierPromotionAction(studentId),
+    validate: () => validateStudentPromotionAction(studentId),
+    refuse: () => refuseStudentPromotionAction(studentId),
     onSuccess: () => setDialogOpen(false),
   });
 

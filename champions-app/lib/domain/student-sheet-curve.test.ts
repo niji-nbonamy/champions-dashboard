@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { toCurvePoints } from "./dossier-curve";
+import { toCurvePoints } from "./student-sheet-curve";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 
 function makeEntry(

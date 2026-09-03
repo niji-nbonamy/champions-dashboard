@@ -5,7 +5,7 @@ import {
   buildIntegerYTicks,
   computeIntegerYMax,
   countToChartY,
-} from "./dossier-chart-layout";
+} from "./student-sheet-chart-layout";
 import {
   CategoryErrorCurves,
   CATEGORY_ERROR_TOOLTIP_INNER_CLASS,

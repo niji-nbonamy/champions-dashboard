@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from "react";
 
-import type { CurvePoint } from "@/lib/domain/dossier-curve";
+import type { CurvePoint } from "@/lib/domain/student-sheet-curve";
 import { cn } from "@/lib/utils";
 
 import {
-  DOSSIER_CHART_PADDING as PADDING,
-  DOSSIER_CHART_SVG_HEIGHT as SVG_HEIGHT,
-  DOSSIER_CHART_SVG_WIDTH as SVG_WIDTH,
-  getDossierChartDimensions,
+  STUDENT_SHEET_CHART_PADDING as PADDING,
+  STUDENT_SHEET_CHART_SVG_HEIGHT as SVG_HEIGHT,
+  STUDENT_SHEET_CHART_SVG_WIDTH as SVG_WIDTH,
+  getStudentSheetChartDimensions,
   indexToChartX,
-} from "./dossier-chart-layout";
+} from "./student-sheet-chart-layout";
 
 type GlobalSuccessCurveProps = {
   points: CurvePoint[];
@@ -118,7 +118,7 @@ export function getTooltipX(pointX: number): number {
 function toChartCoordinates(
   points: CurvePoint[]
 ): Array<{ x: number; y: number; point: CurvePoint }> {
-  const { chartHeight } = getDossierChartDimensions();
+  const { chartHeight } = getStudentSheetChartDimensions();
 
   return points.map((point, index) => ({
     x: indexToChartX(index, points.length),
@@ -145,7 +145,7 @@ export function GlobalSuccessCurve({
     return null;
   }
 
-  const { chartWidth, chartHeight, xAxisY } = getDossierChartDimensions();
+  const { chartWidth, chartHeight, xAxisY } = getStudentSheetChartDimensions();
   const coordinates = toChartCoordinates(points);
   const polylinePoints = coordinates
     .map(({ x, y }) => `${x},${y}`)

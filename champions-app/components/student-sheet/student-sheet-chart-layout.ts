@@ -1,41 +1,41 @@
-export const DOSSIER_CHART_SVG_WIDTH = 400;
-export const DOSSIER_CHART_SVG_HEIGHT = 216;
-export const DOSSIER_CHART_PADDING = {
+export const STUDENT_SHEET_CHART_SVG_WIDTH = 400;
+export const STUDENT_SHEET_CHART_SVG_HEIGHT = 216;
+export const STUDENT_SHEET_CHART_PADDING = {
   top: 40,
   right: 16,
   bottom: 44,
   left: 40,
 } as const;
 
-export function getDossierChartDimensions() {
+export function getStudentSheetChartDimensions() {
   const chartWidth =
-    DOSSIER_CHART_SVG_WIDTH -
-    DOSSIER_CHART_PADDING.left -
-    DOSSIER_CHART_PADDING.right;
+    STUDENT_SHEET_CHART_SVG_WIDTH -
+    STUDENT_SHEET_CHART_PADDING.left -
+    STUDENT_SHEET_CHART_PADDING.right;
   const chartHeight =
-    DOSSIER_CHART_SVG_HEIGHT -
-    DOSSIER_CHART_PADDING.top -
-    DOSSIER_CHART_PADDING.bottom;
-  const xAxisY = DOSSIER_CHART_SVG_HEIGHT - DOSSIER_CHART_PADDING.bottom;
+    STUDENT_SHEET_CHART_SVG_HEIGHT -
+    STUDENT_SHEET_CHART_PADDING.top -
+    STUDENT_SHEET_CHART_PADDING.bottom;
+  const xAxisY = STUDENT_SHEET_CHART_SVG_HEIGHT - STUDENT_SHEET_CHART_PADDING.bottom;
 
   return { chartWidth, chartHeight, xAxisY };
 }
 
 export function indexToChartX(index: number, pointCount: number): number {
-  const { chartWidth } = getDossierChartDimensions();
+  const { chartWidth } = getStudentSheetChartDimensions();
   const lastIndex = Math.max(pointCount - 1, 1);
 
-  return DOSSIER_CHART_PADDING.left + (index / lastIndex) * chartWidth;
+  return STUDENT_SHEET_CHART_PADDING.left + (index / lastIndex) * chartWidth;
 }
 
 export function countToChartY(count: number, yMax: number): number {
-  const { chartHeight } = getDossierChartDimensions();
+  const { chartHeight } = getStudentSheetChartDimensions();
 
   if (yMax <= 0) {
-    return DOSSIER_CHART_PADDING.top + chartHeight;
+    return STUDENT_SHEET_CHART_PADDING.top + chartHeight;
   }
 
-  return DOSSIER_CHART_PADDING.top + (1 - count / yMax) * chartHeight;
+  return STUDENT_SHEET_CHART_PADDING.top + (1 - count / yMax) * chartHeight;
 }
 
 export function computeIntegerYMax(values: number[]): number {

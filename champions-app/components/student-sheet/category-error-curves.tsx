@@ -6,22 +6,22 @@ import {
   buildIntegerYTicks,
   computeIntegerYMax,
   countToChartY,
-  DOSSIER_CHART_PADDING as PADDING,
-  DOSSIER_CHART_SVG_HEIGHT as SVG_HEIGHT,
-  DOSSIER_CHART_SVG_WIDTH as SVG_WIDTH,
-  getDossierChartDimensions,
+  STUDENT_SHEET_CHART_PADDING as PADDING,
+  STUDENT_SHEET_CHART_SVG_HEIGHT as SVG_HEIGHT,
+  STUDENT_SHEET_CHART_SVG_WIDTH as SVG_WIDTH,
+  getStudentSheetChartDimensions,
   indexToChartX,
-} from "@/components/dossier/dossier-chart-layout";
+} from "@/components/student-sheet/student-sheet-chart-layout";
 import {
   getXAxisDisplayLabel,
   selectVisibleLabelIndices,
   shouldUseDateLabels,
-} from "@/components/dossier/global-success-curve";
+} from "@/components/student-sheet/global-success-curve";
 import {
   CHAMPIONS_ERROR_CATEGORIES,
   type ChampionsErrorCategoryLetter,
 } from "@/lib/domain/error-categories";
-import { toCurvePoints } from "@/lib/domain/dossier-curve";
+import { toCurvePoints } from "@/lib/domain/student-sheet-curve";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 import { cn } from "@/lib/utils";
 
@@ -161,7 +161,7 @@ export function CategoryErrorCurves({
   );
   const yMax = computeIntegerYMax(activeValues);
   const yTicks = buildIntegerYTicks(yMax);
-  const { chartWidth, xAxisY } = getDossierChartDimensions();
+  const { chartWidth, xAxisY } = getStudentSheetChartDimensions();
   const xLabelY = xAxisY + 14;
   const useDateLabels = shouldUseDateLabels(sortedHistory.length);
   const visibleLabelIndices = selectVisibleLabelIndices(

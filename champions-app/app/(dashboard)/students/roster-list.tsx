@@ -24,7 +24,7 @@ type RosterListProps = {
   filter?: ClassStudentFilter;
   showLevelUi?: boolean;
   showArchiveAction?: boolean;
-  linkToDossier?: boolean;
+  linkToStudentSheet?: boolean;
   pendingPromotionsByStudentId?: Record<string, PendingPromotionByStudent>;
 };
 
@@ -60,7 +60,7 @@ export function RosterList({
   filter = "active",
   showLevelUi = true,
   showArchiveAction = false,
-  linkToDossier = true,
+  linkToStudentSheet = true,
   pendingPromotionsByStudentId = {},
 }: RosterListProps) {
   if (students.length === 0) {
@@ -85,11 +85,11 @@ export function RosterList({
               )}
             />
             <div className="flex min-w-0 flex-1 flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-              {linkToDossier ? (
+              {linkToStudentSheet ? (
                 <Link
                   href={`/students/${student.id}`}
                   className="text-sm font-medium underline-offset-4 hover:underline"
-                  aria-label={`Dossier de ${student.displayName}`}
+                  aria-label={`Fiche de ${student.displayName}`}
                 >
                   {student.displayName}
                 </Link>

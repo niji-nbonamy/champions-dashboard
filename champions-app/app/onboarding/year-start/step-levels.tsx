@@ -21,7 +21,7 @@ export function StepLevels({
       <p className="text-sm font-medium">
         Niveaux assignés : {assignedCount}/{totalCount}
       </p>
-      <RosterList students={students} showLevelUi linkToDossier={false} />
+      <RosterList students={students} showLevelUi linkToStudentSheet={false} />
     </div>
   );
 }

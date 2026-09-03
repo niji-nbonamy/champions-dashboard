@@ -112,7 +112,7 @@ vi.mock("@/components/promotion/promotion-banner", () => ({
   ),
 }));
 
-import StudentDossierPage from "./page";
+import StudentSheetPage from "./page";
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
 const classId = "660e8400-e29b-41d4-a716-446655440001";
@@ -138,7 +138,7 @@ function mockAuthenticatedClass() {
   });
 }
 
-describe("StudentDossierPage", () => {
+describe("StudentSheetPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetStudentDictationHistory.mockResolvedValue([]);
@@ -150,7 +150,7 @@ describe("StudentDossierPage", () => {
     auth.mockResolvedValueOnce(null);
 
     await expect(
-      StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     ).rejects.toThrow("NEXT_REDIRECT:/login");
   });
 
@@ -162,7 +162,7 @@ describe("StudentDossierPage", () => {
     mockGetTeacherClass.mockResolvedValueOnce(null);
 
     await expect(
-      StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     ).rejects.toThrow("NEXT_REDIRECT:/onboarding/class");
   });
 
@@ -170,7 +170,7 @@ describe("StudentDossierPage", () => {
     mockAuthenticatedClass();
 
     await expect(
-      StudentDossierPage({ params: Promise.resolve({ id: "not-a-uuid" }) })
+      StudentSheetPage({ params: Promise.resolve({ id: "not-a-uuid" }) })
     ).rejects.toThrow("NEXT_NOT_FOUND");
 
     expect(mockGetClassStudent).not.toHaveBeenCalled();
@@ -182,14 +182,14 @@ describe("StudentDossierPage", () => {
     mockGetClassStudent.mockResolvedValueOnce(null);
 
     await expect(
-      StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     ).rejects.toThrow("NEXT_NOT_FOUND");
 
     expect(mockGetClassStudent).toHaveBeenCalledWith(classId, studentId);
     expect(notFound).toHaveBeenCalled();
   });
 
-  it("renders the empty dossier state when no dictations exist", async () => {
+  it("renders the empty student sheet state when no dictations exist", async () => {
     mockAuthenticatedClass();
     mockGetClassStudent.mockResolvedValueOnce({
       id: studentId,
@@ -200,7 +200,7 @@ describe("StudentDossierPage", () => {
     mockGetStudentDictationHistory.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain("DUPONT Marie");
@@ -220,7 +220,7 @@ describe("StudentDossierPage", () => {
     expect(html).toContain("Archiver DUPONT Marie");
   });
 
-  it("hides the archive action on archived dossiers", async () => {
+  it("hides the archive action on archived student sheets", async () => {
     mockAuthenticatedClass();
     mockGetClassStudent.mockResolvedValueOnce({
       id: studentId,
@@ -230,7 +230,7 @@ describe("StudentDossierPage", () => {
     });
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain("Archivé");
@@ -256,13 +256,13 @@ describe("StudentDossierPage", () => {
     });
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).not.toContain("Archiver DUPONT Marie");
   });
 
-  it("renders the dossier curve and collapsed history table when dictations exist", async () => {
+  it("renders the student sheet curve and collapsed history table when dictations exist", async () => {
     mockAuthenticatedClass();
     mockGetClassStudent.mockResolvedValueOnce({
       id: studentId,
@@ -294,7 +294,7 @@ describe("StudentDossierPage", () => {
     ]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain("Historique des dictées");
@@ -367,7 +367,7 @@ describe("StudentDossierPage", () => {
     ]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain('aria-label="Courbe de réussite globale, 2 dictées"');
@@ -389,7 +389,7 @@ describe("StudentDossierPage", () => {
     mockGetStudentDictationHistory.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain("BERNARD Paul");
@@ -431,7 +431,7 @@ describe("StudentDossierPage", () => {
     ]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain("BERNARD Paul");
@@ -453,7 +453,7 @@ describe("StudentDossierPage", () => {
     });
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(mockListPendingPromotionsForStudents).toHaveBeenCalledWith(
@@ -478,7 +478,7 @@ describe("StudentDossierPage", () => {
     mockListPendingPromotionsForStudents.mockResolvedValueOnce({});
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).not.toContain('data-testid="promotion-banner"');
@@ -494,7 +494,7 @@ describe("StudentDossierPage", () => {
     });
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(mockListPendingPromotionsForStudents).not.toHaveBeenCalled();
@@ -515,7 +515,7 @@ describe("StudentDossierPage", () => {
     mockGetStudentDictationHistory.mockResolvedValueOnce([]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     const bannerIndex = html.indexOf('data-testid="promotion-banner"');
@@ -560,7 +560,7 @@ describe("StudentDossierPage", () => {
     ]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     const bannerIndex = html.indexOf('data-testid="promotion-banner"');
@@ -580,7 +580,7 @@ describe("StudentDossierPage", () => {
     });
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain(`data-testid="level-dot-picker-${studentId}"`);
@@ -589,7 +589,7 @@ describe("StudentDossierPage", () => {
     expect(html).toContain("Niveau actuel");
   });
 
-  it("renders level history entries on the dossier", async () => {
+  it("renders level history entries on the student sheet", async () => {
     mockAuthenticatedClass();
     mockGetClassStudent.mockResolvedValueOnce({
       id: studentId,
@@ -607,7 +607,7 @@ describe("StudentDossierPage", () => {
     ]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(mockGetStudentLevelHistory).toHaveBeenCalledWith(classId, studentId);
@@ -625,7 +625,7 @@ describe("StudentDossierPage", () => {
     });
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain("RDV parents");
@@ -644,7 +644,7 @@ describe("StudentDossierPage", () => {
     });
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain("RDV parents");
@@ -669,7 +669,7 @@ describe("StudentDossierPage", () => {
     ]);
 
     const html = renderToStaticMarkup(
-      await StudentDossierPage({ params: Promise.resolve({ id: studentId }) })
+      await StudentSheetPage({ params: Promise.resolve({ id: studentId }) })
     );
 
     expect(html).toContain("Historique des niveaux");

@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { PresentationMode } from "@/components/dossier/presentation-mode";
+import { PresentationMode } from "@/components/student-sheet/presentation-mode";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
 import { getClassStudent } from "@/lib/services/get-class-student";

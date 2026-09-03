@@ -3,8 +3,8 @@
 import { useCallback, useState } from "react";
 
 import {
-  refuseDossierPromotionAction,
-  validateDossierPromotionAction,
+  refuseStudentPromotionAction,
+  validateStudentPromotionAction,
 } from "@/app/(dashboard)/students/actions";
 import { getChampionsLevelFrenchLabel } from "@/lib/domain/champions-level";
 import type { PendingPromotionQueueItem } from "@/lib/services/list-pending-promotion-queue";
@@ -28,14 +28,14 @@ export function AlertsPromotionQueue({ items }: AlertsPromotionQueueProps) {
         return { error: null };
       }
 
-      return validateDossierPromotionAction(activeItem.studentId);
+      return validateStudentPromotionAction(activeItem.studentId);
     },
     refuse: async () => {
       if (!activeItem) {
         return { error: null };
       }
 
-      return refuseDossierPromotionAction(activeItem.studentId);
+      return refuseStudentPromotionAction(activeItem.studentId);
     },
     onSuccess: () => setActiveStudentId(null),
   });

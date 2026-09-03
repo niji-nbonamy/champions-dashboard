@@ -119,7 +119,7 @@ describe("PresentationMode", () => {
     );
   });
 
-  it("navigates back to the dossier when Escape is pressed", () => {
+  it("navigates back to the student sheet when Escape is pressed", () => {
     const closeSpy = vi.spyOn(HTMLDialogElement.prototype, "close");
 
     act(() => {
@@ -147,7 +147,7 @@ describe("PresentationMode", () => {
     closeSpy.mockRestore();
   });
 
-  it("navigates back to the dossier when Fermer is clicked", () => {
+  it("navigates back to the student sheet when Fermer is clicked", () => {
     const closeSpy = vi.spyOn(HTMLDialogElement.prototype, "close");
 
     act(() => {

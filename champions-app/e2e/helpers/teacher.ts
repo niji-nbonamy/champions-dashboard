@@ -168,12 +168,12 @@ export async function captureMobileDictationEntry(
   ).toBeVisible();
 }
 
-export async function openDossierPresentation(page: Page): Promise<void> {
+export async function openStudentSheetPresentation(page: Page): Promise<void> {
   await page.getByRole("link", { name: "Élèves" }).click();
   await expect(page).toHaveURL(/\/students/);
 
   await page
-    .getByRole("link", { name: `Dossier de ${E2E_STUDENT_NAME}` })
+    .getByRole("link", { name: `Fiche de ${E2E_STUDENT_NAME}` })
     .click();
   await expect(page).toHaveURL(/\/students\/[0-9a-f-]+$/);
   await expect(page.getByTestId("global-success-curve")).toBeVisible();

@@ -5,7 +5,7 @@ import {
   getLastDictationPercent,
   getPresentationTrendClassName,
   getPresentationTrendDelta,
-} from "./dossier-presentation";
+} from "./student-sheet-presentation";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 
 function makeEntry(

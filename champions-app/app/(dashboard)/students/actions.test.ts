@@ -522,7 +522,7 @@ describe("overrideStudentLevelAction", () => {
     ).rejects.toThrow("NEXT_REDIRECT:/login");
   });
 
-  it("overrides a level and revalidates dossier routes", async () => {
+  it("overrides a level and revalidates student sheet routes", async () => {
     mockAuthenticatedSession();
     mockOverrideStudentLevel.mockResolvedValueOnce({
       studentId,
@@ -815,7 +815,7 @@ describe("archiveStudentAction", () => {
   });
 });
 
-describe("validateDossierPromotionAction", () => {
+describe("validateStudentPromotionAction", () => {
   const studentId = "770e8400-e29b-41d4-a716-446655440002";
 
   beforeEach(() => {
@@ -825,22 +825,22 @@ describe("validateDossierPromotionAction", () => {
   it("redirects unauthenticated users to login", async () => {
     mockAuth.mockResolvedValueOnce(null);
 
-    const { validateDossierPromotionAction } = await import("./actions");
+    const { validateStudentPromotionAction } = await import("./actions");
 
-    await expect(validateDossierPromotionAction(studentId)).rejects.toThrow(
+    await expect(validateStudentPromotionAction(studentId)).rejects.toThrow(
       "NEXT_REDIRECT:/login"
     );
   });
 
-  it("validates promotion and revalidates dossier routes", async () => {
+  it("validates promotion and revalidates student sheet routes", async () => {
     mockAuthenticatedSession();
     mockValidateStudentPromotion.mockResolvedValueOnce({
       studentId,
       level: "green",
     });
 
-    const { validateDossierPromotionAction } = await import("./actions");
-    const result = await validateDossierPromotionAction(studentId);
+    const { validateStudentPromotionAction } = await import("./actions");
+    const result = await validateStudentPromotionAction(studentId);
 
     expect(result).toEqual({ error: null });
     expect(mockValidateStudentPromotion).toHaveBeenCalledWith(classId, studentId);
@@ -860,8 +860,8 @@ describe("validateDossierPromotionAction", () => {
       new PendingPromotionNotFoundError()
     );
 
-    const { validateDossierPromotionAction } = await import("./actions");
-    const result = await validateDossierPromotionAction(studentId);
+    const { validateStudentPromotionAction } = await import("./actions");
+    const result = await validateStudentPromotionAction(studentId);
 
     expect(result).toEqual({ error: null });
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
@@ -877,8 +877,8 @@ describe("validateDossierPromotionAction", () => {
       "@/lib/services/validate-student-promotion"
     );
 
-    const { validateDossierPromotionAction } = await import("./actions");
-    const result = await validateDossierPromotionAction("   ");
+    const { validateStudentPromotionAction } = await import("./actions");
+    const result = await validateStudentPromotionAction("   ");
 
     expect(result.error).toBe(PROMOTION_VALIDATE_GENERIC_ERROR);
     expect(mockValidateStudentPromotion).not.toHaveBeenCalled();
@@ -891,8 +891,8 @@ describe("validateDossierPromotionAction", () => {
       level: "green",
     });
 
-    const { validateDossierPromotionAction } = await import("./actions");
-    const result = await validateDossierPromotionAction(`  ${studentId}  `);
+    const { validateStudentPromotionAction } = await import("./actions");
+    const result = await validateStudentPromotionAction(`  ${studentId}  `);
 
     expect(result).toEqual({ error: null });
     expect(mockValidateStudentPromotion).toHaveBeenCalledWith(classId, studentId);
@@ -906,14 +906,14 @@ describe("validateDossierPromotionAction", () => {
       new StudentPromotionError("Élève introuvable.")
     );
 
-    const { validateDossierPromotionAction } = await import("./actions");
-    const result = await validateDossierPromotionAction(studentId);
+    const { validateStudentPromotionAction } = await import("./actions");
+    const result = await validateStudentPromotionAction(studentId);
 
     expect(result.error).toBe(PROMOTION_VALIDATE_GENERIC_ERROR);
   });
 });
 
-describe("refuseDossierPromotionAction", () => {
+describe("refuseStudentPromotionAction", () => {
   const studentId = "770e8400-e29b-41d4-a716-446655440002";
 
   beforeEach(() => {
@@ -923,19 +923,19 @@ describe("refuseDossierPromotionAction", () => {
   it("redirects unauthenticated users to login", async () => {
     mockAuth.mockResolvedValueOnce(null);
 
-    const { refuseDossierPromotionAction } = await import("./actions");
+    const { refuseStudentPromotionAction } = await import("./actions");
 
-    await expect(refuseDossierPromotionAction(studentId)).rejects.toThrow(
+    await expect(refuseStudentPromotionAction(studentId)).rejects.toThrow(
       "NEXT_REDIRECT:/login"
     );
   });
 
-  it("refuses promotion and revalidates dossier routes", async () => {
+  it("refuses promotion and revalidates student sheet routes", async () => {
     mockAuthenticatedSession();
     mockRefuseStudentPromotion.mockResolvedValueOnce({ studentId });
 
-    const { refuseDossierPromotionAction } = await import("./actions");
-    const result = await refuseDossierPromotionAction(studentId);
+    const { refuseStudentPromotionAction } = await import("./actions");
+    const result = await refuseStudentPromotionAction(studentId);
 
     expect(result).toEqual({ error: null });
     expect(mockRefuseStudentPromotion).toHaveBeenCalledWith(classId, studentId);
@@ -955,8 +955,8 @@ describe("refuseDossierPromotionAction", () => {
       new PendingPromotionNotFoundError()
     );
 
-    const { refuseDossierPromotionAction } = await import("./actions");
-    const result = await refuseDossierPromotionAction(studentId);
+    const { refuseStudentPromotionAction } = await import("./actions");
+    const result = await refuseStudentPromotionAction(studentId);
 
     expect(result).toEqual({ error: null });
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
@@ -972,8 +972,8 @@ describe("refuseDossierPromotionAction", () => {
       "@/lib/services/refuse-student-promotion"
     );
 
-    const { refuseDossierPromotionAction } = await import("./actions");
-    const result = await refuseDossierPromotionAction("   ");
+    const { refuseStudentPromotionAction } = await import("./actions");
+    const result = await refuseStudentPromotionAction("   ");
 
     expect(result.error).toBe(PROMOTION_REFUSE_GENERIC_ERROR);
     expect(mockRefuseStudentPromotion).not.toHaveBeenCalled();
@@ -983,8 +983,8 @@ describe("refuseDossierPromotionAction", () => {
     mockAuthenticatedSession();
     mockRefuseStudentPromotion.mockResolvedValueOnce({ studentId });
 
-    const { refuseDossierPromotionAction } = await import("./actions");
-    const result = await refuseDossierPromotionAction(`  ${studentId}  `);
+    const { refuseStudentPromotionAction } = await import("./actions");
+    const result = await refuseStudentPromotionAction(`  ${studentId}  `);
 
     expect(result).toEqual({ error: null });
     expect(mockRefuseStudentPromotion).toHaveBeenCalledWith(classId, studentId);
@@ -1002,8 +1002,8 @@ describe("refuseDossierPromotionAction", () => {
       new StudentPromotionError("Élève introuvable.")
     );
 
-    const { refuseDossierPromotionAction } = await import("./actions");
-    const result = await refuseDossierPromotionAction(studentId);
+    const { refuseStudentPromotionAction } = await import("./actions");
+    const result = await refuseStudentPromotionAction(studentId);
 
     expect(result.error).toBe(PROMOTION_REFUSE_GENERIC_ERROR);
   });

@@ -2,12 +2,12 @@
 
 import { useCallback, useState } from "react";
 
-import { CategoryCurveToggles } from "@/components/dossier/category-curve-toggles";
-import { CategoryErrorCurves } from "@/components/dossier/category-error-curves";
-import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
-import { GlobalSuccessCurve } from "@/components/dossier/global-success-curve";
+import { CategoryCurveToggles } from "@/components/student-sheet/category-curve-toggles";
+import { CategoryErrorCurves } from "@/components/student-sheet/category-error-curves";
+import { CurvePlaceholder } from "@/components/student-sheet/curve-placeholder";
+import { GlobalSuccessCurve } from "@/components/student-sheet/global-success-curve";
 import type { ChampionsErrorCategoryLetter } from "@/lib/domain/error-categories";
-import type { CurvePoint } from "@/lib/domain/dossier-curve";
+import type { CurvePoint } from "@/lib/domain/student-sheet-curve";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 import { cn } from "@/lib/utils";
 

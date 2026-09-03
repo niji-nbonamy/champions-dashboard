@@ -7,14 +7,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   mockRefresh,
-  mockValidateDossierPromotionAction,
-  mockRefuseDossierPromotionAction,
+  mockValidateStudentPromotionAction,
+  mockRefuseStudentPromotionAction,
   mockToastSuccess,
   mockToastError,
 } = vi.hoisted(() => ({
   mockRefresh: vi.fn(),
-  mockValidateDossierPromotionAction: vi.fn(),
-  mockRefuseDossierPromotionAction: vi.fn(),
+  mockValidateStudentPromotionAction: vi.fn(),
+  mockRefuseStudentPromotionAction: vi.fn(),
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
 }));
@@ -26,8 +26,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/app/(dashboard)/students/actions", () => ({
-  validateDossierPromotionAction: mockValidateDossierPromotionAction,
-  refuseDossierPromotionAction: mockRefuseDossierPromotionAction,
+  validateStudentPromotionAction: mockValidateStudentPromotionAction,
+  refuseStudentPromotionAction: mockRefuseStudentPromotionAction,
 }));
 
 vi.mock("sonner", () => ({
@@ -69,8 +69,8 @@ describe("AlertsPromotionQueue", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    mockValidateDossierPromotionAction.mockResolvedValue({ error: null });
-    mockRefuseDossierPromotionAction.mockResolvedValue({ error: null });
+    mockValidateStudentPromotionAction.mockResolvedValue({ error: null });
+    mockRefuseStudentPromotionAction.mockResolvedValue({ error: null });
     HTMLDialogElement.prototype.showModal = vi.fn(function showModal(
       this: HTMLDialogElement
     ) {
@@ -144,7 +144,7 @@ describe("AlertsPromotionQueue", () => {
       await flushPromises();
     });
 
-    expect(mockValidateDossierPromotionAction).toHaveBeenCalledWith(
+    expect(mockValidateStudentPromotionAction).toHaveBeenCalledWith(
       items[0].studentId
     );
     expect(mockToastSuccess).toHaveBeenCalledWith("Niveau mis à jour.");
@@ -173,7 +173,7 @@ describe("AlertsPromotionQueue", () => {
       await flushPromises();
     });
 
-    expect(mockRefuseDossierPromotionAction).toHaveBeenCalledWith(
+    expect(mockRefuseStudentPromotionAction).toHaveBeenCalledWith(
       items[1].studentId
     );
     expect(mockToastSuccess).toHaveBeenCalledWith("Promotion refusée.");
@@ -182,7 +182,7 @@ describe("AlertsPromotionQueue", () => {
 
   it("disables queue rows while a mutation is pending", async () => {
     let resolveValidate: ((value: { error: null }) => void) | undefined;
-    mockValidateDossierPromotionAction.mockImplementationOnce(
+    mockValidateStudentPromotionAction.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveValidate = resolve;
@@ -226,7 +226,7 @@ describe("AlertsPromotionQueue", () => {
   });
 
   it("keeps the dialog open when validation returns an error", async () => {
-    mockValidateDossierPromotionAction.mockResolvedValueOnce({
+    mockValidateStudentPromotionAction.mockResolvedValueOnce({
       error: "Validation impossible. Réessayez.",
     });
 
@@ -259,7 +259,7 @@ describe("AlertsPromotionQueue", () => {
   });
 
   it("keeps the dialog open when refusal returns an error", async () => {
-    mockRefuseDossierPromotionAction.mockResolvedValueOnce({
+    mockRefuseStudentPromotionAction.mockResolvedValueOnce({
       error: "Refus impossible. Réessayez.",
     });
 

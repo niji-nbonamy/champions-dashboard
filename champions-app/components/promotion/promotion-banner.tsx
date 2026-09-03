@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  refuseDossierPromotionAction,
-  validateDossierPromotionAction,
+  refuseStudentPromotionAction,
+  validateStudentPromotionAction,
 } from "@/app/(dashboard)/students/actions";
 import { Button } from "@/components/ui/button";
 import { getChampionsLevelFrenchLabel } from "@/lib/domain/champions-level";
@@ -22,8 +22,8 @@ export function PromotionBanner({
   const targetLevelLabel = getChampionsLevelFrenchLabel(targetLevel);
   const { isPending, pendingAction, handleValidate, handleRefuse } =
     usePromotionAction({
-      validate: () => validateDossierPromotionAction(studentId),
-      refuse: () => refuseDossierPromotionAction(studentId),
+      validate: () => validateStudentPromotionAction(studentId),
+      refuse: () => refuseStudentPromotionAction(studentId),
     });
 
   return (

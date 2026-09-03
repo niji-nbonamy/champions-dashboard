@@ -42,7 +42,7 @@ vi.mock("@/lib/services/get-student-dictation-history", () => ({
   getStudentDictationHistory: mockGetStudentDictationHistory,
 }));
 
-vi.mock("@/components/dossier/presentation-mode", () => ({
+vi.mock("@/components/student-sheet/presentation-mode", () => ({
   PresentationMode: ({
     studentId,
     displayName,

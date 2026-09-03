@@ -31,7 +31,7 @@ describe("revalidateDictationMetadataPaths", () => {
     );
   });
 
-  it("revalidates student dossier and presentation paths for affected students", () => {
+  it("revalidates student sheet and presentation paths for affected students", () => {
     revalidateDictationMetadataPaths(dictationId, [studentId, studentId]);
 
     expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);

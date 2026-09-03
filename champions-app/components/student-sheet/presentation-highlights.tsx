@@ -4,7 +4,7 @@ import {
   getLastDictationPercent,
   getPresentationTrendClassName,
   getPresentationTrendDelta,
-} from "@/lib/domain/dossier-presentation";
+} from "@/lib/domain/student-sheet-presentation";
 import type { ChampionsLevel } from "@/lib/design/tokens";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 import { cn } from "@/lib/utils";

@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { PresentationBrandLogo } from "@/components/dashboard/presentation-brand-logo";
-import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
-import { PresentationChartsRow } from "@/components/dossier/presentation-charts-row";
-import { PresentationHighlights } from "@/components/dossier/presentation-highlights";
+import { DictationHistoryTable } from "@/components/student-sheet/dictation-history-table";
+import { PresentationChartsRow } from "@/components/student-sheet/presentation-charts-row";
+import { PresentationHighlights } from "@/components/student-sheet/presentation-highlights";
 import { Button } from "@/components/ui/button";
 import type { ChampionsLevel } from "@/lib/design/tokens";
-import { toCurvePoints } from "@/lib/domain/dossier-curve";
+import { toCurvePoints } from "@/lib/domain/student-sheet-curve";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 
 type PresentationModeProps = {

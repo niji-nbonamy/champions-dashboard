@@ -1,6 +1,6 @@
 "use client";
 
-import { CategoryErrorCounts } from "@/components/dossier/category-error-counts";
+import { CategoryErrorCounts } from "@/components/student-sheet/category-error-counts";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import { formatDictationDateForDisplay } from "@/lib/domain/dictation";

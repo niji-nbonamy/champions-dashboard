@@ -85,12 +85,12 @@ describe("DashboardShell", () => {
 
     const html = renderToStaticMarkup(
       <DashboardShell>
-        <main>dossier content</main>
+        <main>student sheet content</main>
       </DashboardShell>
     );
 
     expect(html).toContain('alt="La méthode CHAMPIONS"');
     expect(html).toContain('href="/dictations"');
-    expect(html).toContain("dossier content");
+    expect(html).toContain("student sheet content");
   });
 });

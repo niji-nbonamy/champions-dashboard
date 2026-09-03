@@ -11,7 +11,7 @@ export const STUDENT_ADD_SUCCESS_MESSAGE = "Élève ajouté.";
 export const STUDENT_ARCHIVE_SUCCESS_MESSAGE = "Élève archivé.";
 
 export const STUDENT_ARCHIVE_CONFIRM_MESSAGE =
-  "L'élève sera retiré de la liste active. Son dossier restera consultable en lecture seule dans l'onglet Archivés.";
+  "L'élève sera retiré de la liste active. Sa fiche restera consultable en lecture seule dans l'onglet Archivés.";
 
 export function formatStudentArchiveConfirmTitle(displayName: string): string {
   return `Archiver ${displayName} ?`;

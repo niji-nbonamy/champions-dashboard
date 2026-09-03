@@ -2,21 +2,21 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { DossierPresentationLink } from "@/components/dossier/dossier-presentation-link";
-import { PresentationReturnFocus } from "@/components/dossier/presentation-return-focus";
-import { LevelHistoryList } from "@/components/dossier/level-history-list";
-import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
-import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
+import { StudentSheetPresentationLink } from "@/components/student-sheet/student-sheet-presentation-link";
+import { PresentationReturnFocus } from "@/components/student-sheet/presentation-return-focus";
+import { LevelHistoryList } from "@/components/student-sheet/level-history-list";
+import { CurvePlaceholder } from "@/components/student-sheet/curve-placeholder";
+import { DictationHistoryTable } from "@/components/student-sheet/dictation-history-table";
 import {
-  DOSSIER_CONTENT_CONTAINER_CLASS,
-  DOSSIER_CURVE_TABLE_LAYOUT_CLASS,
-} from "@/components/dossier/dossier-layout";
-import { GlobalSuccessCurve } from "@/components/dossier/global-success-curve";
+  STUDENT_SHEET_CONTENT_CONTAINER_CLASS,
+  STUDENT_SHEET_CURVE_TABLE_LAYOUT_CLASS,
+} from "@/components/student-sheet/student-sheet-layout";
+import { GlobalSuccessCurve } from "@/components/student-sheet/global-success-curve";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { PromotionBanner } from "@/components/promotion/promotion-banner";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
-import { toCurvePoints } from "@/lib/domain/dossier-curve";
+import { toCurvePoints } from "@/lib/domain/student-sheet-curve";
 import { canArchiveStudents } from "@/lib/domain/year-start-readiness";
 import { getClassStudent } from "@/lib/services/get-class-student";
 import { getStudentDictationHistory } from "@/lib/services/get-student-dictation-history";
@@ -28,15 +28,15 @@ import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { ArchiveStudentButton } from "../archive-student-button";
 import { LevelDotPicker } from "../level-dot-picker";
 
-type StudentDossierPageProps = {
+type StudentSheetPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
 
-export default async function StudentDossierPage({
+export default async function StudentSheetPage({
   params,
-}: StudentDossierPageProps) {
+}: StudentSheetPageProps) {
   const session = await auth();
   const teacherId = session?.user?.id;
 
@@ -95,7 +95,7 @@ export default async function StudentDossierPage({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <h1 className="text-display">{student.displayName}</h1>
           <div className="flex flex-wrap items-center gap-2">
-            <DossierPresentationLink studentId={id} />
+            <StudentSheetPresentationLink studentId={id} />
             {showArchiveAction ? (
               <ArchiveStudentButton
                 studentId={id}
@@ -140,9 +140,9 @@ export default async function StudentDossierPage({
         <PromotionBanner studentId={id} targetLevel={pendingPromotion.targetLevel} />
       ) : null}
 
-      <div className={DOSSIER_CONTENT_CONTAINER_CLASS}>
+      <div className={STUDENT_SHEET_CONTENT_CONTAINER_CLASS}>
         {hasHistory ? (
-          <div className={DOSSIER_CURVE_TABLE_LAYOUT_CLASS}>
+          <div className={STUDENT_SHEET_CURVE_TABLE_LAYOUT_CLASS}>
             <section
               aria-labelledby="global-curve-heading"
               className="flex flex-col gap-3"

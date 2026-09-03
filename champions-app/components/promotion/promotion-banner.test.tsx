@@ -7,14 +7,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   mockRefresh,
-  mockValidateDossierPromotionAction,
-  mockRefuseDossierPromotionAction,
+  mockValidateStudentPromotionAction,
+  mockRefuseStudentPromotionAction,
   mockToastSuccess,
   mockToastError,
 } = vi.hoisted(() => ({
   mockRefresh: vi.fn(),
-  mockValidateDossierPromotionAction: vi.fn(),
-  mockRefuseDossierPromotionAction: vi.fn(),
+  mockValidateStudentPromotionAction: vi.fn(),
+  mockRefuseStudentPromotionAction: vi.fn(),
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
 }));
@@ -26,8 +26,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/app/(dashboard)/students/actions", () => ({
-  validateDossierPromotionAction: mockValidateDossierPromotionAction,
-  refuseDossierPromotionAction: mockRefuseDossierPromotionAction,
+  validateStudentPromotionAction: mockValidateStudentPromotionAction,
+  refuseStudentPromotionAction: mockRefuseStudentPromotionAction,
 }));
 
 vi.mock("sonner", () => ({
@@ -69,8 +69,8 @@ describe("PromotionBanner", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    mockValidateDossierPromotionAction.mockResolvedValue({ error: null });
-    mockRefuseDossierPromotionAction.mockResolvedValue({ error: null });
+    mockValidateStudentPromotionAction.mockResolvedValue({ error: null });
+    mockRefuseStudentPromotionAction.mockResolvedValue({ error: null });
   });
 
   afterEach(() => {
@@ -116,7 +116,7 @@ describe("PromotionBanner", () => {
       await Promise.resolve();
     });
 
-    expect(mockValidateDossierPromotionAction).toHaveBeenCalledWith(studentId);
+    expect(mockValidateStudentPromotionAction).toHaveBeenCalledWith(studentId);
     expect(mockToastSuccess).toHaveBeenCalledWith("Niveau mis à jour.");
     expect(mockRefresh).toHaveBeenCalled();
   });
@@ -137,13 +137,13 @@ describe("PromotionBanner", () => {
       await Promise.resolve();
     });
 
-    expect(mockRefuseDossierPromotionAction).toHaveBeenCalledWith(studentId);
+    expect(mockRefuseStudentPromotionAction).toHaveBeenCalledWith(studentId);
     expect(mockToastSuccess).toHaveBeenCalledWith("Promotion refusée.");
     expect(mockRefresh).toHaveBeenCalled();
   });
 
   it("shows an error toast when validate fails", async () => {
-    mockValidateDossierPromotionAction.mockResolvedValueOnce({
+    mockValidateStudentPromotionAction.mockResolvedValueOnce({
       error: "Validation impossible. Réessayez.",
     });
 
@@ -169,7 +169,7 @@ describe("PromotionBanner", () => {
   });
 
   it("shows an error toast when refuse fails", async () => {
-    mockRefuseDossierPromotionAction.mockResolvedValueOnce({
+    mockRefuseStudentPromotionAction.mockResolvedValueOnce({
       error: "Refus impossible. Réessayez.",
     });
 
@@ -193,7 +193,7 @@ describe("PromotionBanner", () => {
   });
 
   it("does not show a generic toast when validate rejects with a redirect error", async () => {
-    mockValidateDossierPromotionAction.mockRejectedValueOnce(
+    mockValidateStudentPromotionAction.mockRejectedValueOnce(
       new Error("NEXT_REDIRECT:/login")
     );
 
@@ -219,7 +219,7 @@ describe("PromotionBanner", () => {
   });
 
   it("shows a generic error toast and refreshes when validate throws unexpectedly", async () => {
-    mockValidateDossierPromotionAction.mockRejectedValueOnce(
+    mockValidateStudentPromotionAction.mockRejectedValueOnce(
       new Error("unexpected failure")
     );
 
@@ -241,7 +241,7 @@ describe("PromotionBanner", () => {
   });
 
   it("shows a generic error toast and refreshes when refuse throws unexpectedly", async () => {
-    mockRefuseDossierPromotionAction.mockRejectedValueOnce(
+    mockRefuseStudentPromotionAction.mockRejectedValueOnce(
       new Error("unexpected failure")
     );
 
@@ -264,7 +264,7 @@ describe("PromotionBanner", () => {
 
   it("disables both buttons while a promotion action is pending", async () => {
     let resolveValidate: ((value: { error: string | null }) => void) | undefined;
-    mockValidateDossierPromotionAction.mockImplementationOnce(
+    mockValidateStudentPromotionAction.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveValidate = resolve;
@@ -298,7 +298,7 @@ describe("PromotionBanner", () => {
 
   it("shows Refus… only on the refuse button while refusing", async () => {
     let resolveRefuse: ((value: { error: string | null }) => void) | undefined;
-    mockRefuseDossierPromotionAction.mockImplementationOnce(
+    mockRefuseStudentPromotionAction.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveRefuse = resolve;
