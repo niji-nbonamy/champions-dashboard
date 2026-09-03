@@ -11,6 +11,6 @@ describe("SiteFooter", () => {
     expect(html).toContain('href="https://dezecolle.eklablog.com"');
     expect(html).toContain("Farfa Dezecolle");
     expect(html).toContain("Nicolas Bonamy");
-    expect(html).toContain("Tous droits réservés");
+    expect(html).not.toContain("Tous droits réservés");
   });
 });

@@ -15,7 +15,7 @@ export function SiteFooter() {
         </a>
         .
       </p>
-      <p className="mt-1.5">© {currentYear} Nicolas Bonamy. Tous droits réservés.</p>
+      <p className="mt-1.5">© {currentYear} Nicolas Bonamy.</p>
     </footer>
   );
 }
