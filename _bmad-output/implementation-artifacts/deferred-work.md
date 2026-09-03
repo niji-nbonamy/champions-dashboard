@@ -1,5 +1,13 @@
 # Deferred Work
 
+## Deferred from: code review of spec-7-1-forgotten-password-reset-flow.md (2026-09-03)
+
+- Sessions non invalidées après reset — Auth.js sessions restent valides après changement de mot de passe ; hardening sécurité hors périmètre story (`password-reset.ts:186-226`)
+- Pas de rate limit sur submit reset — Non exigé par le spec ; seule la demande initiale est limitée (`reset-password/actions.ts`)
+- Pas de purge des tokens expirés — Croissance table sans job de rétention ; concern ops post-MVP (`schema.ts:22-37`)
+- FK sans `onDelete: cascade` — Pattern cohérent avec autres FK teachers ; suppression compte hors scope (`schema.ts:26-28`)
+- Side-channel timing forgot-password — Chemin email connu plus coûteux que inconnu ; limitation inhérente à l'anti-énumération (`password-reset.ts:65-81`)
+
 ## Deferred from: code review of spec-6-4-edit-dictation-label-and-date.md (2026-09-01)
 
 - Chronological sort after date-only change — no automated test covers dossier/history reordering (`list-dictations.ts:13`)

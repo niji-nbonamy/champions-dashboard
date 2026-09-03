@@ -44,4 +44,20 @@ describe("isAuthRateLimitAllowed", () => {
     expect(await isAuthRateLimitAllowed("password-reset", store)).toBe(true);
     expect(await isAuthRateLimitAllowed("password-reset", store)).toBe(false);
   });
+
+  it("falls back to defaults when password-reset env vars are non-numeric", async () => {
+    process.env.AUTH_RATE_LIMIT_PASSWORD_RESET_MAX = "not-a-number";
+    process.env.AUTH_RATE_LIMIT_PASSWORD_RESET_WINDOW_MS = "also-bad";
+    mockHeaders.mockResolvedValue(
+      new Headers({ "x-forwarded-for": "203.0.113.200" })
+    );
+
+    const { isAuthRateLimitAllowed } = await import("./auth-rate-limit");
+    const store = new Map();
+
+    expect(await isAuthRateLimitAllowed("password-reset", store)).toBe(true);
+    expect(await isAuthRateLimitAllowed("password-reset", store)).toBe(true);
+    expect(await isAuthRateLimitAllowed("password-reset", store)).toBe(true);
+    expect(await isAuthRateLimitAllowed("password-reset", store)).toBe(false);
+  });
 });

@@ -21,9 +21,10 @@ context:
 
 **Always:**
 - Generic success on forgot-password regardless of email existence (NFR9).
-- Token: 64-byte random raw value in URL; persist only SHA-256 hash; single-use via `used_at`; 60-minute expiry.
+- Token: 32 random bytes encoded as hex (64 characters) in URL; persist only SHA-256 hash; single-use via `used_at`; 60-minute expiry.
 - Password policy identical to registration (`validateRegistrationInput` / `isValidRegistrationPassword` in `registration.ts`); bcrypt cost 12.
 - Rate limit kind `password-reset`: 3 requests / 15 min / IP via `auth-rate-limit.ts`.
+- reCAPTCHA on `/forgot-password` when `RECAPTCHA_SECRET_KEY` is configured (same pattern as `/register`); failed verification still returns generic success (anti-enumeration).
 - Authenticated users on `/forgot-password` or `/reset-password` redirect to `/dictations` (same as `/register`).
 - French microcopy throughout (NFR14); auth page shell matches login/register styling.
 - Email via existing `sendTransactionalEmail`; subject « Réinitialisation de votre mot de passe CHAMPIONS »; no open/link tracking.
@@ -79,7 +80,7 @@ context:
 - [x] `champions-app/lib/services/password-reset.ts` — create/validate/consume tokens (SHA-256, 60min, single-use) — domain logic
 - [x] `champions-app/lib/services/send-password-reset-email.ts` — build French HTML/text; call `sendTransactionalEmail` with reset link `{AUTH_URL}/reset-password?token={raw}` — email delivery
 - [x] `champions-app/lib/services/auth-rate-limit.ts` — add `password-reset` kind (3/15min) — abuse prevention
-- [x] `champions-app/app/(auth)/forgot-password/` — page, form, server action (lookup teacher by email, rate limit, generic response) — request flow
+- [x] `champions-app/app/(auth)/forgot-password/` — page, form, server action (lookup teacher by email, rate limit, reCAPTCHA when configured, generic response) — request flow
 - [x] `champions-app/app/(auth)/reset-password/` — page, form, server action (validate token, update hash, mark used, redirect) — completion flow
 - [x] `champions-app/app/(auth)/login/login-form-fields.tsx` — add forgot-password link — discoverability (FR-AUTH-7)
 - [x] `champions-app/app/(auth)/login/page.tsx` — add `passwordUpdated=1` success banner — post-reset feedback
@@ -123,7 +124,7 @@ Flash pattern mirrors register → login (`registered=1`); use `passwordUpdated=
 
 ## Spec Change Log
 
-- **2026-09-02 (review loop 1):** Hardened token lifecycle — invalidate prior tokens on new request and on successful reset; rollback token row on email send failure; index on `token_hash`; `AUTH_URL` required in production; expired-token message on submit when token no longer valid; expanded tests for expiry, weak password, rate-limit defaults, email integration, and forgot-password success UI.
+- **2026-09-03 (review loop 2):** Code review patches — transaction atomique invalidate+insert, try/catch erreurs DB, reCAPTCHA forgot-password, index `teacher_id`, tests lifecycle tokens, AUTH_URL prod, bcrypt cost 12, README dev-fallback + tracking Resend, spec token wording (32 bytes).
 
 ## Suggested Review Order
 
@@ -171,3 +172,39 @@ Flash pattern mirrors register → login (`registered=1`); use `passwordUpdated=
 
 - Rate-limit kind defaults and env documentation
   [`auth-rate-limit.ts:24`](../../champions-app/lib/services/auth-rate-limit.ts#L24)
+
+### Review Findings
+
+1. **decision-needed** *(résolu 2026-09-03)*
+   - [x] [Review][Decision] **Taille du token : contradiction dans le spec** — **Résolu → patch** : corriger le spec (« 32 octets / 64 caractères hex »), conserver `randomBytes(32)`.
+   - [x] [Review][Decision] **Section README « Custom domain » hors périmètre story** — **Résolu → dismiss** : conserver la section dans le README.
+   - [x] [Review][Decision] **reCAPTCHA sur `/forgot-password` ?** — **Résolu → patch** : ajouter reCAPTCHA sur le flux forgot-password (aligné sur `/register`).
+
+2. **patch** *(appliqué 2026-09-03)*
+   - [x] [Review][Patch] **Invalidation + insert non atomiques** [`password-reset.ts:99-108`]
+   - [x] [Review][Patch] **`forgotPasswordAction` : erreurs non interceptées** [`forgot-password/actions.ts:16-22`]
+   - [x] [Review][Patch] **Page reset : erreurs DB non interceptées** [`reset-password/page.tsx:21`]
+   - [x] [Review][Patch] **Action reset : erreurs DB dans le handler d'erreur** [`reset-password/actions.ts:39`]
+   - [x] [Review][Patch] **Tag dev-fallback et README incohérents** [`password-reset.ts:118`, `README.md:51`]
+   - [x] [Review][Patch] **Tests redirect auth manquants pour forgot/reset** [`auth-pages.test.tsx`]
+   - [x] [Review][Patch] **Test invalidation tokens antérieurs à nouvelle demande** [`password-reset.test.ts`]
+   - [x] [Review][Patch] **Test invalidation tokens sœurs à la complétion** [`password-reset.test.ts:172`]
+   - [x] [Review][Patch] **Tests filtres expiry/used de `findValidPasswordResetToken`** [`password-reset.test.ts`]
+   - [x] [Review][Patch] **Test branche stillValid de `resetPasswordAction`** [`reset-password/actions.test.ts`]
+   - [x] [Review][Patch] **Test câblage rate-limit kind** [`forgot-password/actions.test.ts`]
+   - [x] [Review][Patch] **Test `AUTH_URL` obligatoire en production** [`send-password-reset-email.test.ts`]
+   - [x] [Review][Patch] **Test soumission réelle du formulaire forgot-password** [`forgot-password-form.test.tsx`]
+   - [x] [Review][Patch] **Test coût bcrypt 12 de `hashPassword`** [`password-hash.ts`]
+   - [x] [Review][Patch] **Index `teacher_id` manquant** [`schema.ts:22-37`]
+   - [x] [Review][Patch] **Champ email `type="text"` sur forgot-password** [`forgot-password-form.tsx:51`]
+   - [x] [Review][Patch] **Tracking Resend non documenté** [`README.md:146-154`]
+   - [x] [Review][Patch] **Env rate-limit non numérique → NaN** [`auth-rate-limit.ts:24-30`]
+   - [x] [Review][Patch] **Corriger wording spec token (32 octets / 64 hex)** [`spec-7-1-forgotten-password-reset-flow.md`]
+   - [x] [Review][Patch] **Ajouter reCAPTCHA sur `/forgot-password`** [`forgot-password/`]
+
+3. **defer**
+   - [x] [Review][Defer] **Sessions non invalidées après reset** [`password-reset.ts:186-226`] — deferred, pre-existing — Auth.js sessions restent valides après changement de mot de passe ; hardening sécurité hors périmètre story.
+   - [x] [Review][Defer] **Pas de rate limit sur submit reset** [`reset-password/actions.ts`] — deferred, pre-existing — Non exigé par le spec ; seule la demande initiale est limitée.
+   - [x] [Review][Defer] **Pas de purge des tokens expirés** [`schema.ts:22-37`] — deferred, pre-existing — Croissance table sans job de rétention ; concern ops post-MVP.
+   - [x] [Review][Defer] **FK sans `onDelete: cascade`** [`schema.ts:26-28`] — deferred, pre-existing — Pattern cohérent avec autres FK teachers ; suppression compte hors scope.
+   - [x] [Review][Defer] **Side-channel timing forgot-password** [`password-reset.ts:65-81`] — deferred, pre-existing — Chemin email connu plus coûteux que inconnu ; limitation inhérente à l'anti-énumération.

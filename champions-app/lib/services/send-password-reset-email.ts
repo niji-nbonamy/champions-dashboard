@@ -19,6 +19,10 @@ function buildResetUrl(rawToken: string): string {
   return `${getAuthBaseUrl()}/reset-password?token=${encodeURIComponent(rawToken)}`;
 }
 
+export function getPasswordResetUrl(rawToken: string): string {
+  return buildResetUrl(rawToken);
+}
+
 export function buildPasswordResetEmailContent(rawToken: string): {
   subject: string;
   html: string;

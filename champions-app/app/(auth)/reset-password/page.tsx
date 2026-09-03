@@ -18,7 +18,15 @@ export default async function ResetPasswordPage({
   const params = await searchParams;
   const tokenParam = params?.token;
   const token = Array.isArray(tokenParam) ? tokenParam[0] : tokenParam;
-  const validToken = token ? await findValidPasswordResetToken(token) : null;
+  let validToken = null;
+
+  if (token) {
+    try {
+      validToken = await findValidPasswordResetToken(token);
+    } catch {
+      validToken = null;
+    }
+  }
 
   if (!validToken || !token) {
     return (

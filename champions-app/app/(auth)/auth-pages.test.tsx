@@ -184,4 +184,28 @@ describe("auth pages", () => {
       LoginPage({ searchParams: Promise.resolve({}) })
     ).rejects.toThrow("NEXT_REDIRECT:/dictations");
   });
+
+  it("redirects authenticated users away from forgot-password", async () => {
+    auth.mockResolvedValueOnce({
+      user: { id: "teacher-id", email: "teacher@example.com" },
+      expires: "2099-01-01T00:00:00.000Z",
+    });
+
+    await expect(ForgotPasswordPage()).rejects.toThrow(
+      "NEXT_REDIRECT:/dictations"
+    );
+  });
+
+  it("redirects authenticated users away from reset-password", async () => {
+    auth.mockResolvedValueOnce({
+      user: { id: "teacher-id", email: "teacher@example.com" },
+      expires: "2099-01-01T00:00:00.000Z",
+    });
+
+    await expect(
+      ResetPasswordPage({
+        searchParams: Promise.resolve({ token: "a".repeat(64) }),
+      })
+    ).rejects.toThrow("NEXT_REDIRECT:/dictations");
+  });
 });

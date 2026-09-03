@@ -52,4 +52,17 @@ describe("send-password-reset-email", () => {
       })
     );
   });
+
+  it("requires AUTH_URL in production", async () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.AUTH_URL;
+
+    const { buildPasswordResetEmailContent } = await import(
+      "./send-password-reset-email"
+    );
+
+    expect(() => buildPasswordResetEmailContent("token-123")).toThrow(
+      "AUTH_URL is required in production."
+    );
+  });
 });

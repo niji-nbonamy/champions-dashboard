@@ -33,7 +33,10 @@ export const passwordResetTokens = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [index("password_reset_tokens_token_hash_idx").on(table.tokenHash)]
+  (table) => [
+    index("password_reset_tokens_token_hash_idx").on(table.tokenHash),
+    index("password_reset_tokens_teacher_id_idx").on(table.teacherId),
+  ]
 );
 
 export const classes = pgTable("classes", {

@@ -31,6 +31,15 @@ const getDb = vi.fn(() => ({
 const sendPasswordResetEmail = vi.fn(async () => {});
 const isEmailSendingConfigured = vi.fn(() => true);
 
+function mockPasswordResetRequestTransaction() {
+  mockTransaction.mockImplementationOnce(async (callback) =>
+    callback({
+      update: mockUpdate,
+      insert: mockInsert,
+    })
+  );
+}
+
 vi.mock("@/lib/db/index", () => ({
   getDb,
 }));
@@ -40,9 +49,13 @@ vi.mock("./send-transactional-email", () => ({
   sendTransactionalEmail: vi.fn(),
 }));
 
-vi.mock("./send-password-reset-email", () => ({
-  sendPasswordResetEmail,
-}));
+vi.mock("./send-password-reset-email", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./send-password-reset-email")>();
+  return {
+    ...actual,
+    sendPasswordResetEmail,
+  };
+});
 
 describe("password reset service", () => {
   afterEach(() => {
@@ -62,7 +75,7 @@ describe("password reset service", () => {
     mockLimit.mockResolvedValueOnce([
       { id: "teacher-id", email: "teacher@example.com" },
     ]);
-    mockUpdateReturning.mockResolvedValueOnce(undefined);
+    mockPasswordResetRequestTransaction();
     mockInsertReturning.mockResolvedValueOnce([{ id: "token-id" }]);
 
     const { requestPasswordReset } = await import("./password-reset");
@@ -72,6 +85,8 @@ describe("password reset service", () => {
     const rawToken = sendPasswordResetEmail.mock.calls[0]?.[1] as string;
     const expectedHash = createHash("sha256").update(rawToken).digest("hex");
 
+    expect(mockTransaction).toHaveBeenCalled();
+    expect(mockSet).toHaveBeenCalledWith({ usedAt: expect.any(Date) });
     expect(mockValues).toHaveBeenCalledWith(
       expect.objectContaining({
         teacherId: "teacher-id",
@@ -83,6 +98,22 @@ describe("password reset service", () => {
       "teacher@example.com",
       rawToken
     );
+  });
+
+  it("invalidates prior active tokens before creating a new one", async () => {
+    process.env.NODE_ENV = "development";
+    mockLimit.mockResolvedValueOnce([
+      { id: "teacher-id", email: "teacher@example.com" },
+    ]);
+    mockPasswordResetRequestTransaction();
+    mockInsertReturning.mockResolvedValueOnce([{ id: "token-id" }]);
+
+    const { requestPasswordReset } = await import("./password-reset");
+
+    await requestPasswordReset("teacher@example.com");
+
+    expect(mockSet).toHaveBeenCalledWith({ usedAt: expect.any(Date) });
+    expect(mockInsert).toHaveBeenCalled();
   });
 
   it("does not create a token for unknown emails", async () => {
@@ -136,6 +167,24 @@ describe("password reset service", () => {
     await expect(
       completePasswordReset("a".repeat(64), "short", "short")
     ).rejects.toThrow(PasswordResetFailedError);
+  });
+
+  it("returns null when the token row is expired", async () => {
+    mockLimit.mockResolvedValueOnce([]);
+
+    const { findValidPasswordResetToken } = await import("./password-reset");
+
+    await expect(
+      findValidPasswordResetToken("expired-token", new Date("2099-01-01T00:00:00.000Z"))
+    ).resolves.toBeNull();
+  });
+
+  it("returns null when the token row is already used", async () => {
+    mockLimit.mockResolvedValueOnce([]);
+
+    const { findValidPasswordResetToken } = await import("./password-reset");
+
+    await expect(findValidPasswordResetToken("used-token")).resolves.toBeNull();
   });
 
   it("returns null when no matching token row exists", async () => {
@@ -208,13 +257,45 @@ describe("password reset service", () => {
         passwordHash: expect.any(String),
       })
     );
+    expect(invalidateSet).toHaveBeenCalledWith({ usedAt: expect.any(Date) });
   });
 
-  it("deletes the token when email delivery fails", async () => {
+  it("keeps the token and logs a dev fallback when email delivery fails locally", async () => {
     process.env.NODE_ENV = "development";
     mockLimit.mockResolvedValueOnce([
       { id: "teacher-id", email: "teacher@example.com" },
     ]);
+    mockPasswordResetRequestTransaction();
+    mockInsertReturning.mockResolvedValueOnce([{ id: "token-id" }]);
+    sendPasswordResetEmail.mockRejectedValueOnce(
+      new Error("Resend sandbox restriction")
+    );
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const { requestPasswordReset } = await import("./password-reset");
+
+    await requestPasswordReset("teacher@example.com");
+
+    expect(mockDelete).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(
+      "XXX",
+      "[email:dev-fallback]",
+      expect.objectContaining({
+        to: "teacher@example.com",
+        resetUrl: expect.stringContaining("/reset-password?token="),
+      })
+    );
+
+    logSpy.mockRestore();
+  });
+
+  it("deletes the token when email delivery fails in production", async () => {
+    process.env.NODE_ENV = "production";
+    isEmailSendingConfigured.mockReturnValueOnce(true);
+    mockLimit.mockResolvedValueOnce([
+      { id: "teacher-id", email: "teacher@example.com" },
+    ]);
+    mockPasswordResetRequestTransaction();
     mockInsertReturning.mockResolvedValueOnce([{ id: "token-id" }]);
     sendPasswordResetEmail.mockRejectedValueOnce(new Error("send failed"));
 
@@ -225,7 +306,6 @@ describe("password reset service", () => {
     ).rejects.toThrow("send failed");
 
     expect(mockDelete).toHaveBeenCalled();
-    expect(mockDeleteWhere).toHaveBeenCalled();
   });
 
   it("throws when passwords do not match", async () => {

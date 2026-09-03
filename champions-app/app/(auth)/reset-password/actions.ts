@@ -36,7 +36,14 @@ export async function resetPasswordAction(
     }
 
     if (error instanceof PasswordResetFailedError) {
-      const stillValid = await findValidPasswordResetToken(token);
+      let stillValid = null;
+
+      try {
+        stillValid = await findValidPasswordResetToken(token);
+      } catch {
+        return { error: RESET_PASSWORD_ERROR_MESSAGE };
+      }
+
       return {
         error: stillValid ? error.message : RESET_INVALID_TOKEN_MESSAGE,
       };

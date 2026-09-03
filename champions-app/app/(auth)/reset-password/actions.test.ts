@@ -94,4 +94,33 @@ describe("resetPasswordAction", () => {
       resetPasswordAction({ error: null }, buildFormData())
     ).resolves.toEqual({ error: RESET_INVALID_TOKEN_MESSAGE });
   });
+
+  it("returns password policy error when completion fails but token is still valid", async () => {
+    completePasswordReset.mockRejectedValueOnce(
+      new PasswordResetFailedError(RESET_PASSWORD_ERROR_MESSAGE)
+    );
+    findValidPasswordResetToken.mockResolvedValueOnce({
+      tokenId: "token-id",
+      teacherId: "teacher-id",
+    });
+
+    const { resetPasswordAction } = await import("./actions");
+
+    await expect(
+      resetPasswordAction({ error: null }, buildFormData())
+    ).resolves.toEqual({ error: RESET_PASSWORD_ERROR_MESSAGE });
+  });
+
+  it("returns a generic error when token revalidation throws", async () => {
+    completePasswordReset.mockRejectedValueOnce(
+      new PasswordResetFailedError()
+    );
+    findValidPasswordResetToken.mockRejectedValueOnce(new Error("db down"));
+
+    const { resetPasswordAction } = await import("./actions");
+
+    await expect(
+      resetPasswordAction({ error: null }, buildFormData())
+    ).resolves.toEqual({ error: RESET_PASSWORD_ERROR_MESSAGE });
+  });
 });

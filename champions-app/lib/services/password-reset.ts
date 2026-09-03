@@ -14,7 +14,10 @@ import { passwordResetTokens, teachers } from "@/lib/db/schema";
 
 import { hashPassword } from "./password-hash";
 import { isEmailSendingConfigured } from "./send-transactional-email";
-import { sendPasswordResetEmail } from "./send-password-reset-email";
+import {
+  getPasswordResetUrl,
+  sendPasswordResetEmail,
+} from "./send-password-reset-email";
 
 const TOKEN_LIFETIME_MS = 60 * 60 * 1000;
 
@@ -40,23 +43,6 @@ export function generateRawResetToken(): string {
 
 export function getResetTokenExpiry(now = new Date()): Date {
   return new Date(now.getTime() + TOKEN_LIFETIME_MS);
-}
-
-async function invalidateActiveTokensForTeacher(
-  teacherId: string,
-  usedAt: Date
-): Promise<void> {
-  const db = getDb();
-
-  await db
-    .update(passwordResetTokens)
-    .set({ usedAt })
-    .where(
-      and(
-        eq(passwordResetTokens.teacherId, teacherId),
-        isNull(passwordResetTokens.usedAt)
-      )
-    );
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
@@ -92,25 +78,48 @@ export async function requestPasswordReset(email: string): Promise<void> {
   const tokenHash = hashResetToken(rawToken);
   const expiresAt = getResetTokenExpiry();
   const now = new Date();
+  let tokenRow: { id: string };
 
-  await invalidateActiveTokensForTeacher(teacher.id, now);
+  await db.transaction(async (tx) => {
+    await tx
+      .update(passwordResetTokens)
+      .set({ usedAt: now })
+      .where(
+        and(
+          eq(passwordResetTokens.teacherId, teacher.id),
+          isNull(passwordResetTokens.usedAt)
+        )
+      );
 
-  const [tokenRow] = await db
-    .insert(passwordResetTokens)
-    .values({
-      teacherId: teacher.id,
-      tokenHash,
-      expiresAt,
-    })
-    .returning({ id: passwordResetTokens.id });
+    const [insertedRow] = await tx
+      .insert(passwordResetTokens)
+      .values({
+        teacherId: teacher.id,
+        tokenHash,
+        expiresAt,
+      })
+      .returning({ id: passwordResetTokens.id });
 
-  if (!tokenRow) {
-    throw new Error("Failed to create password reset token.");
-  }
+    if (!insertedRow) {
+      throw new Error("Failed to create password reset token.");
+    }
+
+    tokenRow = insertedRow;
+  });
 
   try {
     await sendPasswordResetEmail(teacher.email, rawToken);
   } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.log("XXX", "[email:dev-fallback]", {
+        to: teacher.email,
+        resetUrl: getPasswordResetUrl(rawToken),
+        reason:
+          error instanceof Error ? error.message : "Unknown email send error",
+      });
+      return;
+    }
+
     await db
       .delete(passwordResetTokens)
       .where(eq(passwordResetTokens.id, tokenRow.id));

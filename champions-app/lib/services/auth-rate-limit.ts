@@ -9,22 +9,46 @@ export type AuthRateLimitKind = "login" | "register" | "password-reset";
 
 const globalStore: RateLimitStore = new Map();
 
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  if (value === undefined || value.trim() === "") {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return Math.floor(parsed);
+}
+
+function parsePositiveIntMs(value: string | undefined, fallback: number): number {
+  return parsePositiveInt(value, fallback);
+}
+
 const AUTH_RATE_LIMITS: Record<
   AuthRateLimitKind,
   { max: number; windowMs: number }
 > = {
   login: {
-    max: Number(process.env.AUTH_RATE_LIMIT_LOGIN_MAX ?? 10),
-    windowMs: Number(process.env.AUTH_RATE_LIMIT_LOGIN_WINDOW_MS ?? 900_000),
+    max: parsePositiveInt(process.env.AUTH_RATE_LIMIT_LOGIN_MAX, 10),
+    windowMs: parsePositiveIntMs(
+      process.env.AUTH_RATE_LIMIT_LOGIN_WINDOW_MS,
+      900_000
+    ),
   },
   register: {
-    max: Number(process.env.AUTH_RATE_LIMIT_REGISTER_MAX ?? 5),
-    windowMs: Number(process.env.AUTH_RATE_LIMIT_REGISTER_WINDOW_MS ?? 900_000),
+    max: parsePositiveInt(process.env.AUTH_RATE_LIMIT_REGISTER_MAX, 5),
+    windowMs: parsePositiveIntMs(
+      process.env.AUTH_RATE_LIMIT_REGISTER_WINDOW_MS,
+      900_000
+    ),
   },
   "password-reset": {
-    max: Number(process.env.AUTH_RATE_LIMIT_PASSWORD_RESET_MAX ?? 3),
-    windowMs: Number(
-      process.env.AUTH_RATE_LIMIT_PASSWORD_RESET_WINDOW_MS ?? 900_000
+    max: parsePositiveInt(process.env.AUTH_RATE_LIMIT_PASSWORD_RESET_MAX, 3),
+    windowMs: parsePositiveIntMs(
+      process.env.AUTH_RATE_LIMIT_PASSWORD_RESET_WINDOW_MS,
+      900_000
     ),
   },
 };

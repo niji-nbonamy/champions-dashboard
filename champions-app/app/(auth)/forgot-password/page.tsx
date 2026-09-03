@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { isRecaptchaRequired } from "@/lib/services/recaptcha-verify";
 
 import { ForgotPasswordForm } from "./forgot-password-form";
 
@@ -10,6 +11,9 @@ export default async function ForgotPasswordPage() {
   if (session) {
     redirect("/dictations");
   }
+
+  const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY?.trim() || null;
+  const recaptchaRequired = isRecaptchaRequired();
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
@@ -20,7 +24,21 @@ export default async function ForgotPasswordPage() {
         </p>
       </div>
 
-      <ForgotPasswordForm />
+      {recaptchaRequired && !recaptchaSiteKey ? (
+        <p
+          className="w-full max-w-sm text-sm text-destructive"
+          role="alert"
+        >
+          {process.env.NODE_ENV === "production"
+            ? "Réinitialisation temporairement indisponible. Réessayez plus tard."
+            : "Configuration reCAPTCHA incomplète : RECAPTCHA_SITE_KEY est requis lorsque RECAPTCHA_SECRET_KEY est défini."}
+        </p>
+      ) : (
+        <ForgotPasswordForm
+          recaptchaSiteKey={recaptchaSiteKey}
+          recaptchaRequired={recaptchaRequired}
+        />
+      )}
 
       <Link
         href="/login"
