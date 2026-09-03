@@ -26,7 +26,7 @@ export function DashboardChrome({
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="sticky top-0 z-20 bg-background">
+      <div className="sticky top-0 z-20 bg-background pt-[var(--spacing-safe-area-top)]">
         <AppBar />
         <div className="hidden md:block">
           <NavTabs

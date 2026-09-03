@@ -37,6 +37,7 @@ describe("DashboardChrome", () => {
     expect(html).toContain('href="/dictations"');
     expect(html).toContain("page content");
     expect(html).toContain("sticky top-0 z-20 bg-background");
+    expect(html).toContain("pt-[var(--spacing-safe-area-top)]");
   });
 
   it("hides all chrome on presentation routes", () => {

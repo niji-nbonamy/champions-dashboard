@@ -24,14 +24,14 @@
 
 - Grid column z-index stacking vs shell untested — z-20 > z-10 correct by construction; visual/E2E defer (`class-grid.tsx:395`)
 - AppBar `border-b` may leave ~1px heading overlap under scroll-mt — cosmetic; token uses min-height only (`app-bar.tsx:7`)
-- iOS safe-area inset not applied to sticky `top-0` — device polish; out of MVP scope (`dashboard-chrome.tsx:29`)
+- ~~iOS safe-area inset not applied to sticky `top-0`~~ — **resolved 2026-09-03** (Epic 6 retro item #31; `dashboard-chrome.tsx` + `--spacing-safe-area-top` token, `layout.tsx` `viewportFit: cover`)
 
 ## Deferred from: code review of spec-6-2-category-header-hover-title-only.md (2026-09-01)
 
-- `ux-decisions.md` still documents name+definition hover — pre-existing doc drift; update when Epic 6 docs are reconciled
+- ~~`ux-decisions.md` still documents name+definition hover~~ — **resolved 2026-09-03** (Epic 6 retro item #29; `ux-decisions.md` line 18)
 - Native `title` + custom popover double-tooltip risk — pre-existing Story 3.2 pattern; acceptable MVP
 - No dedicated `category-header.test.tsx` — integration tests in `class-grid.test.tsx` sufficient for MVP
-- `spec-3-2` documents historical name+definition tooltip — amend when convenient
+- ~~`spec-3-2` documents historical name+definition tooltip~~ — **resolved 2026-09-03** (Epic 6 retro item #29; `spec-3-2` Spec Change Log + amended AC)
 
 ## Deferred from: code review of spec-6-1-config-first-hint-before-nouvelle-dictée.md (2026-09-01)
 

@@ -23,7 +23,7 @@ context:
 **Always:**
 - Auth + class scope unchanged on `/dictations/[id]` (`auth`, `getTeacherClass`, `isValidUuidV4`, `getDictationById`, `notFound`) (NFR1).
 - Grid rows = `listLeveledActiveStudents(classId)` only — active, leveled, non-archived, sorted `fr` (FR14).
-- Nine columns in fixed order C, H, A, M, P, I, O, N, S with single-letter headers; full name + definition on hover/tap per `error-categories.md` (FR16).
+- Nine columns in fixed order C, H, A, M, P, I, O, N, S with single-letter headers; category name only on hover/tap (FR16; **amended by Story 6.2** — definitions no longer shown in header tooltips).
 - Each cell holds a non-negative integer; empty displays as `0`; reject negatives, decimals, and non-digits on input.
 - Tab / Shift+Tab moves focus row-major: C→S within a student, then first cell of next student (FR15).
 - Arrow keys move focus between adjacent cells when a cell is focused (FR15).
@@ -36,7 +36,7 @@ context:
 
 **Ask First:**
 - Prénom extraction from `displayName` (default: substring after last whitespace — `"DUPONT Marie"` → `"Marie"`).
-- Category header tooltip UX on touch (default: `title` for hover + tap/click toggles a small absolutely-positioned definition popover; `Escape` dismisses).
+- Category header tooltip UX on touch (default: `title` for hover + tap/click toggles a small absolutely-positioned name-only popover; `Escape` dismisses; **amended by Story 6.2**).
 - Show `LevelBadge` in the name column (default: **yes** — aids teacher orientation, no scoring dependency).
 
 **Never:**
@@ -59,7 +59,7 @@ context:
 | Digit entry | Cell focused, key `3` | Cell shows `3` | N/A |
 | Invalid char | Letters or `-` typed | Ignored; value unchanged | N/A |
 | Narrow viewport | Width < grid | `overflow-x-auto` scroll; cells keep min size | N/A |
-| Header hover | Pointer over `C` | Tooltip/popover shows « Conjugaison » + definition | N/A |
+| Header hover | Pointer over `C` | Tooltip/popover shows « Conjugaison » only (name; no definition — amended Story 6.2) | N/A |
 | Unauthenticated / wrong id | Existing guards | Redirect or 404 unchanged | Same as 3.1 |
 
 </frozen-after-approval>
@@ -75,7 +75,7 @@ context:
 - `champions-app/lib/domain/student-display-name.test.ts` -- **READ** display-name validation tests (no name-split helpers).
 - `champions-app/components/grid/class-grid.tsx` -- **CREATE** `"use client"` grid: state map, keyboard handlers, scroll container.
 - `champions-app/components/grid/grid-cell.tsx` -- **CREATE** single numeric cell input with sizing tokens + aria-label.
-- `champions-app/components/grid/category-header.tsx` -- **CREATE** letter header + hover/tap definition.
+- `champions-app/components/grid/category-header.tsx` -- **CREATE** letter header + hover/tap name-only tooltip (definition removed in Story 6.2).
 - `champions-app/components/grid/class-grid.test.tsx` -- **CREATE** Tab order, arrows, digit entry, aria-labels (Testing Library + userEvent).
 - `champions-app/lib/design/tokens.ts` -- **READ** `SPACING.gridCellMin`, `gridRowHeight`. [`tokens.ts:26`](../../champions-app/lib/design/tokens.ts#L26)
 - `champions-app/app/globals.css` -- **READ** `--spacing-grid-cell-min`, `--spacing-grid-row-height`, `.text-data-lg`. [`globals.css:119`](../../champions-app/app/globals.css#L119)
@@ -90,7 +90,7 @@ context:
 - [x] `champions-app/lib/domain/student-display-name.ts` -- full `displayName` in grid aria-labels -- UX-DR25 (supersedes original `getStudentFirstName` task; see Spec Change Log).
 - [x] `champions-app/lib/domain/student-display-name.test.ts` -- Prénom cases -- helper coverage.
 - [x] `champions-app/components/grid/grid-cell.tsx` -- Sized numeric cell -- UX-DR10 cell component.
-- [x] `champions-app/components/grid/category-header.tsx` -- Letter + definition tooltip -- FR16.
+- [x] `champions-app/components/grid/category-header.tsx` -- Letter + name-only tooltip -- FR16 (definition tooltip superseded by Story 6.2).
 - [x] `champions-app/components/grid/class-grid.tsx` -- Grid state + keyboard nav -- FR15 core UX.
 - [x] `champions-app/components/grid/class-grid.test.tsx` -- Keyboard + a11y tests -- FR15/UX-DR25 regression.
 - [x] `champions-app/app/(dashboard)/dictations/[id]/page.tsx` -- Wire grid + empty state -- replace placeholder.
@@ -100,7 +100,7 @@ context:
 - Given I open a dictation from the Dictées tab, when the class grid loads, then rows show active leveled non-archived students only and columns show C H A M P I O N S (FR14).
 - Given a focused grid cell, when I press Tab or Shift+Tab, then focus moves between cells in row-major order C→S then next student (FR15).
 - Given a focused grid cell, when I press arrow keys or digit keys 0–9, then focus moves between cells or the cell value updates to that non-negative integer (FR15).
-- Given a column header, when I hover or tap it, then I see the full category name and definition (FR16).
+- Given a column header, when I hover or tap it, then I see the category name only (FR16; **amended by Story 6.2** — was name + definition at 3.2 delivery).
 - Given a narrow viewport, when the grid renders, then cells respect min 44×40px and the table scrolls horizontally (UX-DR4, UX-DR10, UX-DR14).
 - Given any grid cell, when inspected, then its `aria-label` matches « {displayName}, {catégorie}, {valeur} erreurs » (UX-DR25).
 
@@ -123,6 +123,7 @@ context:
 ## Spec Change Log
 
 - Post-delivery (2026-09-01): Student microcopy uses full `displayName` everywhere; removed `getStudentFirstName`. Grid cell aria-labels now « {displayName}, {catégorie}, {valeur} erreurs ». Frozen intent line 32 superseded by this entry.
+- Post-delivery (2026-09-03): **Story 6.2** (`spec-6-2-category-header-hover-title-only.md`) amended FR16 header tooltips to show category **name only** — no definition paragraph in hover/tap/`title`/`aria-label`. Full definitions remain in `error-categories.ts` and `error-categories.md`. Supersedes original 3.2 AC and I/O matrix rows that described name + definition tooltips. `ux-decisions.md` reconciled in Epic 6 retro item #29.
 
 ## Design Notes
 
@@ -137,7 +138,7 @@ Grid state shape: `Record<studentId, Record<CategoryLetter, number>>` initialize
 **Manual checks (if no CLI):**
 - Open dictation with leveled students → grid visible, Tab through C→S across two students, arrows move orthogonally, typing `5` sets cell to 5.
 - Resize browser < 1024px → horizontal scroll appears; cells stay readable.
-- Hover/tap `H` header → homophone definition visible.
+- Hover/tap `H` header → category name visible (e.g. « Homophones »); definition not shown (Story 6.2).
 
 ## Suggested Review Order
 
@@ -162,7 +163,7 @@ Grid state shape: `Record<studentId, Record<CategoryLetter, number>>` initialize
 - Cell input: non-negative integers, arrows, Tab wrap at edges
   [`grid-cell.tsx:64`](../../champions-app/components/grid/grid-cell.tsx#L64)
 
-- Category header tooltips: hover title + tap popover, Escape dismiss
+- Category header tooltips: name only on hover/tap popover, Escape dismiss (Story 6.2)
   [`category-header.tsx:44`](../../champions-app/components/grid/category-header.tsx#L44)
 
 **Tests**

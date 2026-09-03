@@ -60,6 +60,7 @@
   --spacing-logo-app-bar-height-mobile: var(--spacing-logo-app-bar-height-mobile);
   --spacing-logo-presentation-height: var(--spacing-logo-presentation-height);
   --spacing-nav-tabs-height: var(--spacing-nav-tabs-height);
+  --spacing-safe-area-top: var(--spacing-safe-area-top);
   --spacing-dashboard-chrome-height: var(--spacing-dashboard-chrome-height);
   --spacing-dashboard-chrome-height-mobile: var(--spacing-dashboard-chrome-height-mobile);
   --radius-sm: calc(var(--radius) * 0.6);
@@ -126,10 +127,14 @@
   --spacing-logo-app-bar-height-mobile: 40px;
   --spacing-logo-presentation-height: 44px;
   --spacing-nav-tabs-height: 41px;
+  --spacing-safe-area-top: env(safe-area-inset-top, 0px);
   --spacing-dashboard-chrome-height: calc(
-    var(--spacing-app-bar-min-height) + var(--spacing-nav-tabs-height)
+    var(--spacing-safe-area-top) + var(--spacing-app-bar-min-height) +
+      var(--spacing-nav-tabs-height)
   );
-  --spacing-dashboard-chrome-height-mobile: var(--spacing-app-bar-min-height);
+  --spacing-dashboard-chrome-height-mobile: calc(
+    var(--spacing-safe-area-top) + var(--spacing-app-bar-min-height)
+  );
 }
 
 .dark {
@@ -186,10 +191,14 @@
   --spacing-logo-app-bar-height-mobile: 40px;
   --spacing-logo-presentation-height: 44px;
   --spacing-nav-tabs-height: 41px;
+  --spacing-safe-area-top: env(safe-area-inset-top, 0px);
   --spacing-dashboard-chrome-height: calc(
-    var(--spacing-app-bar-min-height) + var(--spacing-nav-tabs-height)
+    var(--spacing-safe-area-top) + var(--spacing-app-bar-min-height) +
+      var(--spacing-nav-tabs-height)
   );
-  --spacing-dashboard-chrome-height-mobile: var(--spacing-app-bar-min-height);
+  --spacing-dashboard-chrome-height-mobile: calc(
+    var(--spacing-safe-area-top) + var(--spacing-app-bar-min-height)
+  );
 }
 
 @layer base {

@@ -99,10 +99,9 @@ describe("design tokens", () => {
     expect(css).toContain("--spacing-grid-cell-min: 44px");
     expect(css).toContain("--spacing-grid-row-height: 40px");
     expect(css).toContain("--spacing-nav-tabs-height: 41px");
+    expect(css).toContain("--spacing-safe-area-top: env(safe-area-inset-top, 0px)");
     expect(css).toContain("--spacing-dashboard-chrome-height: calc(");
-    expect(css).toContain(
-      "--spacing-dashboard-chrome-height-mobile: var(--spacing-app-bar-min-height)"
-    );
+    expect(css).toContain("--spacing-safe-area-top) + var(--spacing-app-bar-min-height)");
   });
 
   it("mirrors all COLORS hex values in globals.css", () => {

@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 09-03-2026 16:19
+last_updated: 09-03-2026 17:25
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -94,7 +94,7 @@ development_status:
   7-1-forgotten-password-reset-flow: done
   7-2-global-curve-axis-labels-and-y-axis-scale: done
   7-3-category-error-curves-in-presentation-mode-rdv-parents: done
-  epic-7-retrospective: optional
+  epic-7-retrospective: done
 action_items:
   - id: "epic-1-retro-item-1-add-github-actions-workflow-npm-ci-npm-t"
     epic: 1
@@ -301,7 +301,7 @@ action_items:
     action: "Reconcile ux-decisions.md and spec-3-2 for name-only category header
       hover (Story 6.2)"
     owner: "pm"
-    status: open
+    status: done
     ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-6-retro-09-02-2026.md"
   - id: "epic-6-retro-item-30-add-integration-test-for-chronological-d"
     epic: 6
@@ -314,7 +314,7 @@ action_items:
     epic: 6
     action: "iOS safe-area inset on sticky dashboard shell (dashboard-chrome.tsx)"
     owner: "dev"
-    status: open
+    status: done
     ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-6-retro-09-02-2026.md"
   - id: "epic-6-retro-item-32-e2e-smoke-create-dictation-edit-metadata"
     epic: 6
@@ -330,3 +330,59 @@ action_items:
     owner: "pm"
     status: done
     ref: "/Users/nicolas.bonamy/Projets/testBMAD/_bmad-output/implementation-artifacts/epic-6-retro-09-02-2026.md"
+  - id: "epic-7-retro-item-34-configure-resend-domain-dns-set-resend_a"
+    epic: 7
+    action: "Configure Resend domain + DNS, set RESEND_API_KEY and EMAIL_FROM in prod;
+      disable open/click tracking"
+    owner: "ops"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"
+  - id: "epic-7-retro-item-35-run-npm-run-db-push-against-dev-and-prod"
+    epic: 7
+    action: "Run npm run db:push against dev and prod Neon after Epic 7 deploy (password_reset_tokens)"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"
+  - id: "epic-7-retro-item-36-invalidate-auth-js-sessions-after-succes"
+    epic: 7
+    action: "Invalidate Auth.js sessions after successful password reset"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"
+  - id: "epic-7-retro-item-37-add-rate-limiting-on-reset-password-subm"
+    epic: 7
+    action: "Add rate limiting on reset-password submit"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"
+  - id: "epic-7-retro-item-38-shared-rate-limit-store-for-serverless-m"
+    epic: 7
+    action: "Shared rate-limit store for serverless multi-instance deployments"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"
+  - id: "epic-7-retro-item-39-integration-test-concurrent-completepass"
+    epic: 7
+    action: "Integration test: concurrent completePasswordReset with same token"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"
+  - id: "epic-7-retro-item-40-e2e-smoke-forgot-password-to-reset-link"
+    epic: 7
+    action: "E2E smoke: forgot-password to reset link to login with new password"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"
+  - id: "epic-7-retro-item-41-harmonize-touch-tooltip-dismiss-between"
+    epic: 7
+    action: "Harmonize touch tooltip dismiss between global and category curves in
+      C3"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"
+  - id: "epic-7-retro-item-42-token-purge-job-for-expired-password_res"
+    epic: 7
+    action: "Token purge job for expired password_reset_tokens rows"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-09-03-2026.md"

@@ -15,7 +15,7 @@ Chosen interaction patterns for MVP. Implementation details live here; capabilit
 
 - Rows = active students with an assigned color level only; unassigned students appear on Élèves tab, not on the grid.
 - Columns = **C H A M P I O N S** (one letter per category).
-- Full category name and definition on hover/tap (see `error-categories.md`).
+- Category name only on hover/tap (e.g. « Conjugaison »); full definitions stay in `error-categories.md` but are not shown in grid header tooltips (amended Story 6.2).
 - Tab key moves across cells for keyboard speed.
 - Each cell holds a non-negative integer error count (same semantics as paper sheet tally marks).
 - Global % auto-calculated per row after save.
