@@ -298,6 +298,7 @@ describe("StudentDossierPage", () => {
     );
 
     expect(html).toContain("Historique des dictées");
+    expect(html).toContain("Courbe de réussite globale");
     expect(html).toContain("Dictée B");
     expect(html).toContain("27 août 2026");
     expect(html).toContain("92 %");
@@ -306,7 +307,8 @@ describe("StudentDossierPage", () => {
     expect(html).toContain('data-testid="dictation-history-table"');
     expect(html).toContain("<details");
     expect(html).toContain("max-w-4xl");
-    expect(html).toContain("lg:grid-cols-2");
+    expect(html).toContain("flex flex-col gap-6");
+    expect(html).toContain("[&amp;_svg]:h-56 lg:[&amp;_svg]:h-64");
     expect(html).not.toContain('data-testid="curve-placeholder"');
     expect(html).not.toContain('href="/dictations/');
     expect(html).not.toContain("Aucune dictée enregistrée.");

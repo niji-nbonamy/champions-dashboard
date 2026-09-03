@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
+import { PresentationBrandLogo } from "@/components/dashboard/presentation-brand-logo";
 import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
 import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
 import { GlobalSuccessCurve } from "@/components/dossier/global-success-curve";
 import { PresentationHighlights } from "@/components/dossier/presentation-highlights";
-import { PresentationBrandLogo } from "@/components/dashboard/presentation-brand-logo";
 import { Button } from "@/components/ui/button";
-import { toCurvePoints } from "@/lib/domain/dossier-curve";
 import type { ChampionsLevel } from "@/lib/design/tokens";
+import { toCurvePoints } from "@/lib/domain/dossier-curve";
 import type { StudentDictationHistoryEntry } from "@/lib/services/get-student-dictation-history";
 
 type PresentationModeProps = {
@@ -19,6 +19,9 @@ type PresentationModeProps = {
   level: ChampionsLevel | null;
   history: StudentDictationHistoryEntry[];
 };
+
+const PRESENTATION_SCROLL_CLASS =
+  "flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-6 pt-6 pb-[calc(var(--spacing-logo-presentation-height)+6rem)] lg:px-10 lg:pt-10 lg:pb-[calc(var(--spacing-logo-presentation-height)+3rem)]";
 
 export function PresentationMode({
   studentId,
@@ -66,7 +69,7 @@ export function PresentationMode({
       data-testid="presentation-mode-dialog"
       className="fixed inset-0 m-0 flex h-screen w-screen max-h-none max-w-none flex-col border-0 bg-background p-0 backdrop:bg-transparent open:flex"
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto p-6 lg:p-10">
+      <div className={PRESENTATION_SCROLL_CLASS}>
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-display">{displayName}</h1>
           <Button

@@ -12,7 +12,10 @@ export function DossierSkeleton() {
       aria-label="Chargement du dossier"
     >
       <div className={DOSSIER_CURVE_TABLE_GRID_CLASS}>
-        <div className="h-48 animate-pulse rounded-lg bg-muted" />
+        <div className="flex flex-col gap-3">
+          <div className="h-6 w-56 animate-pulse rounded bg-muted" />
+          <div className="h-56 animate-pulse rounded-lg bg-muted lg:h-64" />
+        </div>
         <div className="flex flex-col gap-3">
           <div className="h-6 w-48 animate-pulse rounded bg-muted" />
           <div className="flex flex-col gap-2 rounded-lg border border-border p-4">

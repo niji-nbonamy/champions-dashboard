@@ -9,7 +9,7 @@ export function CurvePlaceholder({ className }: CurvePlaceholderProps) {
       aria-hidden="true"
       data-testid="curve-placeholder"
     >
-      <div className="h-48 rounded-lg border border-dashed border-border bg-muted/30" />
+      <div className="h-56 rounded-lg border border-dashed border-border bg-muted/30 lg:h-64" />
     </div>
   );
 }

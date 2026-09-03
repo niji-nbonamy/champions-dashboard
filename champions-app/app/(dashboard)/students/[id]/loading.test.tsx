@@ -10,6 +10,6 @@ describe("StudentDossierLoading", () => {
     expect(html).toContain('data-testid="dossier-skeleton"');
     expect(html).toContain("animate-pulse");
     expect(html).toContain("max-w-4xl");
-    expect(html).toContain("lg:grid-cols-2");
+    expect(html).toContain("flex flex-col gap-6");
   });
 });

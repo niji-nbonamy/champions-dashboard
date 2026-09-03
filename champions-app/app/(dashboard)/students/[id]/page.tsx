@@ -143,8 +143,15 @@ export default async function StudentDossierPage({
       <div className={DOSSIER_CONTENT_CONTAINER_CLASS}>
         {hasHistory ? (
           <div className={DOSSIER_CURVE_TABLE_GRID_CLASS}>
-            <section aria-label="Courbe de réussite globale">
-              <GlobalSuccessCurve points={curvePoints} />
+            <section
+              aria-label="Courbe de réussite globale"
+              className="flex flex-col gap-3"
+            >
+              <h2 className="text-lg font-medium">Courbe de réussite globale</h2>
+              <GlobalSuccessCurve
+                points={curvePoints}
+                className="[&_svg]:h-56 lg:[&_svg]:h-64"
+              />
             </section>
             <section className="flex flex-col gap-3">
               <h2 className="text-lg font-medium">Historique des dictées</h2>

@@ -319,6 +319,25 @@ describe("GlobalSuccessCurve", () => {
     expect(xAxisLabels).toContain("15/08");
   });
 
+  it("uses readable axis and tooltip text sizes", () => {
+    const html = renderToStaticMarkup(
+      <GlobalSuccessCurve
+        points={[
+          {
+            entryId: "1",
+            date: "2026-08-13",
+            label: "Dictée A",
+            percent: 75,
+          },
+        ]}
+      />
+    );
+
+    expect(html).toContain('class="fill-muted-foreground text-xs tabular-nums"');
+    expect(html).toContain('class="fill-muted-foreground text-xs"');
+    expect(html).toContain("h-56 w-full rounded-lg");
+  });
+
   it("returns null when there are no points", () => {
     const html = renderToStaticMarkup(<GlobalSuccessCurve points={[]} />);
 

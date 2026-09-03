@@ -159,7 +159,7 @@ export function GlobalSuccessCurve({
     >
       <svg
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-        className="h-48 w-full rounded-lg border border-border bg-background"
+        className="h-56 w-full rounded-lg border border-border bg-background"
         role="img"
         aria-label={ariaLabel}
       >
@@ -203,7 +203,7 @@ export function GlobalSuccessCurve({
               x={PADDING.left - 8}
               y={y + 4}
               textAnchor="end"
-              className="fill-muted-foreground text-[10px] tabular-nums"
+              className="fill-muted-foreground text-xs tabular-nums"
             >
               {tick} %
             </text>
@@ -257,7 +257,7 @@ export function GlobalSuccessCurve({
               x={x}
               y={xLabelY}
               textAnchor="middle"
-              className="fill-muted-foreground text-[10px]"
+              className="fill-muted-foreground text-xs"
             >
               {displayLabel}
               {showNameTooltip ? <title>{point.label}</title> : null}
@@ -280,7 +280,7 @@ export function GlobalSuccessCurve({
                 className: "flex h-full items-center justify-center",
               } as React.HTMLAttributes<HTMLDivElement>)}
             >
-              <div className="max-w-full truncate rounded-md border border-border bg-popover px-2 py-0.5 text-center text-[10px] leading-tight text-popover-foreground shadow-md">
+              <div className="max-w-full truncate rounded-md border border-border bg-popover px-2 py-0.5 text-center text-xs leading-tight text-popover-foreground shadow-md">
                 {formatPointTooltip(hoveredCoordinate.point)}
               </div>
             </div>

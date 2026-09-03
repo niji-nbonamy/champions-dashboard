@@ -188,6 +188,10 @@ describe("PresentationMode", () => {
 
     expect(container.innerHTML).toContain('src="/logo-champions-wordmark.jpg"');
     expect(container.innerHTML).toContain("fixed right-6 bottom-6");
+    expect(container.innerHTML).toContain(
+      "pb-[calc(var(--spacing-logo-presentation-height)+6rem)]"
+    );
+    expect(container.innerHTML).not.toContain("lg:p-10");
   });
 
   it("renders the curve placeholder when history is empty", () => {

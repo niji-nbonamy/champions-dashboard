@@ -6,8 +6,8 @@ import {
 } from "./dossier-layout";
 
 describe("dossier layout constants", () => {
-  it("keeps the content container and curve/table grid in sync", () => {
+  it("keeps the content container and curve/table stack in sync", () => {
     expect(DOSSIER_CONTENT_CONTAINER_CLASS).toContain("max-w-4xl");
-    expect(DOSSIER_CURVE_TABLE_GRID_CLASS).toContain("lg:grid-cols-2");
+    expect(DOSSIER_CURVE_TABLE_GRID_CLASS).toContain("flex flex-col gap-6");
   });
 });
