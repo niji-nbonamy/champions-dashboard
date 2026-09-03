@@ -9,7 +9,7 @@ import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
 import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
 import {
   DOSSIER_CONTENT_CONTAINER_CLASS,
-  DOSSIER_CURVE_TABLE_GRID_CLASS,
+  DOSSIER_CURVE_TABLE_LAYOUT_CLASS,
 } from "@/components/dossier/dossier-layout";
 import { GlobalSuccessCurve } from "@/components/dossier/global-success-curve";
 import { LevelBadge } from "@/components/ui/level-badge";
@@ -142,12 +142,17 @@ export default async function StudentDossierPage({
 
       <div className={DOSSIER_CONTENT_CONTAINER_CLASS}>
         {hasHistory ? (
-          <div className={DOSSIER_CURVE_TABLE_GRID_CLASS}>
+          <div className={DOSSIER_CURVE_TABLE_LAYOUT_CLASS}>
             <section
-              aria-label="Courbe de réussite globale"
+              aria-labelledby="global-curve-heading"
               className="flex flex-col gap-3"
             >
-              <h2 className="text-lg font-medium">Courbe de réussite globale</h2>
+              <h2
+                id="global-curve-heading"
+                className="text-lg font-medium"
+              >
+                Courbe de réussite globale
+              </h2>
               <GlobalSuccessCurve
                 points={curvePoints}
                 className="[&_svg]:h-56 lg:[&_svg]:h-64"

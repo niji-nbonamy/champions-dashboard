@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of spec-7-2-global-curve-axis-labels-and-y-axis-scale.md (2026-09-03)
+
+- Chevauchement potentiel des labels X sur viewports étroits — limitation SVG responsive préexistante aggravée par plus de labels (`global-success-curve.tsx:48`)
+
 ## Deferred from: code review of spec-7-1-forgotten-password-reset-flow.md (2026-09-03)
 
 - Sessions non invalidées après reset — Auth.js sessions restent valides après changement de mot de passe ; hardening sécurité hors périmètre story (`password-reset.ts:186-226`)

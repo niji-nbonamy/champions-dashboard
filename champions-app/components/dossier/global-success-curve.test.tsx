@@ -5,6 +5,7 @@ import {
   formatDateShort,
   formatPointTooltip,
   getTooltipY,
+  getTooltipX,
   getXAxisDisplayLabel,
   GlobalSuccessCurve,
   selectVisibleLabelIndices,
@@ -90,6 +91,11 @@ describe("global success curve helpers", () => {
 
   it("flips tooltips below points near the top edge", () => {
     expect(getTooltipY(20)).toBe(32);
+  });
+
+  it("clamps tooltip X position inside the chart bounds", () => {
+    expect(getTooltipX(50)).toBe(40);
+    expect(getTooltipX(380)).toBe(224);
   });
 });
 

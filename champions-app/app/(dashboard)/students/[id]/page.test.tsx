@@ -308,6 +308,7 @@ describe("StudentDossierPage", () => {
     expect(html).toContain("<details");
     expect(html).toContain("max-w-4xl");
     expect(html).toContain("flex flex-col gap-6");
+    expect(html).toContain("2xl:grid-cols-2");
     expect(html).toContain("[&amp;_svg]:h-56 lg:[&amp;_svg]:h-64");
     expect(html).not.toContain('data-testid="curve-placeholder"');
     expect(html).not.toContain('href="/dictations/');

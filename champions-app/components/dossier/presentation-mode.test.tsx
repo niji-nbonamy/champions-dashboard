@@ -227,6 +227,8 @@ describe("PresentationMode", () => {
       container.querySelector('[data-testid="global-success-curve"]')
     ).not.toBeNull();
     expect(container.querySelector('[data-testid="curve-placeholder"]')).toBeNull();
+    expect(container.innerHTML).toContain("80 %");
+    expect(container.innerHTML).toContain('class="stroke-border/50"');
   });
 
   it("renders presentation highlights in the shell", () => {

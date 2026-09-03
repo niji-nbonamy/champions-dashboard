@@ -20,9 +20,10 @@ context:
 ## Boundaries & Constraints
 
 **Always:**
-- Axis work lives in `GlobalSuccessCurve` only — both C1 (`students/[id]/page.tsx`) and C3 (`presentation-mode.tsx`) consume the same component with no page-level chart changes.
-- X-axis labels come from `CurvePoint.label` (already populated by `toCurvePoints`); chronological order unchanged.
-- Long labels truncate visually on the axis; full label remains available via native tooltip (`<title>` on axis label or point).
+- Chart axis rendering lives in `GlobalSuccessCurve` — both C1 (`students/[id]/page.tsx`) and C3 (`presentation-mode.tsx`) consume the same component; C1 uses a hybrid dossier layout (stack below `2xl`, curve and history side-by-side at `2xl` / 1536px and up).
+- X-axis labels use `CurvePoint.label` (truncated) for up to six dictations; beyond six, short dates (`dd/MM`) with dictation name in a native `<title>` on the axis label.
+- Beyond twelve dictations, X-axis labels are subsampled (first and last always shown) to avoid overlap; point details remain available via hover/focus tooltip.
+- Long labels truncate visually on the axis; full dictation name on hover/focus via a custom tooltip (`foreignObject`) on data points, and via native `<title>` on truncated or date-based X-axis labels.
 - Y-axis ticks at 0, 20, 40, 60, 80, 100 % with `%` suffix; render faint horizontal guide lines at each tick (same muted stroke as axis borders).
 - Curve behavior unchanged: same polyline/point mapping (`percent` 0–100), single-point renders one circle without polyline, empty `points` returns `null`.
 - `aria-label` on the SVG describes the curve and dictation count in French (NFR13) — extend if needed but keep the existing phrasing pattern.
@@ -42,9 +43,11 @@ context:
 
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |----------|--------------|---------------------------|----------------|
-| Multi-dictation curve | ≥2 `CurvePoint`s with labels | X-axis shows one label per point; Y ticks 0–100 % every 20 %; polyline + circles unchanged | N/A |
+| Multi-dictation curve | ≥2 `CurvePoint`s with labels | X-axis shows one label per point (or short dates when >6); Y ticks 0–100 % every 20 %; polyline + circles unchanged | N/A |
 | Single dictation | 1 point | One X label, one circle, no polyline; axis/grid still renders | N/A |
 | Long label | Label > ~12 chars | Truncated X-axis text; full label in tooltip | N/A |
+| Dense history | >6 dictations | X-axis shows `dd/MM` dates; dictation name in `<title>` on axis label | N/A |
+| Very dense history | >12 dictations | Subsampled X-axis labels; first and last always visible; point tooltip on hover/focus | N/A |
 | Empty history | `points=[]` | Component returns `null` (unchanged) | N/A |
 | C3 presentation | Same points as C1 | Identical axis treatment (component reuse) | N/A |
 | Screen reader | SVG focused | `role="img"` + French `aria-label` includes dictation count | N/A |
@@ -117,3 +120,23 @@ Increase `PADDING.bottom` (e.g. 40–48) if labels clip — keep `viewBox` stabl
 
 - Coordinate alignment and axis coverage guard regressions before story 7.3.
   [`global-success-curve.test.tsx:79`](../../champions-app/components/dossier/global-success-curve.test.tsx#L79)
+
+### Review Findings
+
+1. **`decision-needed`** findings (unchecked):
+- [x] [Review][Decision] Labels X en dates courtes au-delà de 6 dictées — **Résolu : conserver** ; mettre à jour la spec.
+- [x] [Review][Decision] Sous-échantillonnage des labels X au-delà de 12 dictées — **Résolu : conserver** ; mettre à jour la spec.
+- [x] [Review][Decision] Tooltip points via `foreignObject` au lieu de `<title>` natif — **Résolu : conserver** le tooltip custom uniquement.
+- [x] [Review][Decision] Refonte layout C1 hors périmètre — **Résolu : hybride** — pile verticale par défaut, côte à côte à partir de `2xl` (1536px).
+- [x] [Review][Patch] Layout hybride dossier : stack < 2xl, grid 2 col. ≥ 2xl [dossier-layout.ts:3]
+- [x] [Review][Patch] Mettre à jour la spec (dates >6, subsample >12, tooltip custom, layout hybride) [spec-7-2-global-curve-axis-labels-and-y-axis-scale.md]
+- [x] [Review][Patch] Clamp horizontal du tooltip au bord du SVG [global-success-curve.tsx:269]
+- [x] [Review][Patch] Support tactile pour tooltips de points (presentation mode tablettes) [global-success-curve.tsx:224]
+- [x] [Review][Patch] Test d'interaction hover/focus du tooltip [global-success-curve.interaction.test.tsx]
+- [x] [Review][Patch] Assertion axes/grille Y en presentation-mode (AC2) [presentation-mode.test.tsx]
+- [x] [Review][Patch] Éviter double annonce SR : `aria-labelledby` sur le `h2` au lieu de `aria-label` dupliqué [page.tsx:146]
+- [x] [Review][Patch] Réinitialiser `hoveredEntryId` quand `points` change [global-success-curve.tsx:128]
+- [x] [Review][Patch] Renommer `DOSSIER_CURVE_TABLE_GRID_CLASS` (plus une grille) [dossier-layout.ts:3]
+
+3. **`defer`** findings (checked off, marked deferred):
+- [x] [Review][Defer] Chevauchement potentiel des labels X sur viewports étroits [global-success-curve.tsx:48] — deferred, limitation SVG responsive préexistante aggravée par plus de labels

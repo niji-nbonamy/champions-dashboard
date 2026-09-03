@@ -11,5 +11,6 @@ describe("StudentDossierLoading", () => {
     expect(html).toContain("animate-pulse");
     expect(html).toContain("max-w-4xl");
     expect(html).toContain("flex flex-col gap-6");
+    expect(html).toContain("2xl:grid-cols-2");
   });
 });

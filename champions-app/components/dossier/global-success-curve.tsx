@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { CurvePoint } from "@/lib/domain/dossier-curve";
 import { cn } from "@/lib/utils";
@@ -103,6 +103,13 @@ export function getTooltipY(pointY: number): number {
   return pointY + TOOLTIP_OFFSET_Y;
 }
 
+export function getTooltipX(pointX: number): number {
+  const minX = PADDING.left;
+  const maxX = SVG_WIDTH - PADDING.right - TOOLTIP_WIDTH;
+
+  return Math.min(Math.max(pointX - TOOLTIP_WIDTH / 2, minX), maxX);
+}
+
 function toChartCoordinates(
   points: CurvePoint[]
 ): Array<{ x: number; y: number; point: CurvePoint }> {
@@ -126,6 +133,10 @@ export function GlobalSuccessCurve({
   className,
 }: GlobalSuccessCurveProps) {
   const [hoveredEntryId, setHoveredEntryId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setHoveredEntryId(null);
+  }, [points]);
 
   if (points.length === 0) {
     return null;
@@ -233,6 +244,9 @@ export function GlobalSuccessCurve({
               onMouseLeave={() => setHoveredEntryId(null)}
               onFocus={() => setHoveredEntryId(point.entryId)}
               onBlur={() => setHoveredEntryId(null)}
+              onTouchStart={() => setHoveredEntryId(point.entryId)}
+              onTouchEnd={() => setHoveredEntryId(null)}
+              onTouchCancel={() => setHoveredEntryId(null)}
             />
             <circle
               cx={x}
@@ -266,7 +280,7 @@ export function GlobalSuccessCurve({
         })}
         {hoveredCoordinate ? (
           <foreignObject
-            x={hoveredCoordinate.x - TOOLTIP_WIDTH / 2}
+            x={getTooltipX(hoveredCoordinate.x)}
             y={getTooltipY(hoveredCoordinate.y)}
             width={TOOLTIP_WIDTH}
             height={TOOLTIP_HEIGHT}
