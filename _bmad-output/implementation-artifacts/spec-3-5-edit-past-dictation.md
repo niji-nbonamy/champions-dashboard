@@ -57,6 +57,28 @@ context:
 
 </frozen-after-approval>
 
+## Post-approval amendments
+
+### 2026-09-03 — Hybrid edit save on partial capture (`67e7ff1`)
+
+**Supersedes** the frozen « Ask First » default (exclude students added after first save from the edit grid). The reopen grid already extended partial capture; desktop save now matches that UI.
+
+**Behavior (`saveDictation` edit branch when entries exist and roster is not historical):**
+
+| Student in payload | DB state | Persist action | Snapshot rules |
+|--------------------|----------|----------------|----------------|
+| Has non-archived entry | Row exists | UPDATE `errors_*`, `globalPercent` | `levelAtSave`, `wordDenominator` unchanged |
+| Leveled active, no entry | No row | INSERT new entry | Current level + matrix denominator at save time |
+| Archived with entry | Row exists | Read-only in grid; excluded from payload | N/A |
+
+- Payload must include **all current leveled active students** (same contract as first save).
+- Promotion cascade runs for every student **updated or inserted** in the transaction.
+- Requires a complete matrix row for the dictation label when at least one leveled student lacks an entry.
+
+**Historical roster** (`hasHistoricalRosterShape`): UPDATE-only for non-archived entry holders; payload must match that set exactly. Extra student ids → `DictationRosterMismatchError` with message `DICTATION_SAVE_ROSTER_MISMATCH_ERROR` (« Impossible d'enregistrer : des élèves sans saisie enregistrée sont inclus… »). Generic failures still use `DICTATION_SAVE_GENERIC_ERROR`.
+
+**Code:** `champions-app/lib/services/dictation-save.ts` (edit branch ~L254), `lib/domain/dictation-save-messages.ts`, tests in `dictation-save.test.ts`.
+
 ## Code Map
 
 - `champions-app/lib/services/dictation-save.ts` -- **MODIFY** branch edit vs first-save; `prepareDictationEntryUpdates` using snapshots; remove throw at L254–256 on edit path; promotion cascade helper. [`dictation-save.ts:247`](../../champions-app/lib/services/dictation-save.ts#L247)
@@ -132,13 +154,25 @@ context:
 
 - [x] [Review][Defer] Test all-archived reopen grid disables save and skips save payload [`class-grid.tsx:122`](../../champions-app/components/grid/class-grid.tsx#L122)
 
+### 2026-09-03 — Hybrid edit save (partial capture desktop)
+
+- [x] [Amendment][Patch] `saveDictation` edit path: UPDATE existing entries + INSERT missing leveled students in one transaction when roster is not historical — supersedes frozen « Ask First » exclude-new-students default [`dictation-save.ts:254`](../../champions-app/lib/services/dictation-save.ts#L254)
+- [x] [Amendment][Patch] Explicit roster mismatch toast for historical roster saves — `DICTATION_SAVE_ROSTER_MISMATCH_ERROR` [`dictation-save-messages.ts`](../../champions-app/lib/domain/dictation-save-messages.ts)
+- [x] [Amendment][Patch] Unit tests — partial capture hybrid save, historical roster rejection [`dictation-save.test.ts`](../../champions-app/lib/services/dictation-save.test.ts)
+- [x] [Amendment][Doc] Lifecycle spec updated — partial capture desktop rules [`dictation-lifecycle.md`](../../_bmad-output/specs/spec-dashboards-dictees-champions-ce2/dictation-lifecycle.md)
+- [x] [Amendment][Supersedes] Deferred « exclude new student from reopen grid » — grid extends roster; server now accepts INSERT on non-historical save [`page.test.tsx:485`](../../champions-app/app/(dashboard)/dictations/[id]/page.test.tsx#L485)
+
 ## Design Notes
 
-`saveDictation` detects edit when any entry exists for `dictationId`. Edit flow loads existing snapshots keyed by `studentId`, validates counts against `wordDenominator` from snapshot (not matrix), updates `errors_*` + `globalPercent` only.
+`saveDictation` detects edit when any entry exists for `dictationId`.
+
+**Non-historical roster (default since 2026-09-03):** For each leveled active student in the payload, UPDATE if a non-archived entry exists (snapshot validation); INSERT if not (matrix + current level). All writes in one transaction; promotion cascade for updated and inserted students.
+
+**Historical roster:** UPDATE-only for non-archived entry holders; payload must match editable snapshots exactly. Extra ids → `DictationRosterMismatchError`.
 
 Promotion cascade (per affected active student): `DELETE FROM pending_promotions WHERE student_id = ?` then evaluate the two most recent entries class-wide for that student. Archived students with entries on the dictation are excluded from cascade re-evaluation. Reuse `evaluatePendingPromotion` — do not duplicate threshold logic.
 
-`wordTotalsByStudentId` on edit page: `{ [studentId]: entry.wordDenominator }` for students with entries; active students without entry on this dictation are omitted from grid.
+`wordTotalsByStudentId` on edit page: `{ [studentId]: entry.wordDenominator }` for students with entries; matrix-derived totals for leveled students without an entry on this dictation (partial capture reopen).
 
 ## Verification
 
@@ -147,7 +181,9 @@ Promotion cascade (per affected active student): `DELETE FROM pending_promotions
 - `cd champions-app && npm run build` -- expected: production build succeeds.
 
 **Manual checks (if no CLI):**
-- Save dictation → reopen from Historique → counts pre-filled → edit → save → refresh → updated counts persist; Neon shows unchanged `level_at_save`/`word_denominator`.
+- Save dictation → reopen from Historique → counts pre-filled → edit → save → refresh → updated counts persist; Neon shows unchanged `level_at_save`/`word_denominator` on corrected rows.
+- Partial capture: save one student (mobile or desktop) → reopen → complete remaining leveled students on desktop → single Enregistrer inserts missing rows and preserves snapshots on existing rows.
+- Historical roster: dictation with archived participant → reopen → attempt to include a new leveled student in save → explicit roster mismatch toast (not generic failure).
 
 ## Suggested Review Order
 
