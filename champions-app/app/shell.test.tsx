@@ -83,6 +83,12 @@ describe("application shell", () => {
     expect(layoutSource).toContain("${dmSans.variable}");
   });
 
+  it("includes the site footer in root layout", () => {
+    const layoutSource = readFileSync(path.join(appRoot, "layout.tsx"), "utf8");
+
+    expect(layoutSource).toContain("SiteFooter");
+  });
+
   it("exports Auth.js route handlers instead of 501 stubs", async () => {
     const routeSource = readFileSync(
       path.join(appRoot, "api/auth/[...nextauth]/route.ts"),

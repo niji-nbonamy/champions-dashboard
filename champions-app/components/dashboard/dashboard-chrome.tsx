@@ -25,7 +25,7 @@ export function DashboardChrome({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 flex-col">
       <div className="sticky top-0 z-20 bg-background">
         <AppBar />
         <div className="hidden md:block">

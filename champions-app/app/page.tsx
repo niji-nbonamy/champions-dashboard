@@ -13,7 +13,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-10">
+    <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-10">
       <h1 className="sr-only">La méthode CHAMPIONS</h1>
       <Image
         src="/logo-champions-method-full.jpg"
