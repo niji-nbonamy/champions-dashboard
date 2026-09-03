@@ -78,9 +78,8 @@ export async function requestPasswordReset(email: string): Promise<void> {
   const tokenHash = hashResetToken(rawToken);
   const expiresAt = getResetTokenExpiry();
   const now = new Date();
-  let tokenRow: { id: string };
 
-  await db.transaction(async (tx) => {
+  const tokenRow = await db.transaction(async (tx) => {
     await tx
       .update(passwordResetTokens)
       .set({ usedAt: now })
@@ -104,7 +103,7 @@ export async function requestPasswordReset(email: string): Promise<void> {
       throw new Error("Failed to create password reset token.");
     }
 
-    tokenRow = insertedRow;
+    return insertedRow;
   });
 
   try {
