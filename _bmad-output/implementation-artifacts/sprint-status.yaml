@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-25-2026 10:35
-last_updated: 09-03-2026 14:50
+last_updated: 09-03-2026 15:12
 project: testBMAD
 project_key: NOKEY
 tracking_system: file-system
@@ -93,7 +93,7 @@ development_status:
   epic-7: in-progress
   7-1-forgotten-password-reset-flow: done
   7-2-global-curve-axis-labels-and-y-axis-scale: done
-  7-3-category-error-curves-in-presentation-mode-rdv-parents: backlog
+  7-3-category-error-curves-in-presentation-mode-rdv-parents: review
   epic-7-retrospective: optional
 action_items:
   - id: "epic-1-retro-item-1-add-github-actions-workflow-npm-ci-npm-t"

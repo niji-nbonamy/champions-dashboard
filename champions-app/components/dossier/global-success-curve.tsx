@@ -5,14 +5,19 @@ import { useEffect, useState } from "react";
 import type { CurvePoint } from "@/lib/domain/dossier-curve";
 import { cn } from "@/lib/utils";
 
+import {
+  DOSSIER_CHART_PADDING as PADDING,
+  DOSSIER_CHART_SVG_HEIGHT as SVG_HEIGHT,
+  DOSSIER_CHART_SVG_WIDTH as SVG_WIDTH,
+  getDossierChartDimensions,
+  indexToChartX,
+} from "./dossier-chart-layout";
+
 type GlobalSuccessCurveProps = {
   points: CurvePoint[];
   className?: string;
 };
 
-const SVG_WIDTH = 400;
-const SVG_HEIGHT = 216;
-const PADDING = { top: 40, right: 16, bottom: 44, left: 40 };
 const Y_TICKS = [0, 20, 40, 60, 80, 100] as const;
 const MAX_X_LABEL_LENGTH = 12;
 const DATE_LABEL_THRESHOLD = 6;
@@ -113,12 +118,10 @@ export function getTooltipX(pointX: number): number {
 function toChartCoordinates(
   points: CurvePoint[]
 ): Array<{ x: number; y: number; point: CurvePoint }> {
-  const chartWidth = SVG_WIDTH - PADDING.left - PADDING.right;
-  const chartHeight = SVG_HEIGHT - PADDING.top - PADDING.bottom;
-  const lastIndex = Math.max(points.length - 1, 1);
+  const { chartHeight } = getDossierChartDimensions();
 
   return points.map((point, index) => ({
-    x: PADDING.left + (index / lastIndex) * chartWidth,
+    x: indexToChartX(index, points.length),
     y: PADDING.top + (1 - point.percent / 100) * chartHeight,
     point,
   }));
@@ -142,13 +145,11 @@ export function GlobalSuccessCurve({
     return null;
   }
 
-  const chartWidth = SVG_WIDTH - PADDING.left - PADDING.right;
-  const chartHeight = SVG_HEIGHT - PADDING.top - PADDING.bottom;
+  const { chartWidth, chartHeight, xAxisY } = getDossierChartDimensions();
   const coordinates = toChartCoordinates(points);
   const polylinePoints = coordinates
     .map(({ x, y }) => `${x},${y}`)
     .join(" ");
-  const xAxisY = SVG_HEIGHT - PADDING.bottom;
   const xLabelY = xAxisY + 14;
   const useDateLabels = shouldUseDateLabels(points.length);
   const visibleLabelIndices = selectVisibleLabelIndices(

@@ -4,9 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { PresentationBrandLogo } from "@/components/dashboard/presentation-brand-logo";
-import { CurvePlaceholder } from "@/components/dossier/curve-placeholder";
 import { DictationHistoryTable } from "@/components/dossier/dictation-history-table";
-import { GlobalSuccessCurve } from "@/components/dossier/global-success-curve";
+import { PresentationChartsRow } from "@/components/dossier/presentation-charts-row";
 import { PresentationHighlights } from "@/components/dossier/presentation-highlights";
 import { Button } from "@/components/ui/button";
 import type { ChampionsLevel } from "@/lib/design/tokens";
@@ -82,16 +81,11 @@ export function PresentationMode({
           </Button>
         </div>
 
-        <section aria-label="Courbe de réussite globale">
-          {hasHistory ? (
-            <GlobalSuccessCurve
-              points={curvePoints}
-              className="[&_svg]:h-72 [&_svg]:min-h-[320px]"
-            />
-          ) : (
-            <CurvePlaceholder className="[&>div]:h-72 [&>div]:min-h-[320px]" />
-          )}
-        </section>
+        <PresentationChartsRow
+          history={history}
+          curvePoints={curvePoints}
+          hasHistory={hasHistory}
+        />
 
         <PresentationHighlights history={history} level={level} />
 

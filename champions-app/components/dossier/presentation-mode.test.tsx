@@ -226,9 +226,64 @@ describe("PresentationMode", () => {
     expect(
       container.querySelector('[data-testid="global-success-curve"]')
     ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="category-error-curves"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="category-curve-toggles"]')
+    ).not.toBeNull();
     expect(container.querySelector('[data-testid="curve-placeholder"]')).toBeNull();
+    expect(container.textContent).toContain("Réussite globale (%)");
+    expect(container.textContent).toContain("Erreurs par catégorie");
     expect(container.innerHTML).toContain("80 %");
     expect(container.innerHTML).toContain('class="stroke-border/50"');
+  });
+
+  it("defaults to only the C category toggle active", () => {
+    act(() => {
+      root.render(
+        <PresentationMode
+          studentId={studentId}
+          displayName="DUPONT Marie"
+          level="green"
+          history={[makeEntry({ globalPercent: 87 })]}
+        />
+      );
+    });
+
+    const cToggle = container.querySelector(
+      '[data-testid="category-toggle-C"]'
+    ) as HTMLButtonElement;
+    const hToggle = container.querySelector(
+      '[data-testid="category-toggle-H"]'
+    ) as HTMLButtonElement;
+
+    expect(cToggle.getAttribute("aria-pressed")).toBe("true");
+    expect(hToggle.getAttribute("aria-pressed")).toBe("false");
+    expect(
+      container.querySelector('[data-testid="category-series-C"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="category-series-H"]')
+    ).toBeNull();
+  });
+
+  it("uses a stacked responsive grid for charts", () => {
+    act(() => {
+      root.render(
+        <PresentationMode
+          studentId={studentId}
+          displayName="DUPONT Marie"
+          level="green"
+          history={[makeEntry({ globalPercent: 87 })]}
+        />
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="presentation-charts-grid"]')
+        ?.className
+    ).toContain("lg:grid-cols-2");
   });
 
   it("renders presentation highlights in the shell", () => {
