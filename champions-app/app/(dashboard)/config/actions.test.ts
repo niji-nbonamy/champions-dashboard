@@ -20,9 +20,7 @@ import {
   formatWordCountMatrixRowError,
   WORD_COUNT_CELL_INVALID_ERROR,
   WORD_COUNT_MATRIX_GENERIC_ERROR,
-  WORD_COUNT_MATRIX_MAX_ROWS,
   WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
-  WORD_COUNT_MATRIX_TOO_MANY_ROWS_ERROR,
 } from "@/lib/domain/word-count-matrix";
 
 const {
@@ -447,14 +445,14 @@ describe("saveWordCountMatrixAction", () => {
     expect(result.errorField).toBe("duplicate");
   });
 
-  it("rejects more than the maximum number of rows via real validation", async () => {
+  it("saves a matrix with more than 20 rows", async () => {
     mockAuthenticatedSession();
-    mockValidationOnlyReplace();
+    mockReplaceWordCountMatrix.mockResolvedValueOnce(undefined);
 
     const { saveWordCountMatrixAction } = await import("./actions");
     const formData = new FormData();
 
-    for (let index = 0; index < WORD_COUNT_MATRIX_MAX_ROWS + 1; index += 1) {
+    for (let index = 0; index < 25; index += 1) {
       formData.set(`rows[${index}].label`, `Dictée ${index + 1}`);
       formData.set(`rows[${index}].words_yellow`, "10");
       formData.set(`rows[${index}].words_green`, "12");
@@ -467,8 +465,15 @@ describe("saveWordCountMatrixAction", () => {
       formData
     );
 
-    expect(result.error).toBe(WORD_COUNT_MATRIX_TOO_MANY_ROWS_ERROR);
-    expect(result.success).toBeNull();
+    expect(mockReplaceWordCountMatrix).toHaveBeenCalledWith(
+      classId,
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Dictée 1" }),
+        expect.objectContaining({ label: "Dictée 25" }),
+      ])
+    );
+    expect(result.success).toBe(WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE);
+    expect(result.error).toBeNull();
   });
 
   it("rejects labels longer than 80 characters via real validation", async () => {

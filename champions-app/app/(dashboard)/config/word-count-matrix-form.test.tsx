@@ -8,7 +8,6 @@ import {
 import {
   formatWordCountMatrixRowError,
   WORD_COUNT_CELL_INVALID_ERROR,
-  WORD_COUNT_MATRIX_MAX_ROWS,
   WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
 } from "@/lib/domain/word-count-matrix";
 
@@ -36,8 +35,8 @@ const sampleRow = {
   wordsGold: "16",
 };
 
-function makeMaxRows() {
-  return Array.from({ length: WORD_COUNT_MATRIX_MAX_ROWS }, (_, index) => ({
+function makeManyRows(count: number) {
+  return Array.from({ length: count }, (_, index) => ({
     label: `Dictée ${index + 1}`,
     wordsYellow: "10",
     wordsGreen: "12",
@@ -148,7 +147,7 @@ describe("WordCountMatrixForm", () => {
     expect(html).toContain(WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE);
   });
 
-  it("disables add-row and shows feedback when the maximum row count is reached", () => {
+  it("renders many rows and keeps add-row enabled", () => {
     mockUseActionState.mockReturnValueOnce([
       { error: null, success: null, errorRowIndex: null, errorField: null },
       vi.fn(),
@@ -156,13 +155,13 @@ describe("WordCountMatrixForm", () => {
     ]);
 
     const html = renderToStaticMarkup(
-      <WordCountMatrixForm initialRows={makeMaxRows()} />
+      <WordCountMatrixForm initialRows={makeManyRows(25)} />
     );
 
-    expect(html).toContain(`Maximum ${WORD_COUNT_MATRIX_MAX_ROWS} dictées atteint.`);
-    expect(html).toContain('disabled=""');
-    expect(html).toContain(`rows[${WORD_COUNT_MATRIX_MAX_ROWS - 1}].label`);
-    expect(html).not.toContain(`rows[${WORD_COUNT_MATRIX_MAX_ROWS}].label`);
+    expect(html).toContain("rows[24].label");
+    expect(html).toContain("Ajouter une dictée");
+    expect(html).not.toContain("Maximum");
+    expect(html).not.toMatch(/Ajouter une dictée[\s\S]*disabled=""/);
   });
 
   it("disables the matrix fieldset while a save is pending", () => {

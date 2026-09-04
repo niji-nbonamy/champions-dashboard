@@ -7,7 +7,6 @@ import { LevelBadge } from "@/components/ui/level-badge";
 import { CHAMPIONS_LEVELS, getChampionsLevelFrenchLabel } from "@/lib/domain/champions-level";
 import {
   DICTATION_LABEL_MAX_LENGTH,
-  WORD_COUNT_MATRIX_MAX_ROWS,
   type WordCountMatrixRowInput,
 } from "@/lib/domain/word-count-matrix";
 import type { ChampionsLevel } from "@/lib/design/tokens";
@@ -139,7 +138,6 @@ export function WordCountMatrixForm({
   );
   const errorId = useId();
   const successId = useId();
-  const atMaxRows = rows.length >= WORD_COUNT_MATRIX_MAX_ROWS;
 
   useEffect(() => {
     if (state.success) {
@@ -179,10 +177,6 @@ export function WordCountMatrixForm({
   }
 
   function addRow() {
-    if (atMaxRows) {
-      return;
-    }
-
     setIsDirty(true);
     setRows((currentRows) => [...currentRows, createEmptyRow(currentRows)]);
   }
@@ -291,18 +285,11 @@ export function WordCountMatrixForm({
           </p>
         ) : null}
 
-        {atMaxRows ? (
-          <p className="text-sm text-muted-foreground">
-            Maximum {WORD_COUNT_MATRIX_MAX_ROWS} dictées atteint.
-          </p>
-        ) : null}
-
         <div className="flex flex-wrap gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={addRow}
-            disabled={atMaxRows}
           >
             Ajouter une dictée
           </Button>

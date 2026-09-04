@@ -5,8 +5,6 @@ import {
   formatDuplicateDictationLabelsError,
   formatWordCountMatrixRowError,
   WORD_COUNT_CELL_INVALID_ERROR,
-  WORD_COUNT_MATRIX_MAX_ROWS,
-  WORD_COUNT_MATRIX_TOO_MANY_ROWS_ERROR,
 } from "@/lib/domain/word-count-matrix";
 import { wordCountMatrixRows } from "@/lib/db/schema";
 
@@ -182,16 +180,23 @@ describe("replaceWordCountMatrix", () => {
     expect(mockTransaction).not.toHaveBeenCalled();
   });
 
-  it("rejects more than the maximum number of rows before writing", async () => {
+  it("accepts more than 20 rows before writing", async () => {
+    mockDeleteWhere.mockResolvedValueOnce(undefined);
+    mockValues.mockResolvedValueOnce(undefined);
+
     const { replaceWordCountMatrix } = await import("./replace-word-count-matrix");
-    const rows = Array.from({ length: WORD_COUNT_MATRIX_MAX_ROWS + 1 }, (_, i) =>
+    const rows = Array.from({ length: 25 }, (_, i) =>
       makeRow({ label: `Dictée ${i + 1}` })
     );
 
-    await expect(replaceWordCountMatrix(classId, rows)).rejects.toThrow(
-      WORD_COUNT_MATRIX_TOO_MANY_ROWS_ERROR
-    );
+    await replaceWordCountMatrix(classId, rows);
 
-    expect(mockTransaction).not.toHaveBeenCalled();
+    expect(mockTransaction).toHaveBeenCalled();
+    expect(mockValues).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ dictationLabelKey: "Dictée 1" }),
+        expect.objectContaining({ dictationLabelKey: "Dictée 25" }),
+      ])
+    );
   });
 });

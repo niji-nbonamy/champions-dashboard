@@ -12,9 +12,7 @@ import {
   getWordCountForLevel,
   buildWordTotalsByStudentId,
   WORD_COUNT_CELL_INVALID_ERROR,
-  WORD_COUNT_MATRIX_MAX_ROWS,
   WORD_COUNT_MATRIX_MAX_WORD_COUNT,
-  WORD_COUNT_MATRIX_TOO_MANY_ROWS_ERROR,
 } from "./word-count-matrix";
 
 function makeRow(
@@ -147,16 +145,16 @@ describe("validateWordCountMatrix", () => {
     expect(result).toEqual({ ok: true, rows: [] });
   });
 
-  it("rejects more than the maximum number of rows", () => {
-    const rows = Array.from({ length: WORD_COUNT_MATRIX_MAX_ROWS + 1 }, (_, i) =>
+  it("accepts more than 20 rows", () => {
+    const rows = Array.from({ length: 25 }, (_, i) =>
       makeRow({ label: `Dictée ${i + 1}` })
     );
     const result = validateWordCountMatrix(rows);
 
-    expect(result).toEqual({
-      ok: false,
-      error: WORD_COUNT_MATRIX_TOO_MANY_ROWS_ERROR,
-    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.rows).toHaveLength(25);
+    }
   });
 });
 

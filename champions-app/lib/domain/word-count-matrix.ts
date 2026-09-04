@@ -3,7 +3,6 @@ import type { ChampionsLevel } from "@/lib/design/tokens";
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 
 export const DICTATION_LABEL_MAX_LENGTH = 80;
-export const WORD_COUNT_MATRIX_MAX_ROWS = 20;
 export const WORD_COUNT_MATRIX_MAX_WORD_COUNT = 2147483647;
 
 export const DICTATION_LABEL_REQUIRED_ERROR =
@@ -14,9 +13,6 @@ export const DICTATION_LABEL_TOO_LONG_ERROR =
 
 export const WORD_COUNT_CELL_INVALID_ERROR =
   "Chaque cellule doit être un entier supérieur à 0.";
-
-export const WORD_COUNT_MATRIX_TOO_MANY_ROWS_ERROR =
-  "Maximum 20 dictées dans la matrice.";
 
 export const WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE =
   "Matrice enregistrée.";
@@ -238,10 +234,6 @@ export function validateWordCountMatrixRow(
 export function validateWordCountMatrix(
   rawRows: WordCountMatrixRowInput[]
 ): ValidateWordCountMatrixResult {
-  if (rawRows.length > WORD_COUNT_MATRIX_MAX_ROWS) {
-    return { ok: false, error: WORD_COUNT_MATRIX_TOO_MANY_ROWS_ERROR };
-  }
-
   const validatedRows: ValidatedWordCountMatrixRow[] = [];
   const seenKeys = new Map<string, string>();
 
