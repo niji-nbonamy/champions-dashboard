@@ -114,7 +114,7 @@ export default async function MobileStudentEntryPage({
           href={`/dictations/${id}/mobile`}
           className="text-sm text-primary underline-offset-4 hover:underline"
         >
-          Retour à la liste d'élèves
+          Retour à la liste d&apos;élèves
         </Link>
         <MobilePerStudentForm
           dictationId={id}
@@ -144,7 +144,7 @@ export default async function MobileStudentEntryPage({
           href={`/dictations/${id}/mobile`}
           className="text-sm text-primary underline-offset-4 hover:underline"
         >
-          Retour à la liste d'élèves
+          Retour à la liste d&apos;élèves
         </Link>
         <p className="text-sm text-destructive" role="alert">
           {formatUnleveledMobileBlockMessage(classStudent.displayName)}
@@ -186,7 +186,7 @@ export default async function MobileStudentEntryPage({
             href={`/dictations/${id}/mobile`}
             className="text-sm text-primary underline-offset-4 hover:underline"
           >
-            Retour à la liste d'élèves
+            Retour à la liste d&apos;élèves
           </Link>
           <p className="text-sm text-destructive" role="alert">
             Saisie impossible : la matrice de mots pour cette dictée est
@@ -206,7 +206,7 @@ export default async function MobileStudentEntryPage({
         href={`/dictations/${id}/mobile`}
         className="text-sm text-primary underline-offset-4 hover:underline"
       >
-        Retour à la liste d'élèves
+        Retour à la liste d&apos;élèves
       </Link>
       <MobilePerStudentForm
         dictationId={id}

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { levelHistoryEntries, students } from "@/lib/db/schema";
+import { students } from "@/lib/db/schema";
 
 const mockLimit = vi.fn();
 const mockWhereSelect = vi.fn(() => ({ limit: mockLimit }));

@@ -7,7 +7,6 @@ import {
 
 const studentA = "770e8400-e29b-41d4-a716-446655440002";
 const studentB = "770e8400-e29b-41d4-a716-446655440004";
-const studentC = "770e8400-e29b-41d4-a716-446655440006";
 const studentNew = "770e8400-e29b-41d4-a716-446655440008";
 const studentArchived = "770e8400-e29b-41d4-a716-446655440099";
 

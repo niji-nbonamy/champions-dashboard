@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   refusePromotionAction,
@@ -28,19 +27,19 @@ export function useDictationPromotionDialog({
   studentMeta,
   pendingPromotionsByStudentId,
 }: UseDictationPromotionDialogOptions) {
-  const [promotionDialogStudentId, setPromotionDialogStudentId] = useState<
-    string | null
-  >(null);
+  const [requestedPromotionDialogStudentId, setPromotionDialogStudentId] =
+    useState<string | null>(null);
 
   const promotionDialogStudent = useMemo(() => {
-    if (!promotionDialogStudentId) {
+    if (!requestedPromotionDialogStudentId) {
       return null;
     }
 
     const student = studentMeta.find(
-      (entry) => entry.id === promotionDialogStudentId
+      (entry) => entry.id === requestedPromotionDialogStudentId
     );
-    const pending = pendingPromotionsByStudentId[promotionDialogStudentId];
+    const pending =
+      pendingPromotionsByStudentId[requestedPromotionDialogStudentId];
 
     if (!student || !pending) {
       return null;
@@ -51,13 +50,14 @@ export function useDictationPromotionDialog({
       displayName: student.displayName,
       targetLevel: pending.targetLevel as ChampionsLevel,
     };
-  }, [pendingPromotionsByStudentId, promotionDialogStudentId, studentMeta]);
+  }, [
+    pendingPromotionsByStudentId,
+    requestedPromotionDialogStudentId,
+    studentMeta,
+  ]);
 
-  useEffect(() => {
-    if (promotionDialogStudentId && !promotionDialogStudent) {
-      setPromotionDialogStudentId(null);
-    }
-  }, [promotionDialogStudent, promotionDialogStudentId]);
+  const promotionDialogStudentId =
+    promotionDialogStudent?.id ?? null;
 
   const {
     isPending: isPromotionPending,

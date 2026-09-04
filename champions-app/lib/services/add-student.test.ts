@@ -54,7 +54,7 @@ describe("addStudent", () => {
       },
     ]);
 
-    const { addStudent, StudentDuplicateError } = await import("./add-student");
+    const { addStudent } = await import("./add-student");
 
     await expect(addStudent(classId, "dupont marie")).rejects.toMatchObject({
       name: "StudentDuplicateError",
@@ -65,7 +65,7 @@ describe("addStudent", () => {
   });
 
   it("rejects empty names", async () => {
-    const { addStudent, AddStudentError } = await import("./add-student");
+    const { addStudent } = await import("./add-student");
 
     await expect(addStudent(classId, "   ")).rejects.toMatchObject({
       name: "AddStudentError",
@@ -77,7 +77,7 @@ describe("addStudent", () => {
   });
 
   it("rejects names longer than the max length", async () => {
-    const { addStudent, AddStudentError } = await import("./add-student");
+    const { addStudent } = await import("./add-student");
     const longName = "A".repeat(201);
 
     await expect(addStudent(classId, longName)).rejects.toMatchObject({

@@ -76,7 +76,7 @@ describe("importRosterFromCsv", () => {
     const csv = "DUPONT Marie\ndupont marie";
     const bytes = new TextEncoder().encode(csv);
 
-    const { importRosterFromCsv, RosterImportError } = await import(
+    const { importRosterFromCsv } = await import(
       "./import-roster-csv"
     );
 
@@ -93,7 +93,7 @@ describe("importRosterFromCsv", () => {
     const csv = "DUPONT Marie";
     const bytes = new TextEncoder().encode(csv);
 
-    const { importRosterFromCsv, RosterNotEmptyError } = await import(
+    const { importRosterFromCsv } = await import(
       "./import-roster-csv"
     );
 
@@ -110,7 +110,7 @@ describe("importRosterFromCsv", () => {
 
     const bytes = new Uint8Array([0xff, 0xfe, 0xfd]);
 
-    const { importRosterFromCsv, RosterImportError } = await import(
+    const { importRosterFromCsv } = await import(
       "./import-roster-csv"
     );
 

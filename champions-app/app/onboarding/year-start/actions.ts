@@ -117,6 +117,7 @@ export async function removeStudentFromWizardAction(
 export async function completeYearStartWizardAction(
   _prevState: CompleteYearStartWizardActionState
 ): Promise<CompleteYearStartWizardActionState> {
+  void _prevState;
   const session = await auth();
   const teacherId = session?.user?.id;
 

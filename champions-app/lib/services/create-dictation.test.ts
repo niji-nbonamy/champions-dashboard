@@ -110,7 +110,7 @@ describe("createDictation", () => {
       },
     ]);
 
-    const { createDictation, CreateDictationError } = await import(
+    const { createDictation } = await import(
       "./create-dictation"
     );
 
@@ -128,7 +128,7 @@ describe("createDictation", () => {
   });
 
   it("rejects empty labels", async () => {
-    const { createDictation, CreateDictationError } = await import(
+    const { createDictation } = await import(
       "./create-dictation"
     );
 

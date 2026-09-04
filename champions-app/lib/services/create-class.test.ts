@@ -59,7 +59,7 @@ describe("createClass", () => {
   });
 
   it("throws when the school year label is empty", async () => {
-    const { createClass, ClassCreationFailedError } = await import(
+    const { createClass } = await import(
       "./create-class"
     );
 
@@ -79,7 +79,7 @@ describe("createClass", () => {
       schoolYearLabel: "2024-2025",
     });
 
-    const { createClass, ClassCreationFailedError } = await import(
+    const { createClass } = await import(
       "./create-class"
     );
 
@@ -96,7 +96,7 @@ describe("createClass", () => {
     mockReturning.mockRejectedValueOnce(new Error("duplicate key"));
     mockLimit.mockResolvedValueOnce([{ id: classId }]);
 
-    const { createClass, ClassCreationFailedError } = await import(
+    const { createClass } = await import(
       "./create-class"
     );
 

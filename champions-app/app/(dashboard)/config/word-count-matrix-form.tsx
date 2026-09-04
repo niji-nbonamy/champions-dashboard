@@ -128,29 +128,19 @@ export function WordCountMatrixForm({
   showDefaultSaveButton = true,
   onDirtyChange,
 }: WordCountMatrixFormProps) {
-  const [rows, setRows] = useState<MatrixRowState[]>(() =>
-    mapInitialRows(initialRows)
-  );
-  const [isDirty, setIsDirty] = useState(false);
+  const [editedRows, setEditedRows] = useState<MatrixRowState[] | null>(null);
   const [state, formAction, pending] = useActionState(
     saveWordCountMatrixAction,
     initialActionState
   );
   const errorId = useId();
   const successId = useId();
+  const isDirty = editedRows !== null;
+  const rows = editedRows ?? mapInitialRows(initialRows);
 
-  useEffect(() => {
-    if (state.success) {
-      setRows(mapInitialRows(initialRows));
-      setIsDirty(false);
-    }
-  }, [state.success, initialRows]);
-
-  useEffect(() => {
-    if (!isDirty) {
-      setRows(mapInitialRows(initialRows));
-    }
-  }, [initialRows, isDirty]);
+  if (state.success && editedRows !== null) {
+    setEditedRows(null);
+  }
 
   useEffect(() => {
     onDirtyChange?.(isDirty);
@@ -161,24 +151,29 @@ export function WordCountMatrixForm({
     field: keyof MatrixRowState,
     value: string
   ) {
-    setIsDirty(true);
-    setRows((currentRows) =>
-      currentRows.map((row) =>
+    setEditedRows((currentRows) => {
+      const baseRows = currentRows ?? mapInitialRows(initialRows);
+
+      return baseRows.map((row) =>
         row.clientId === clientId ? { ...row, [field]: value } : row
-      )
-    );
+      );
+    });
   }
 
   function removeRow(clientId: string) {
-    setIsDirty(true);
-    setRows((currentRows) =>
-      currentRows.filter((row) => row.clientId !== clientId)
-    );
+    setEditedRows((currentRows) => {
+      const baseRows = currentRows ?? mapInitialRows(initialRows);
+
+      return baseRows.filter((row) => row.clientId !== clientId);
+    });
   }
 
   function addRow() {
-    setIsDirty(true);
-    setRows((currentRows) => [...currentRows, createEmptyRow(currentRows)]);
+    setEditedRows((currentRows) => {
+      const baseRows = currentRows ?? mapInitialRows(initialRows);
+
+      return [...baseRows, createEmptyRow(baseRows)];
+    });
   }
 
   return (

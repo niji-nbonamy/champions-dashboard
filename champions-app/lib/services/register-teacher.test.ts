@@ -57,9 +57,7 @@ describe("registerTeacher", () => {
   it("throws a generic error when email is already registered", async () => {
     mockLimit.mockResolvedValueOnce([{ id: "existing-id" }]);
 
-    const { registerTeacher, RegistrationFailedError } = await import(
-      "./register-teacher"
-    );
+    const { registerTeacher } = await import("./register-teacher");
 
     await expect(
       registerTeacher("teacher@example.com", VALID_REGISTRATION_PASSWORD)

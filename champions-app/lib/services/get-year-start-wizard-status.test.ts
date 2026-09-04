@@ -2,8 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const {
   mockLimit,
-  mockWhere,
-  mockFrom,
   mockSelect,
   mockCountActiveStudents,
   mockCountLeveledActiveStudents,

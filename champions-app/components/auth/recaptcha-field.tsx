@@ -41,25 +41,24 @@ const WIDGET_STATE_MESSAGES: Record<
     "Impossible de charger la vérification anti-robot. Réessayez ou contactez le support.",
 };
 
-export function RecaptchaField({ siteKey, onTokenChange }: RecaptchaFieldProps) {
+type RecaptchaWidgetProps = {
+  siteKey: string;
+  onTokenChange: (token: string | null) => void;
+};
+
+function RecaptchaWidget({ siteKey, onTokenChange }: RecaptchaWidgetProps) {
   const containerId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<number | null>(null);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
   const [widgetState, setWidgetState] = useState<WidgetState>("loading");
 
   useEffect(() => {
     onTokenChange(null);
-    widgetIdRef.current = null;
-    setWidgetState("loading");
-  }, [onTokenChange, siteKey]);
-
-  useEffect(() => {
-    if (!scriptLoaded || !containerRef.current) {
-      return;
-    }
 
     const container = containerRef.current;
+    if (!container) {
+      return;
+    }
 
     const renderWidget = () => {
       if (!window.grecaptcha?.render || widgetIdRef.current !== null) {
@@ -83,29 +82,33 @@ export function RecaptchaField({ siteKey, onTokenChange }: RecaptchaFieldProps) 
       });
     };
 
+    const resetWidget = () => {
+      if (widgetIdRef.current !== null && window.grecaptcha?.reset) {
+        window.grecaptcha.reset(widgetIdRef.current);
+      }
+      widgetIdRef.current = null;
+    };
+
     if (window.grecaptcha?.ready) {
       window.grecaptcha.ready(renderWidget);
-      return () => {
-        if (widgetIdRef.current !== null && window.grecaptcha?.reset) {
-          window.grecaptcha.reset(widgetIdRef.current);
-        }
-        widgetIdRef.current = null;
-      };
+      return resetWidget;
     }
 
     if (window.grecaptcha?.render) {
       renderWidget();
-      return () => {
-        if (widgetIdRef.current !== null && window.grecaptcha?.reset) {
-          window.grecaptcha.reset(widgetIdRef.current);
-        }
-        widgetIdRef.current = null;
-      };
+      return resetWidget;
     }
 
-    setWidgetState("load-failed");
-    onTokenChange(null);
-  }, [onTokenChange, scriptLoaded, siteKey]);
+    const timeoutId = window.setTimeout(() => {
+      setWidgetState("load-failed");
+      onTokenChange(null);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      resetWidget();
+    };
+  }, [onTokenChange, siteKey]);
 
   const statusMessage =
     widgetState === "expired" ||
@@ -115,24 +118,43 @@ export function RecaptchaField({ siteKey, onTokenChange }: RecaptchaFieldProps) 
       : null;
 
   return (
+    <div className="flex flex-col items-center gap-2">
+      <div id={containerId} ref={containerRef} />
+      {statusMessage ? (
+        <p className="text-sm text-destructive" role="alert">
+          {statusMessage}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export function RecaptchaField({ siteKey, onTokenChange }: RecaptchaFieldProps) {
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [scriptFailed, setScriptFailed] = useState(false);
+
+  return (
     <>
       <Script
         src="https://www.google.com/recaptcha/api.js?render=explicit"
         strategy="afterInteractive"
         onLoad={() => setScriptLoaded(true)}
         onError={() => {
-          setWidgetState("load-failed");
+          setScriptFailed(true);
           onTokenChange(null);
         }}
       />
-      <div className="flex flex-col items-center gap-2">
-        <div id={containerId} ref={containerRef} />
-        {statusMessage ? (
-          <p className="text-sm text-destructive" role="alert">
-            {statusMessage}
-          </p>
-        ) : null}
-      </div>
+      {scriptFailed ? (
+        <p className="text-sm text-destructive" role="alert">
+          {WIDGET_STATE_MESSAGES["load-failed"]}
+        </p>
+      ) : scriptLoaded ? (
+        <RecaptchaWidget
+          key={siteKey}
+          siteKey={siteKey}
+          onTokenChange={onTokenChange}
+        />
+      ) : null}
     </>
   );
 }

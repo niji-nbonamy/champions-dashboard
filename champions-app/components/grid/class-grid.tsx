@@ -77,7 +77,10 @@ export function ClassGrid({
   pendingPromotionsByStudentId: pendingPromotionsProp,
 }: ClassGridProps) {
   const router = useRouter();
-  const pendingPromotionsByStudentId = pendingPromotionsProp ?? {};
+  const pendingPromotionsByStudentId = useMemo(
+    () => pendingPromotionsProp ?? {},
+    [pendingPromotionsProp]
+  );
   const readOnlyIds = useMemo(
     () => new Set(readOnlyStudentIds),
     [readOnlyStudentIds]
@@ -228,7 +231,6 @@ export function ClassGrid({
       focusCell,
       isStudentEditable,
       lastCategoryIndex,
-      lastStudentIndex,
     ]
   );
 

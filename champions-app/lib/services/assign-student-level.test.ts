@@ -100,7 +100,7 @@ describe("assignStudentLevel", () => {
   });
 
   it("rejects invalid levels", async () => {
-    const { assignStudentLevel, AssignStudentLevelError } = await import(
+    const { assignStudentLevel } = await import(
       "./assign-student-level"
     );
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type { CurvePoint } from "@/lib/domain/student-sheet-curve";
 import { cn } from "@/lib/utils";
@@ -136,10 +136,12 @@ export function GlobalSuccessCurve({
   className,
 }: GlobalSuccessCurveProps) {
   const [hoveredEntryId, setHoveredEntryId] = useState<string | null>(null);
+  const [hoveredPoints, setHoveredPoints] = useState(points);
 
-  useEffect(() => {
+  if (points !== hoveredPoints) {
+    setHoveredPoints(points);
     setHoveredEntryId(null);
-  }, [points]);
+  }
 
   if (points.length === 0) {
     return null;
