@@ -163,6 +163,7 @@ export default async function DictationDetailPage({
         id: student.id,
         displayName: student.displayName,
         level: student.level ?? "",
+        hasSpeechTherapy: student.hasSpeechTherapy,
       })
     );
 

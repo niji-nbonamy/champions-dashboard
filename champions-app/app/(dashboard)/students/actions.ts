@@ -13,6 +13,10 @@ import {
   STUDENT_ARCHIVE_NOT_FOUND_ERROR,
 } from "@/lib/domain/student-display-name";
 import {
+  parseSpeechTherapyFormValue,
+  SET_STUDENT_SPEECH_THERAPY_GENERIC_ERROR,
+} from "@/lib/domain/student-speech-therapy";
+import {
   addStudent,
   AddStudentError,
 } from "@/lib/services/add-student";
@@ -32,6 +36,10 @@ import {
   OverrideStudentLevelError,
   OVERRIDE_STUDENT_LEVEL_GENERIC_ERROR,
 } from "@/lib/services/override-student-level";
+import {
+  setStudentSpeechTherapy,
+  SetStudentSpeechTherapyError,
+} from "@/lib/services/set-student-speech-therapy";
 import {
   refuseStudentPromotion,
   PROMOTION_REFUSE_GENERIC_ERROR,
@@ -53,6 +61,11 @@ export type AssignStudentLevelActionState = {
 };
 
 export type OverrideStudentLevelActionState = {
+  error: string | null;
+  changed: boolean;
+};
+
+export type SetStudentSpeechTherapyActionState = {
   error: string | null;
   changed: boolean;
 };
@@ -99,11 +112,14 @@ export async function addStudentAction(
   const displayNameField = formData.get("display_name");
   const rawDisplayName =
     typeof displayNameField === "string" ? displayNameField : "";
+  const hasSpeechTherapy = parseSpeechTherapyFormValue(
+    formData.get("has_speech_therapy")
+  );
 
   const activeCountBefore = await countActiveStudents(teacherClass.id);
 
   try {
-    await addStudent(teacherClass.id, rawDisplayName);
+    await addStudent(teacherClass.id, rawDisplayName, { hasSpeechTherapy });
     revalidatePath("/students");
     revalidatePath("/config");
     revalidatePath("/onboarding/year-start");
@@ -233,6 +249,64 @@ export async function overrideStudentLevelAction(
     }
 
     return { error: OVERRIDE_STUDENT_LEVEL_GENERIC_ERROR, changed: false };
+  }
+}
+
+export async function setStudentSpeechTherapyAction(
+  _prevState: SetStudentSpeechTherapyActionState,
+  formData: FormData
+): Promise<SetStudentSpeechTherapyActionState> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  const studentIdField = formData.get("student_id");
+  const studentId =
+    typeof studentIdField === "string" ? studentIdField.trim() : "";
+  const hasSpeechTherapy = parseSpeechTherapyFormValue(
+    formData.get("has_speech_therapy")
+  );
+
+  if (!studentId) {
+    return { error: "Élève introuvable.", changed: false };
+  }
+
+  try {
+    const result = await setStudentSpeechTherapy(
+      teacherClass.id,
+      studentId,
+      hasSpeechTherapy
+    );
+
+    if (result.changed) {
+      revalidatePath("/students", "layout");
+      revalidatePath("/onboarding/year-start");
+      revalidatePath("/dictations");
+      revalidatePath(`/students/${studentId}`);
+    }
+
+    return { error: null, changed: result.changed };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (error instanceof SetStudentSpeechTherapyError) {
+      return { error: error.message, changed: false };
+    }
+
+    return {
+      error: SET_STUDENT_SPEECH_THERAPY_GENERIC_ERROR,
+      changed: false,
+    };
   }
 }
 

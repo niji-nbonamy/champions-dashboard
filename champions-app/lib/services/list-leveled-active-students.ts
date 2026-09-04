@@ -8,6 +8,7 @@ export type LeveledActiveStudent = {
   id: string;
   displayName: string;
   level: string;
+  hasSpeechTherapy: boolean;
 };
 
 export async function listLeveledActiveStudents(
@@ -20,6 +21,7 @@ export async function listLeveledActiveStudents(
       id: students.id,
       displayName: students.displayName,
       level: students.level,
+      hasSpeechTherapy: students.hasSpeechTherapy,
     })
     .from(students)
     .where(

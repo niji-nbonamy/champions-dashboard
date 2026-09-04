@@ -51,6 +51,21 @@ vi.mock("@/components/promotion/roster-promotion-action", () => ({
   ),
 }));
 
+vi.mock("@/components/students/speech-therapy-toggle", () => ({
+  SpeechTherapyToggle: ({
+    studentId,
+    hasSpeechTherapy,
+  }: {
+    studentId: string;
+    hasSpeechTherapy: boolean;
+  }) => (
+    <div
+      data-testid={`speech-therapy-toggle-${studentId}`}
+      data-checked={hasSpeechTherapy ? "true" : "false"}
+    />
+  ),
+}));
+
 import { RosterList } from "./roster-list";
 
 describe("RosterList", () => {
@@ -360,6 +375,68 @@ describe("RosterList", () => {
 
     expect(html).not.toContain("⬆️");
     expect(html).not.toContain(`data-testid="roster-promotion-${studentId}"`);
+  });
+
+  it("shows the speech therapy icon after the name when follow-up is active", () => {
+    const studentId = "770e8400-e29b-41d4-a716-446655440002";
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: studentId,
+            displayName: "DUPONT Marie",
+            level: "yellow",
+            hasSpeechTherapy: true,
+            archived: false,
+          },
+        ]}
+      />
+    );
+
+    expect(html).toContain("Suivi orthophoniste");
+    expect(html).not.toContain(`data-testid="speech-therapy-toggle-${studentId}"`);
+  });
+
+  it("renders the speech therapy toggle on active rows when enabled", () => {
+    const studentId = "770e8400-e29b-41d4-a716-446655440002";
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: studentId,
+            displayName: "DUPONT Marie",
+            level: "yellow",
+            hasSpeechTherapy: false,
+            archived: false,
+          },
+        ]}
+        showSpeechTherapyUi
+      />
+    );
+
+    expect(html).toContain(`data-testid="speech-therapy-toggle-${studentId}"`);
+  });
+
+  it("hides the speech therapy toggle for archived students", () => {
+    const studentId = "990e8400-e29b-41d4-a716-446655440004";
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: studentId,
+            displayName: "BERNARD Paul",
+            level: "green",
+            hasSpeechTherapy: true,
+            archived: true,
+          },
+        ]}
+        filter="archived"
+        showSpeechTherapyUi
+      />
+    );
+
+    expect(html).toContain("Suivi orthophoniste");
+    expect(html).not.toContain(`data-testid="speech-therapy-toggle-${studentId}"`);
   });
 
   it("renders archive buttons for active rows when archive actions are enabled", () => {

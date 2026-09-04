@@ -267,7 +267,9 @@ describe("addStudentAction", () => {
       error: null,
       success: STUDENT_ADD_SUCCESS_MESSAGE,
     });
-    expect(mockAddStudent).toHaveBeenCalledWith(classId, "DUPONT Marie");
+    expect(mockAddStudent).toHaveBeenCalledWith(classId, "DUPONT Marie", {
+      hasSpeechTherapy: false,
+    });
     expect(revalidatePath).toHaveBeenCalledWith("/students");
     expect(revalidatePath).toHaveBeenCalledWith("/config");
     expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");

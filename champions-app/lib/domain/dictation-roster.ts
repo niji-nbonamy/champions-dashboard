@@ -10,6 +10,7 @@ export type DictationRosterStudent = {
   id: string;
   displayName: string;
   level: string | null;
+  hasSpeechTherapy: boolean;
   readOnly?: boolean;
 };
 
@@ -73,6 +74,7 @@ export function buildDictationRosterState(
         id: student.id,
         displayName: student.displayName,
         level: student.level,
+        hasSpeechTherapy: student.hasSpeechTherapy,
       })),
       enteredStudentIds,
       remainingCount: leveledStudentCount - enteredStudentIds.length,
@@ -95,6 +97,8 @@ export function buildDictationRosterState(
         activeStudentsById.get(entry.studentId)?.displayName ??
         entry.displayName,
       level: entry.levelAtSave,
+      hasSpeechTherapy:
+        activeStudentsById.get(entry.studentId)?.hasSpeechTherapy ?? false,
       readOnly: entry.archived,
     })
   );
@@ -110,6 +114,7 @@ export function buildDictationRosterState(
         id: student.id,
         displayName: student.displayName,
         level: student.level,
+        hasSpeechTherapy: student.hasSpeechTherapy,
         readOnly: false,
       }));
     const additionalUnleveled = activeStudents
@@ -118,6 +123,7 @@ export function buildDictationRosterState(
         id: student.id,
         displayName: student.displayName,
         level: student.level,
+        hasSpeechTherapy: student.hasSpeechTherapy,
         readOnly: false,
       }));
 

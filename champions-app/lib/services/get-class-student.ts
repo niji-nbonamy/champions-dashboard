@@ -7,6 +7,7 @@ export type ClassStudentRecord = {
   id: string;
   displayName: string;
   level: string | null;
+  hasSpeechTherapy: boolean;
   archived: boolean;
 };
 
@@ -21,6 +22,7 @@ export async function getClassStudent(
       id: students.id,
       displayName: students.displayName,
       level: students.level,
+      hasSpeechTherapy: students.hasSpeechTherapy,
       archived: students.archived,
     })
     .from(students)

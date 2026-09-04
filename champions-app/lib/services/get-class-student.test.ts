@@ -50,6 +50,7 @@ describe("getClassStudent", () => {
         displayName: "DUPONT Marie",
         level: "yellow",
         archived: false,
+        hasSpeechTherapy: false,
       },
     ]);
 
@@ -67,6 +68,7 @@ describe("getClassStudent", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
   });
 
@@ -77,6 +79,7 @@ describe("getClassStudent", () => {
         displayName: "BERNARD Paul",
         level: "green",
         archived: true,
+        hasSpeechTherapy: false,
       },
     ]);
 
@@ -88,6 +91,7 @@ describe("getClassStudent", () => {
       displayName: "BERNARD Paul",
       level: "green",
       archived: true,
+      hasSpeechTherapy: false,
     });
   });
 

@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { StudentSheetPresentationLink } from "@/components/student-sheet/student-sheet-presentation-link";
+import { SpeechTherapyToggle } from "@/components/students/speech-therapy-toggle";
+import { StudentNameWithSpeechTherapy } from "@/components/students/student-name-with-speech-therapy";
 import { PresentationReturnFocus } from "@/components/student-sheet/presentation-return-focus";
 import { LevelHistoryList } from "@/components/student-sheet/level-history-list";
 import { CurvePlaceholder } from "@/components/student-sheet/curve-placeholder";
@@ -16,6 +18,7 @@ import { LevelBadge } from "@/components/ui/level-badge";
 import { PromotionBanner } from "@/components/promotion/promotion-banner";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import { isValidUuidV4 } from "@/lib/domain/dictation";
+import { STUDENT_SPEECH_THERAPY_LABEL } from "@/lib/domain/student-speech-therapy";
 import { toCurvePoints } from "@/lib/domain/student-sheet-curve";
 import { canArchiveStudents } from "@/lib/domain/year-start-readiness";
 import { getClassStudent } from "@/lib/services/get-class-student";
@@ -93,7 +96,12 @@ export default async function StudentSheetPage({
           Retour aux élèves
         </Link>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <h1 className="text-display">{student.displayName}</h1>
+          <h1 className="text-display">
+            <StudentNameWithSpeechTherapy
+              displayName={student.displayName}
+              hasSpeechTherapy={student.hasSpeechTherapy}
+            />
+          </h1>
           <div className="flex flex-wrap items-center gap-2">
             <StudentSheetPresentationLink studentId={id} />
             {showArchiveAction ? (
@@ -106,7 +114,7 @@ export default async function StudentSheetPage({
           </div>
         </div>
         {student.level && isChampionsLevel(student.level) ? (
-          <div className="mt-2 flex flex-col sm:flex-row sm:items-start">
+          <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start">
             <div className="flex flex-col gap-2 pb-4 sm:pb-0 sm:pr-6">
               <span className="text-sm font-medium text-muted-foreground">
                 Niveau actuel
@@ -130,10 +138,48 @@ export default async function StudentSheetPage({
                 />
               </div>
             )}
+            <div
+              aria-hidden="true"
+              className="border-border border-t sm:h-auto sm:w-px sm:self-stretch sm:border-t-0 sm:border-l"
+            />
+            <div className="flex flex-col gap-2 pt-4 sm:pt-0 sm:pl-6">
+              <span className="text-sm font-medium text-muted-foreground">
+                {STUDENT_SPEECH_THERAPY_LABEL}
+              </span>
+              {student.archived ? (
+                <span className="text-sm text-muted-foreground">
+                  {student.hasSpeechTherapy ? "Oui" : "Non"}
+                </span>
+              ) : (
+                <SpeechTherapyToggle
+                  studentId={id}
+                  hasSpeechTherapy={student.hasSpeechTherapy}
+                />
+              )}
+            </div>
           </div>
-        ) : student.archived ? (
-          <span className="mt-2 text-sm text-muted-foreground">Archivé</span>
-        ) : null}
+        ) : (
+          <div className="mt-2 flex flex-col gap-2">
+            {student.archived ? (
+              <span className="text-sm text-muted-foreground">Archivé</span>
+            ) : null}
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                {STUDENT_SPEECH_THERAPY_LABEL}
+              </span>
+              {student.archived ? (
+                <span className="text-sm text-muted-foreground">
+                  {student.hasSpeechTherapy ? "Oui" : "Non"}
+                </span>
+              ) : (
+                <SpeechTherapyToggle
+                  studentId={id}
+                  hasSpeechTherapy={student.hasSpeechTherapy}
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {pendingPromotion ? (

@@ -93,10 +93,19 @@ const marieStudentId = "770e8400-e29b-41d4-a716-446655440002";
 const paulStudentId = "770e8400-e29b-41d4-a716-446655440004";
 
 function mockLeveledRoster(
-  students: Array<{ id: string; displayName: string; level: string }>
+  students: Array<{
+    id: string;
+    displayName: string;
+    level: string;
+    hasSpeechTherapy?: boolean;
+  }>
 ) {
-  mockListLeveledActiveStudents.mockResolvedValueOnce(students);
-  mockListActiveStudents.mockResolvedValueOnce(students);
+  const rosterStudents = students.map((student) => ({
+    ...student,
+    hasSpeechTherapy: student.hasSpeechTherapy ?? false,
+  }));
+  mockListLeveledActiveStudents.mockResolvedValueOnce(rosterStudents);
+  mockListActiveStudents.mockResolvedValueOnce(rosterStudents);
 }
 
 function mockAuthenticatedClass() {
@@ -442,11 +451,13 @@ describe("DictationDetailPage", () => {
             id: marieStudentId,
             displayName: "DUPONT Marie",
             level: "yellow",
+            hasSpeechTherapy: false,
           },
           {
             id: "770e8400-e29b-41d4-a716-446655440099",
             displayName: "ANCIEN Léa",
             level: "yellow",
+            hasSpeechTherapy: false,
           },
         ],
         wordTotalsByStudentId: {
@@ -542,11 +553,13 @@ describe("DictationDetailPage", () => {
             id: marieStudentId,
             displayName: "JAVEL Aude",
             level: "yellow",
+            hasSpeechTherapy: false,
           },
           {
             id: paulStudentId,
             displayName: "MARTIN Paul",
             level: "green",
+            hasSpeechTherapy: false,
           },
         ],
         wordTotalsByStudentId: {

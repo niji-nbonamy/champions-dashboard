@@ -120,6 +120,7 @@ export default async function MobileStudentEntryPage({
           dictationId={id}
           studentId={studentId}
           displayName={rosterStudent.displayName}
+          hasSpeechTherapy={rosterStudent.hasSpeechTherapy}
           wordDenominator={existingEntry.wordDenominator}
           initialCounts={initialCounts}
           orderedStudentIds={rosterState.orderedEditableStudentIds}
@@ -212,6 +213,7 @@ export default async function MobileStudentEntryPage({
         dictationId={id}
         studentId={studentId}
         displayName={classStudent.displayName}
+        hasSpeechTherapy={classStudent.hasSpeechTherapy}
         wordDenominator={wordDenominator}
         initialCounts={initialCounts}
         orderedStudentIds={rosterState.orderedEditableStudentIds}

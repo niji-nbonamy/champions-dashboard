@@ -28,7 +28,8 @@ export type AddStudentResult = {
 
 export async function addStudent(
   classId: string,
-  rawDisplayName: string
+  rawDisplayName: string,
+  options?: { hasSpeechTherapy?: boolean }
 ): Promise<AddStudentResult> {
   const validated = validateDisplayName(rawDisplayName);
   if (!validated.ok) {
@@ -50,6 +51,7 @@ export async function addStudent(
     classId,
     displayName: validated.displayName,
     archived: false,
+    hasSpeechTherapy: options?.hasSpeechTherapy === true,
   });
 
   return { displayName: validated.displayName };

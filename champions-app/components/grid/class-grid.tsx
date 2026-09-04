@@ -16,6 +16,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { LevelBadge } from "@/components/ui/level-badge";
+import { StudentNameWithSpeechTherapy } from "@/components/students/student-name-with-speech-therapy";
 import { PromotionDialog } from "@/components/promotion/promotion-dialog";
 import { useDictationPromotionDialog } from "@/components/promotion/use-dictation-promotion-dialog";
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
@@ -431,7 +432,10 @@ export function ClassGrid({
                   >
                     <span className="flex w-full items-center gap-2">
                       <span className="min-w-0 flex-1 break-words">
-                        {student.displayName}
+                        <StudentNameWithSpeechTherapy
+                          displayName={student.displayName}
+                          hasSpeechTherapy={student.hasSpeechTherapy}
+                        />
                       </span>
                       <span className="flex w-[4.5rem] shrink-0 justify-end">
                         {student.level ? (

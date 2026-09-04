@@ -39,10 +39,10 @@ describe("buildDictationRosterState", () => {
     const state = buildDictationRosterState(
       [],
       [
-        { id: studentA, displayName: "DUPONT Marie", level: "yellow" },
-        { id: studentNew, displayName: "PETIT Lucas", level: null },
+        { id: studentA, displayName: "DUPONT Marie", level: "yellow", hasSpeechTherapy: false },
+        { id: studentNew, displayName: "PETIT Lucas", level: null, hasSpeechTherapy: false },
       ],
-      [{ id: studentA, displayName: "DUPONT Marie", level: "yellow" }]
+      [{ id: studentA, displayName: "DUPONT Marie", level: "yellow", hasSpeechTherapy: false }]
     );
 
     expect(state.students.map((student) => student.id)).toEqual([
@@ -57,12 +57,12 @@ describe("buildDictationRosterState", () => {
     const state = buildDictationRosterState(
       [entry(studentA)],
       [
-        { id: studentA, displayName: "DUPONT Marie", level: "yellow" },
-        { id: studentB, displayName: "MARTIN Paul", level: "green" },
+        { id: studentA, displayName: "DUPONT Marie", level: "yellow", hasSpeechTherapy: true },
+        { id: studentB, displayName: "MARTIN Paul", level: "green", hasSpeechTherapy: false },
       ],
       [
-        { id: studentA, displayName: "DUPONT Marie", level: "yellow" },
-        { id: studentB, displayName: "MARTIN Paul", level: "green" },
+        { id: studentA, displayName: "DUPONT Marie", level: "yellow", hasSpeechTherapy: true },
+        { id: studentB, displayName: "MARTIN Paul", level: "green", hasSpeechTherapy: false },
       ]
     );
 
@@ -73,13 +73,16 @@ describe("buildDictationRosterState", () => {
     expect(state.isHistoricalRoster).toBe(false);
     expect(state.remainingCount).toBe(1);
     expect(state.enteredStudentIds).toEqual([studentA]);
+    expect(
+      state.students.find((student) => student.id === studentA)?.hasSpeechTherapy
+    ).toBe(true);
   });
 
   it("freezes the roster from entries when archived participants exist", () => {
     const state = buildDictationRosterState(
       [entry(studentA), entry(studentArchived, true, "ANCIEN Élève")],
-      [{ id: studentB, displayName: "MARTIN Paul", level: "green" }],
-      [{ id: studentB, displayName: "MARTIN Paul", level: "green" }]
+      [{ id: studentB, displayName: "MARTIN Paul", level: "green", hasSpeechTherapy: false }],
+      [{ id: studentB, displayName: "MARTIN Paul", level: "green", hasSpeechTherapy: false }]
     );
 
     expect(state.isHistoricalRoster).toBe(true);
@@ -99,8 +102,8 @@ describe("buildDictationRosterState", () => {
   it("freezes the roster when departed participants remain in entries", () => {
     const state = buildDictationRosterState(
       [entry(studentArchived, true, "ANCIEN Élève")],
-      [{ id: studentB, displayName: "MARTIN Paul", level: "green" }],
-      [{ id: studentB, displayName: "MARTIN Paul", level: "green" }]
+      [{ id: studentB, displayName: "MARTIN Paul", level: "green", hasSpeechTherapy: false }],
+      [{ id: studentB, displayName: "MARTIN Paul", level: "green", hasSpeechTherapy: false }]
     );
 
     expect(state.isHistoricalRoster).toBe(true);

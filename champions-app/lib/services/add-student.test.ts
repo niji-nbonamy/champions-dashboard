@@ -41,6 +41,7 @@ describe("addStudent", () => {
       classId,
       displayName: "DUPONT Marie",
       archived: false,
+      hasSpeechTherapy: false,
     });
     expect(mockValues.mock.calls[0][0]).not.toHaveProperty("level");
   });

@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { RosterPromotionAction } from "@/components/promotion/roster-promotion-action";
+import { SpeechTherapyToggle } from "@/components/students/speech-therapy-toggle";
+import { StudentNameWithSpeechTherapy } from "@/components/students/student-name-with-speech-therapy";
 import { LevelBadge } from "@/components/ui/level-badge";
 import { RequiredLevelBadge } from "@/components/ui/required-level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
@@ -16,6 +18,7 @@ type RosterListStudent = {
   id: string;
   displayName: string;
   level: string | null;
+  hasSpeechTherapy?: boolean;
   archived?: boolean;
 };
 
@@ -23,6 +26,7 @@ type RosterListProps = {
   students: RosterListStudent[];
   filter?: ClassStudentFilter;
   showLevelUi?: boolean;
+  showSpeechTherapyUi?: boolean;
   showArchiveAction?: boolean;
   linkToStudentSheet?: boolean;
   pendingPromotionsByStudentId?: Record<string, PendingPromotionByStudent>;
@@ -59,6 +63,7 @@ export function RosterList({
   students,
   filter = "active",
   showLevelUi = true,
+  showSpeechTherapyUi = false,
   showArchiveAction = false,
   linkToStudentSheet = true,
   pendingPromotionsByStudentId = {},
@@ -74,6 +79,7 @@ export function RosterList({
       {students.map((student) => {
         const isArchived = student.archived === true;
         const pendingPromotion = pendingPromotionsByStudentId[student.id] ?? null;
+        const hasSpeechTherapy = student.hasSpeechTherapy === true;
 
         return (
           <li key={student.id} className="flex overflow-hidden">
@@ -84,19 +90,40 @@ export function RosterList({
                 getLevelStripeClass(student.level)
               )}
             />
-            <div className="flex min-w-0 flex-1 flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-1 flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
               {linkToStudentSheet ? (
                 <Link
                   href={`/students/${student.id}`}
-                  className="text-sm font-medium underline-offset-4 hover:underline"
+                  className="min-w-0 text-sm font-medium underline-offset-4 hover:underline"
                   aria-label={`Fiche de ${student.displayName}`}
                 >
-                  {student.displayName}
+                  <StudentNameWithSpeechTherapy
+                    displayName={student.displayName}
+                    hasSpeechTherapy={hasSpeechTherapy}
+                    showIndicatorIcon={!showSpeechTherapyUi || isArchived}
+                  />
                 </Link>
               ) : (
-                <span className="text-sm font-medium">{student.displayName}</span>
+                <StudentNameWithSpeechTherapy
+                  displayName={student.displayName}
+                  hasSpeechTherapy={hasSpeechTherapy}
+                  showIndicatorIcon={!showSpeechTherapyUi || isArchived}
+                  className="min-w-0 text-sm font-medium"
+                />
               )}
-              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+              <div className="flex flex-col items-start gap-2 sm:ml-auto sm:flex-row sm:items-center">
+                {showSpeechTherapyUi && !isArchived ? (
+                  <SpeechTherapyToggle
+                    studentId={student.id}
+                    hasSpeechTherapy={hasSpeechTherapy}
+                  />
+                ) : null}
+                {showSpeechTherapyUi && !isArchived && showLevelUi ? (
+                  <div
+                    aria-hidden="true"
+                    className="border-border w-full border-t sm:h-8 sm:w-px sm:border-t-0 sm:border-l"
+                  />
+                ) : null}
                 {showLevelUi ? (
                   isArchived ? (
                     <div className="flex flex-wrap items-center gap-2">

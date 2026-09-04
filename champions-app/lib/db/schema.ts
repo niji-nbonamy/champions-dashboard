@@ -64,6 +64,7 @@ export const students = pgTable("students", {
     .references(() => classes.id),
   displayName: text("display_name").notNull(),
   level: text("level"),
+  hasSpeechTherapy: boolean("has_speech_therapy").notNull().default(false),
   archived: boolean("archived").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

@@ -3,6 +3,8 @@
 import { useActionState, useEffect, useId, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
+import { SpeechTherapyIcon } from "@/components/students/speech-therapy-icon";
+import { STUDENT_SPEECH_THERAPY_LABEL } from "@/lib/domain/student-speech-therapy";
 import { STUDENT_DISPLAY_NAME_MAX_LENGTH } from "@/lib/domain/student-display-name";
 
 import {
@@ -58,6 +60,17 @@ export function AddStudentForm() {
           className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
         />
       </div>
+
+      <label className="inline-flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          name="has_speech_therapy"
+          value="true"
+          className="size-4 rounded border border-border accent-primary"
+        />
+        <SpeechTherapyIcon className="opacity-70" />
+        <span>{STUDENT_SPEECH_THERAPY_LABEL}</span>
+      </label>
 
       {state.error ? (
         <p id={errorId} className="text-sm text-destructive" role="alert">

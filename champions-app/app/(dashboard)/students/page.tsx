@@ -91,6 +91,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
         <RosterList
           students={students}
           filter={filter}
+          showSpeechTherapyUi
           showArchiveAction={
             wizardStatus !== null && canArchiveStudents(wizardStatus)
           }

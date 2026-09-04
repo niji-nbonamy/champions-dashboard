@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LevelBadge } from "@/components/ui/level-badge";
+import { StudentNameWithSpeechTherapy } from "@/components/students/student-name-with-speech-therapy";
 import { RequiredLevelBadge } from "@/components/ui/required-level-badge";
 import { isChampionsLevel } from "@/lib/domain/champions-level";
 import { MOBILE_NO_LEVELED_STUDENTS_MESSAGE } from "@/lib/domain/mobile-dictation-messages";
@@ -11,6 +12,7 @@ export type MobileStudentPickerStudent = {
   id: string;
   displayName: string;
   level: string | null;
+  hasSpeechTherapy?: boolean;
   readOnly?: boolean;
 };
 
@@ -102,7 +104,10 @@ export function MobileStudentPicker({
                   aria-label={`${student.displayName}, archivé, saisi`}
                 >
                   <span className="min-w-0 flex-1 break-words text-base font-medium leading-snug">
-                    {student.displayName}
+                    <StudentNameWithSpeechTherapy
+                      displayName={student.displayName}
+                      hasSpeechTherapy={student.hasSpeechTherapy}
+                    />
                   </span>
                   <div className="flex shrink-0 items-center gap-2 self-center">
                     {level ? <LevelBadge level={level} /> : null}
@@ -129,7 +134,10 @@ export function MobileStudentPicker({
                   }
                 >
                   <span className="min-w-0 flex-1 break-words text-base font-medium leading-snug">
-                    {student.displayName}
+                    <StudentNameWithSpeechTherapy
+                      displayName={student.displayName}
+                      hasSpeechTherapy={student.hasSpeechTherapy}
+                    />
                   </span>
                   <div className="flex shrink-0 items-center gap-2 self-center">
                     {level ? (

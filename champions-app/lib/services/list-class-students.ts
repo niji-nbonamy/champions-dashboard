@@ -9,6 +9,7 @@ export type ClassStudent = {
   id: string;
   displayName: string;
   level: string | null;
+  hasSpeechTherapy: boolean;
   archived: boolean;
 };
 
@@ -35,6 +36,7 @@ export async function listClassStudents(
       id: students.id,
       displayName: students.displayName,
       level: students.level,
+      hasSpeechTherapy: students.hasSpeechTherapy,
       archived: students.archived,
     })
     .from(students)

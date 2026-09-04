@@ -78,6 +78,21 @@ vi.mock("../level-dot-picker", () => ({
   ),
 }));
 
+vi.mock("@/components/students/speech-therapy-toggle", () => ({
+  SpeechTherapyToggle: ({
+    studentId,
+    hasSpeechTherapy,
+  }: {
+    studentId: string;
+    hasSpeechTherapy: boolean;
+  }) => (
+    <div
+      data-testid={`speech-therapy-toggle-${studentId}`}
+      data-checked={hasSpeechTherapy ? "true" : "false"}
+    />
+  ),
+}));
+
 vi.mock("../archive-student-button", () => ({
   ArchiveStudentButton: ({
     studentId,
@@ -196,6 +211,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
     mockGetStudentDictationHistory.mockResolvedValueOnce([]);
 
@@ -227,6 +243,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: true,
+      hasSpeechTherapy: false,
     });
 
     const html = renderToStaticMarkup(
@@ -253,6 +270,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: null,
       archived: false,
+      hasSpeechTherapy: false,
     });
 
     const html = renderToStaticMarkup(
@@ -269,6 +287,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
     mockGetStudentDictationHistory.mockResolvedValueOnce([
       {
@@ -322,6 +341,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
     mockGetStudentDictationHistory.mockResolvedValueOnce([
       {
@@ -385,6 +405,7 @@ describe("StudentSheetPage", () => {
       displayName: "BERNARD Paul",
       level: "green",
       archived: true,
+      hasSpeechTherapy: false,
     });
     mockGetStudentDictationHistory.mockResolvedValueOnce([]);
 
@@ -406,6 +427,7 @@ describe("StudentSheetPage", () => {
       displayName: "BERNARD Paul",
       level: "green",
       archived: true,
+      hasSpeechTherapy: false,
     });
     mockGetStudentDictationHistory.mockResolvedValueOnce([
       {
@@ -447,6 +469,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
     mockListPendingPromotionsForStudents.mockResolvedValueOnce({
       [studentId]: { targetLevel: "green" },
@@ -474,6 +497,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
     mockListPendingPromotionsForStudents.mockResolvedValueOnce({});
 
@@ -491,6 +515,7 @@ describe("StudentSheetPage", () => {
       displayName: "BERNARD Paul",
       level: "green",
       archived: true,
+      hasSpeechTherapy: false,
     });
 
     const html = renderToStaticMarkup(
@@ -508,6 +533,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
     mockListPendingPromotionsForStudents.mockResolvedValueOnce({
       [studentId]: { targetLevel: "green" },
@@ -532,6 +558,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
     mockListPendingPromotionsForStudents.mockResolvedValueOnce({
       [studentId]: { targetLevel: "green" },
@@ -577,6 +604,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
 
     const html = renderToStaticMarkup(
@@ -596,6 +624,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
     mockGetStudentLevelHistory.mockResolvedValueOnce([
       {
@@ -622,6 +651,7 @@ describe("StudentSheetPage", () => {
       displayName: "DUPONT Marie",
       level: "yellow",
       archived: false,
+      hasSpeechTherapy: false,
     });
 
     const html = renderToStaticMarkup(
@@ -641,6 +671,7 @@ describe("StudentSheetPage", () => {
       displayName: "BERNARD Paul",
       level: "green",
       archived: true,
+      hasSpeechTherapy: false,
     });
 
     const html = renderToStaticMarkup(
@@ -658,6 +689,7 @@ describe("StudentSheetPage", () => {
       displayName: "BERNARD Paul",
       level: "green",
       archived: true,
+      hasSpeechTherapy: false,
     });
     mockGetStudentLevelHistory.mockResolvedValueOnce([
       {

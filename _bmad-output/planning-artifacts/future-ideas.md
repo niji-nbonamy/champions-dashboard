@@ -124,3 +124,22 @@ Product ideas and enhancements captured during development — not committed wor
 - **Summary:** When creating a dictation from the Dictées tab, show clear guidance that dictation labels must exist in the Config word-count matrix first (with link to Config).
 - **Context:** « Nouvelle dictée » opens a picker fed only by matrix rows — not obvious when working in Dictées; teachers may not realize they must add the dictation on Config before it appears here (story 2.7 covers empty roster / missing matrix blocking, not this mental-model gap once setup is complete).
 - **Related:** `spec-2-4-word-count-matrix-configuration-f1`, `spec-2-7-empty-roster-pre-setup-states`, `spec-3-1-create-dictation`; `create-dictation-dialog.tsx`, `dictations/page.tsx`; FR10, FR13.
+
+### IDEA-007 — Suivi orthophoniste sur la fiche élève (2026-09-04)
+
+- **Status:** done
+- **Area:** roster
+- **Summary:** L'enseignant peut indiquer si un élève est en suivi orthophoniste ; un pictogramme « profil + ondes sonores » apparaît juste après le nom (listes, grille dictée, fiche élève) lorsque le suivi est actif.
+- **Context:** Information utile au quotidien (adaptations, repères visuels en classe) mais absente du modèle actuel (`students` : nom, niveau, archivé). Le suivi peut démarrer ou s'arrêter en cours d'année.
+- **Décisions produit :**
+  - **Pas dans le CSV d'import** — fichier roster inchangé (colonne « NOM + prénom » seule).
+  - **Wizard étape 2 « Niveaux »** — case à cocher + pictogramme par élève, en même temps que l'assignation des niveaux (`step-levels.tsx` / `RosterList`).
+  - **Édition en cours d'année** — même contrôle (case + pictogramme) sur la ligne liste Élèves **et** sur la fiche élève (bloc à côté du niveau, sur le modèle `LevelDotPicker`).
+  - **Nouvel élève** — case à cocher libellée « Suivi orthophoniste » dans `add-student-form.tsx` (décochée par défaut).
+  - **Contrôle d'édition** — case à cocher + pictogramme adjacent (compromis lisibilité / compacité) ; sauvegarde immédiate (server action, comme les niveaux).
+  - **Affichage informatif** — pictogramme **après le nom** lorsque actif : `roster-list.tsx`, en-tête de ligne grille (`class-grid.tsx`), titre fiche élève (`students/[id]/page.tsx`). Grille dictée : **affichage seul** (pas d'édition pendant la saisie des erreurs).
+  - **Mode présentation (RDV parents)** — **masqué** : information interne enseignant, non exposée aux parents (`presentation-mode.tsx` inchangé).
+  - **Schéma DB** — colonne booléenne sur `students` (ex. `has_speech_therapy`), `NOT NULL DEFAULT false` : élèves déjà en base = sans suivi jusqu'à action explicite ; `npm run db:push` après `schema.ts`.
+  - **Élèves archivés** — pictogramme conservé après le nom si suivi actif ; case à cocher **désactivée** (lecture seule, pas d'édition depuis liste ni fiche).
+- **Related:** `lib/db/schema.ts`, `app/onboarding/year-start/step-levels.tsx`, `app/(dashboard)/students/roster-list.tsx`, `level-dot-picker.tsx`, `add-student-form.tsx`, `components/grid/class-grid.tsx`, `app/(dashboard)/students/[id]/page.tsx` ; pictogramme profil + ondes (SVG).
+- **Promoted to:** —

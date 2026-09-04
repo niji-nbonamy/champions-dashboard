@@ -69,6 +69,21 @@ vi.mock("./level-dot-picker", () => ({
   ),
 }));
 
+vi.mock("@/components/students/speech-therapy-toggle", () => ({
+  SpeechTherapyToggle: ({
+    studentId,
+    hasSpeechTherapy,
+  }: {
+    studentId: string;
+    hasSpeechTherapy: boolean;
+  }) => (
+    <div
+      data-testid={`speech-therapy-toggle-${studentId}`}
+      data-checked={hasSpeechTherapy ? "true" : "false"}
+    />
+  ),
+}));
+
 import StudentsPage from "./page";
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
@@ -120,12 +135,14 @@ describe("students page", () => {
         displayName: "DUPONT Marie",
         level: null,
         archived: false,
+        hasSpeechTherapy: false,
       },
       {
         id: "880e8400-e29b-41d4-a716-446655440003",
         displayName: "MARTIN Lucas",
         level: "yellow",
         archived: false,
+        hasSpeechTherapy: false,
       },
     ]);
 
@@ -182,6 +199,7 @@ describe("students page", () => {
         displayName: "DUPONT Marie",
         level: "yellow",
         archived: false,
+        hasSpeechTherapy: false,
       },
     ]);
     mockListPendingPromotionsForStudents.mockResolvedValueOnce({});
@@ -201,6 +219,7 @@ describe("students page", () => {
         displayName: "DUPONT Marie",
         level: "yellow",
         archived: false,
+        hasSpeechTherapy: false,
       },
     ]);
 
@@ -233,6 +252,7 @@ describe("students page", () => {
         displayName: "DUPONT Marie",
         level: "yellow",
         archived: false,
+        hasSpeechTherapy: false,
       },
     ]);
     mockListPendingPromotionsForStudents.mockResolvedValueOnce({});
@@ -280,6 +300,7 @@ describe("students page", () => {
         displayName: "DUPONT Marie",
         level: "yellow",
         archived: false,
+        hasSpeechTherapy: false,
       },
     ]);
     mockListPendingPromotionsForStudents.mockReset();

@@ -7,6 +7,7 @@ import { useMemo, useState, useTransition } from "react";
 
 import { saveDictationStudentEntryAction } from "@/app/(dashboard)/dictations/actions";
 import { MobileErrorField } from "@/components/dictations/mobile-error-field";
+import { StudentNameWithSpeechTherapy } from "@/components/students/student-name-with-speech-therapy";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   CHAMPIONS_ERROR_CATEGORIES,
@@ -24,6 +25,7 @@ type MobilePerStudentFormProps = {
   dictationId: string;
   studentId: string;
   displayName: string;
+  hasSpeechTherapy?: boolean;
   wordDenominator: number;
   initialCounts: CategoryErrorCounts;
   orderedStudentIds: string[];
@@ -101,6 +103,7 @@ export function MobilePerStudentForm({
   dictationId,
   studentId,
   displayName,
+  hasSpeechTherapy = false,
   wordDenominator,
   initialCounts,
   orderedStudentIds,
@@ -178,7 +181,12 @@ export function MobilePerStudentForm({
     <div className="flex flex-1 flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold tracking-tight">{displayName}</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            <StudentNameWithSpeechTherapy
+              displayName={displayName}
+              hasSpeechTherapy={hasSpeechTherapy}
+            />
+          </h1>
           {readOnly ? (
             <p className="text-sm text-muted-foreground">Archivé — lecture seule</p>
           ) : null}

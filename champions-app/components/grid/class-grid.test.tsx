@@ -51,11 +51,13 @@ const sampleStudents: LeveledActiveStudent[] = [
     id: "770e8400-e29b-41d4-a716-446655440002",
     displayName: "DUPONT Marie",
     level: "yellow",
+    hasSpeechTherapy: false,
   },
   {
     id: "770e8400-e29b-41d4-a716-446655440004",
     displayName: "MARTIN Paul",
     level: "green",
+    hasSpeechTherapy: false,
   },
 ];
 
@@ -151,6 +153,18 @@ describe("ClassGrid", () => {
     expect(container.textContent).toContain("vert");
     expect(container.textContent).toContain("Bilan");
     expect(getCellInputs()).toHaveLength(18);
+  });
+
+  it("shows the speech therapy icon in the student row when follow-up is active", () => {
+    renderGrid([
+      {
+        ...sampleStudents[0],
+        hasSpeechTherapy: true,
+      },
+    ]);
+
+    expect(container.innerHTML).toContain("Suivi orthophoniste");
+    expect(container.innerHTML).toContain("/icons/speech-therapy.png");
   });
 
   it("shows an empty-state message when no leveled students exist", () => {
@@ -884,6 +898,7 @@ describe("ClassGrid", () => {
           id: archivedStudentId,
           displayName: "ANCIEN Léa",
           level: "yellow",
+          hasSpeechTherapy: false,
         },
       ],
       {
@@ -953,6 +968,7 @@ describe("ClassGrid", () => {
           id: archivedStudentId,
           displayName: "ANCIEN Léa",
           level: "yellow",
+          hasSpeechTherapy: false,
         },
       ],
       { [archivedStudentId]: 40 },
