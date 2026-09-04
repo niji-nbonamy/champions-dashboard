@@ -12,6 +12,7 @@ type GridCellProps = {
   studentId: string;
   categoryLetter: ChampionsErrorCategoryLetter;
   categoryName: string;
+  columnBackground: string;
   displayName: string;
   value: number;
   inputRef?: Ref<HTMLInputElement>;
@@ -50,6 +51,7 @@ export function GridCell({
   studentId,
   categoryLetter,
   categoryName,
+  columnBackground,
   displayName,
   value,
   inputRef,
@@ -124,7 +126,11 @@ export function GridCell({
   }
 
   return (
-    <td className="p-0 align-middle">
+    <td
+      data-category-letter={categoryLetter}
+      className="p-0 align-middle"
+      style={{ backgroundColor: columnBackground }}
+    >
       <input
         ref={inputRef}
         type="text"

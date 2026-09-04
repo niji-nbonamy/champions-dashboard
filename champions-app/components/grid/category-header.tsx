@@ -48,7 +48,7 @@ export function CategoryHeader({ category, className }: CategoryHeaderProps) {
       )}
       onClick={() => setOpen((current) => !current)}
     >
-      <span className="inline-flex min-h-[var(--spacing-grid-row-height)] min-w-[var(--spacing-grid-cell-min)] items-center justify-center text-xl font-bold leading-none">
+      <span className="inline-flex min-h-[var(--spacing-grid-row-height)] items-center justify-center text-xl font-bold leading-none">
         {category.letter}
       </span>
       <div

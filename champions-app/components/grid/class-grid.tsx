@@ -21,6 +21,7 @@ import { useDictationPromotionDialog } from "@/components/promotion/use-dictatio
 import { parseChampionsLevel } from "@/lib/domain/champions-level";
 import {
   CHAMPIONS_ERROR_CATEGORIES,
+  getCategoryColumnBackground,
   type ChampionsErrorCategoryLetter,
 } from "@/lib/domain/error-categories";
 import {
@@ -33,6 +34,7 @@ import type { PendingPromotionByStudent } from "@/lib/services/list-pending-prom
 import { CategoryHeader } from "./category-header";
 import { GridCell } from "./grid-cell";
 import { GridPromotionCell } from "./grid-promotion-cell";
+import { GridRowSummaryCell } from "./grid-row-summary-cell";
 
 type GridCounts = Record<string, Record<ChampionsErrorCategoryLetter, number>>;
 
@@ -401,6 +403,12 @@ export function ClassGrid({
               {CHAMPIONS_ERROR_CATEGORIES.map((category) => (
                 <CategoryHeader key={category.letter} category={category} />
               ))}
+              <th
+                scope="col"
+                className="min-w-[5.5rem] border-l border-border bg-muted/40 px-3 py-2 text-center font-medium"
+              >
+                Bilan
+              </th>
               <th scope="col" className="w-12 px-2 py-2">
                 <span className="sr-only">Promotion</span>
               </th>
@@ -449,6 +457,9 @@ export function ClassGrid({
                       studentId={student.id}
                       categoryLetter={category.letter}
                       categoryName={category.name}
+                      columnBackground={getCategoryColumnBackground(
+                        category.headerBackground
+                      )}
                       displayName={student.displayName}
                       value={counts[student.id]?.[category.letter] ?? 0}
                       studentIndex={studentIndex}
@@ -476,6 +487,11 @@ export function ClassGrid({
                       onTabWrap={handleTabWrap}
                     />
                   ))}
+                  <GridRowSummaryCell
+                    sumErrors={validation?.sumErrors ?? 0}
+                    wordTotal={validation?.wordTotal ?? 0}
+                    isReadOnlyRow={isReadOnlyRow}
+                  />
                   <td className="px-2 py-2 text-center">
                     <GridPromotionCell
                       studentId={student.id}

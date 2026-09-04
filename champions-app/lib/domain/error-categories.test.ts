@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   CHAMPIONS_ERROR_CATEGORIES,
   CHAMPIONS_ERROR_CATEGORY_LETTERS,
+  CHAMPIONS_ERROR_CATEGORY_COLUMN_TINT_PERCENT,
   categoryErrorsToDbColumns,
   dbColumnsToCategoryErrors,
   formatGridCellAriaLabel,
+  getCategoryColumnBackground,
   getChampionsErrorCategory,
 } from "./error-categories";
 
@@ -36,6 +38,14 @@ describe("CHAMPIONS_ERROR_CATEGORIES", () => {
       name: "Son",
       headerBackground: "#7E44AC",
     });
+  });
+});
+
+describe("getCategoryColumnBackground", () => {
+  it("mixes the header color with the page background at 30% tint", () => {
+    expect(getCategoryColumnBackground("#E70A16")).toBe(
+      `color-mix(in srgb, #E70A16 ${CHAMPIONS_ERROR_CATEGORY_COLUMN_TINT_PERCENT}%, var(--background))`
+    );
   });
 });
 

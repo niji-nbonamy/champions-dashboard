@@ -17,6 +17,13 @@ export type ChampionsErrorCategory = {
   headerForeground: string;
 };
 
+/** Opacity used when tinting grid column cells with the category header color. */
+export const CHAMPIONS_ERROR_CATEGORY_COLUMN_TINT_PERCENT = 30;
+
+export function getCategoryColumnBackground(headerBackground: string): string {
+  return `color-mix(in srgb, ${headerBackground} ${CHAMPIONS_ERROR_CATEGORY_COLUMN_TINT_PERCENT}%, var(--background))`;
+}
+
 export const CHAMPIONS_ERROR_CATEGORIES = [
   {
     letter: "C",

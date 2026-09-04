@@ -8,6 +8,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CHAMPIONS_ERROR_CATEGORIES,
   CHAMPIONS_ERROR_CATEGORY_LETTERS,
+  CHAMPIONS_ERROR_CATEGORY_COLUMN_TINT_PERCENT,
+  getCategoryColumnBackground,
 } from "@/lib/domain/error-categories";
 import type { LeveledActiveStudent } from "@/lib/services/list-leveled-active-students";
 
@@ -147,6 +149,7 @@ describe("ClassGrid", () => {
     expect(container.textContent).toContain("MARTIN Paul");
     expect(container.textContent).toContain("jaune");
     expect(container.textContent).toContain("vert");
+    expect(container.textContent).toContain("Bilan");
     expect(getCellInputs()).toHaveLength(18);
   });
 
@@ -415,6 +418,53 @@ describe("ClassGrid", () => {
     );
   });
 
+  it("tints grid columns with a 30% mix of each category color", () => {
+    renderGrid();
+
+    for (const category of CHAMPIONS_ERROR_CATEGORIES) {
+      const columnCells = container.querySelectorAll(
+        `td[data-category-letter="${category.letter}"]`
+      );
+
+      expect(columnCells.length).toBe(sampleStudents.length);
+      expect(getCategoryColumnBackground(category.headerBackground)).toContain(
+        `${CHAMPIONS_ERROR_CATEGORY_COLUMN_TINT_PERCENT}%`
+      );
+    }
+  });
+
+  it("renders a live row summary with success percent and fault ratio", () => {
+    renderGrid();
+
+    const summaries = container.querySelectorAll(
+      '[data-testid="grid-row-summary"]'
+    );
+
+    expect(summaries).toHaveLength(2);
+    expect(summaries[0]?.textContent).toContain("100 %");
+    expect(summaries[0]?.textContent).toContain("0");
+    expect(summaries[0]?.textContent).toContain("50");
+    expect(summaries[0]?.getAttribute("aria-live")).toBe("polite");
+  });
+
+  it("updates the row summary when a cell value changes", () => {
+    renderGrid();
+
+    const firstInput = getCellInputs()[0];
+    act(() => {
+      firstInput?.focus();
+      setInputValue(firstInput!, "5");
+    });
+
+    const firstSummary = container.querySelector(
+      '[data-testid="grid-row-summary"]'
+    );
+
+    expect(firstSummary?.textContent).toContain("90 %");
+    expect(firstSummary?.textContent).toContain("5");
+    expect(firstSummary?.textContent).toContain("50");
+  });
+
   it("keeps focus on the first column when ArrowLeft is pressed", () => {
     renderGrid();
 
@@ -480,7 +530,7 @@ describe("ClassGrid", () => {
 
     expect(conjugationHeader).toBeTruthy();
     expect(conjugationHeader?.style.backgroundColor).toBe("#E70A16");
-    expect(container.querySelectorAll('[role="tooltip"]')).toHaveLength(9);
+    expect(container.querySelectorAll('th[data-category-letter] [role="tooltip"]')).toHaveLength(9);
 
     for (const category of CHAMPIONS_ERROR_CATEGORIES) {
       const header = container.querySelector(
@@ -863,6 +913,17 @@ describe("ClassGrid", () => {
     const archivedFirstCell = inputs[9];
     expect(archivedFirstCell?.value).toBe("4");
     expect(archivedFirstCell?.disabled).toBe(true);
+
+    const summaryCells = container.querySelectorAll(
+      '[data-testid="grid-row-summary"]'
+    );
+    const emptySummaryCells = container.querySelectorAll(
+      '[data-testid="grid-row-summary-empty"]'
+    );
+
+    expect(summaryCells).toHaveLength(1);
+    expect(emptySummaryCells).toHaveLength(1);
+    expect(emptySummaryCells[0]?.textContent).toBe("");
 
     act(() => {
       archivedFirstCell?.focus();
