@@ -7,6 +7,7 @@ import { LevelBadge } from "@/components/ui/level-badge";
 import { CHAMPIONS_LEVELS, getChampionsLevelFrenchLabel } from "@/lib/domain/champions-level";
 import {
   DICTATION_LABEL_MAX_LENGTH,
+  DICTATION_LABEL_CONFIG_NAMING_HINT,
   type WordCountMatrixRowInput,
 } from "@/lib/domain/word-count-matrix";
 import type { ChampionsLevel } from "@/lib/design/tokens";
@@ -186,10 +187,24 @@ export function WordCountMatrixForm({
           </p>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="min-w-full text-sm">
+            <table className="min-w-full table-fixed text-sm">
+              <colgroup>
+                <col className="w-[13rem]" />
+                {CHAMPIONS_LEVELS.map((level) => (
+                  <col key={level} className="w-[3.75rem]" />
+                ))}
+                <col className="w-[5.5rem]" />
+              </colgroup>
               <thead className="bg-muted/40">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium">Dictée</th>
+                  <th className="px-3 py-2 text-left align-top">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium">Dictée</span>
+                      <span className="text-xs font-normal leading-snug text-muted-foreground">
+                        {DICTATION_LABEL_CONFIG_NAMING_HINT}
+                      </span>
+                    </div>
+                  </th>
                   {CHAMPIONS_LEVELS.map((level) => (
                     <th key={level} className="px-3 py-2 text-left font-medium">
                       <span className="inline-flex items-center gap-1.5">
@@ -222,7 +237,7 @@ export function WordCountMatrixForm({
                         aria-invalid={
                           isFieldInvalid(state, index, "label") ? true : undefined
                         }
-                        className="w-full min-w-[10rem] rounded-md border border-border bg-background px-2 py-1.5"
+                        className="w-full min-w-0 rounded-md border border-border bg-background px-2 py-1.5"
                       />
                     </td>
                     {LEVEL_COLUMNS.map(({ level, field, formName }) => (
@@ -247,7 +262,7 @@ export function WordCountMatrixForm({
                           aria-invalid={
                             isFieldInvalid(state, index, field) ? true : undefined
                           }
-                          className="w-full min-w-[4.5rem] rounded-md border border-border bg-background px-2 py-1.5"
+                          className="w-full min-w-0 rounded-md border border-border bg-background px-2 py-1.5"
                         />
                       </td>
                     ))}

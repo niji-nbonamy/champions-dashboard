@@ -7,6 +7,7 @@ import {
 } from "@/lib/domain/champions-level";
 import {
   formatWordCountMatrixRowError,
+  DICTATION_LABEL_CONFIG_NAMING_HINT,
   WORD_COUNT_CELL_INVALID_ERROR,
   WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
 } from "@/lib/domain/word-count-matrix";
@@ -76,6 +77,8 @@ describe("WordCountMatrixForm", () => {
     const html = renderToStaticMarkup(
       <WordCountMatrixForm initialRows={[sampleRow]} />
     );
+
+    expect(html).toContain(DICTATION_LABEL_CONFIG_NAMING_HINT);
 
     for (const level of CHAMPIONS_LEVELS) {
       expect(html).toContain(getChampionsLevelFrenchLabel(level));

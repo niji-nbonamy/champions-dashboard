@@ -20,6 +20,9 @@ export const WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE =
 export const WORD_COUNT_MATRIX_GENERIC_ERROR =
   "Enregistrement impossible. Réessayez.";
 
+export const DICTATION_LABEL_CONFIG_NAMING_HINT =
+  "Format : N - titre (ex. 1 - ponctuation, 1 bis - complément, 2 - …).";
+
 export type WordCountMatrixRowInput = {
   label: string;
   wordsYellow: string;
