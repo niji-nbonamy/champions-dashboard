@@ -108,4 +108,29 @@ describe("authenticateTeacher", () => {
 
     expect(result).toBeNull();
   });
+
+  it("returns null when credentials are valid but email is not on the allowlist", async () => {
+    process.env.ALLOWED_EMAILS = "beta@test.fr";
+
+    mockLimit.mockResolvedValueOnce([
+      {
+        id: teacherId,
+        email: "teacher@example.com",
+        passwordHash: "hashed-password",
+      },
+    ]);
+
+    const { compare } = await import("bcryptjs");
+    vi.mocked(compare).mockResolvedValueOnce(true as never);
+
+    const { authenticateTeacher } = await import("./authenticate-teacher");
+    const result = await authenticateTeacher(
+      "teacher@example.com",
+      "password12"
+    );
+
+    expect(result).toBeNull();
+
+    delete process.env.ALLOWED_EMAILS;
+  });
 });

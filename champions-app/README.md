@@ -45,6 +45,7 @@ cd champions-app
    | `AUTH_TRUST_HOST` | Yes on Vercel | Set to `true` so Auth.js trusts the `Host` header behind Vercel's reverse proxy. Omit or leave unset for local `npm run dev`. |
    | `RECAPTCHA_SITE_KEY` | Prod when captcha enabled | Google reCAPTCHA v2 site key (registration widget) |
    | `RECAPTCHA_SECRET_KEY` | Prod when captcha enabled | Google reCAPTCHA v2 secret for server verification. In non-production, verification is bypassed when this variable is absent |
+   | `ALLOWED_EMAILS` | Optional (beta) | Comma-separated list of teacher emails allowed to register and sign in. Bypassed when `CI=true` (GitHub Actions) or `E2E_BYPASS_ALLOWLIST=true` (Playwright e2e server) |
    | `RESEND_API_KEY` | For email sending | Resend API key (`re_…`). Replace `re_xxxxxxxxx` in `.env.example` with your real key from the [Resend dashboard](https://resend.com/api-keys) |
    | `EMAIL_FROM` | For email sending | With a verified domain: `CHAMPIONS <noreply@votredomaine.fr>`. **Without a domain** (Vercel `*.vercel.app` does not work for email): use `onboarding@resend.dev` — Resend only delivers to the email on your Resend account (sandbox mode) |
 
@@ -157,11 +158,19 @@ Required for delivery to arbitrary teacher addresses (not only your Resend accou
 5. Vercel env: `EMAIL_FROM=CHAMPIONS <noreply@votredomaine.fr>` (or another address on that domain).
 6. In Resend domain settings, disable **open tracking** and **click tracking** for transactional emails (RGPD — no tracking on password-reset emails).
 
-#### 5. reCAPTCHA (if `RECAPTCHA_SECRET_KEY` is set on Vercel)
+#### 5. Beta allowlist (optional)
+
+To restrict access to invited testers, set on Vercel:
+
+`ALLOWED_EMAILS=enseignant1@ecole.fr,enseignant2@ecole.fr`
+
+Only these addresses can register and sign in. E2E tests bypass this automatically (`CI=true` in GitHub Actions; `E2E_BYPASS_ALLOWLIST=true` in Playwright).
+
+#### 6. reCAPTCHA (if `RECAPTCHA_SECRET_KEY` is set on Vercel)
 
 In the [Google reCAPTCHA admin](https://www.google.com/recaptcha/admin), add `votredomaine.fr` and `www.votredomaine.fr` to the allowed domains for your site key.
 
-#### 6. Smoke test
+#### 7. Smoke test
 
 - `https://votredomaine.fr` — padlock, login works.
 - Register (if captcha configured) and password-reset email — link host must match `AUTH_URL`.

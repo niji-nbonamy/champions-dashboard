@@ -41,6 +41,7 @@ export default defineConfig({
       DATABASE_URL_UNPOOLED: unpooledDatabaseUrl,
       RECAPTCHA_SECRET_KEY: "",
       RECAPTCHA_SITE_KEY: "",
+      E2E_BYPASS_ALLOWLIST: "true",
     },
   },
 });

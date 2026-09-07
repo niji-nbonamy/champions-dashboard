@@ -5,6 +5,8 @@ import { validateLoginInput } from "@/lib/domain/authentication";
 import { getDb } from "@/lib/db";
 import { teachers } from "@/lib/db/schema";
 
+import { isEmailAllowed } from "./email-allowlist";
+
 export type AuthenticatedTeacher = {
   id: string;
   email: string;
@@ -43,6 +45,10 @@ export async function authenticateTeacher(
 
     const passwordMatches = await compare(input.password, teacher.passwordHash);
     if (!passwordMatches) {
+      return null;
+    }
+
+    if (!isEmailAllowed(teacher.email)) {
       return null;
     }
 

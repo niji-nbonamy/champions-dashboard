@@ -120,4 +120,20 @@ describe("registerTeacher", () => {
       registerTeacher("teacher@example.com", VALID_REGISTRATION_PASSWORD)
     ).rejects.toThrow(RegistrationFailedError);
   });
+
+  it("throws a generic error when email is not on the allowlist", async () => {
+    process.env.ALLOWED_EMAILS = "beta@test.fr";
+
+    const { registerTeacher, RegistrationFailedError } = await import(
+      "./register-teacher"
+    );
+
+    await expect(
+      registerTeacher("teacher@example.com", VALID_REGISTRATION_PASSWORD)
+    ).rejects.toThrow(RegistrationFailedError);
+
+    expect(getDb).not.toHaveBeenCalled();
+
+    delete process.env.ALLOWED_EMAILS;
+  });
 });

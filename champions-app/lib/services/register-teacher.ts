@@ -7,6 +7,7 @@ import {
 import { getDb } from "@/lib/db";
 import { teachers } from "@/lib/db/schema";
 
+import { isEmailAllowed } from "./email-allowlist";
 import { hashPassword } from "./password-hash";
 
 export class RegistrationFailedError extends Error {
@@ -27,6 +28,10 @@ export async function registerTeacher(
 ): Promise<RegisteredTeacher> {
   const input = validateRegistrationInput(email, password);
   if (!input) {
+    throw new RegistrationFailedError();
+  }
+
+  if (!isEmailAllowed(input.email)) {
     throw new RegistrationFailedError();
   }
 
