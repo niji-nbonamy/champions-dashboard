@@ -137,6 +137,67 @@ describe("config page", () => {
     ]);
   });
 
+  it("sorts matrix rows by numeric prefix for the config form", async () => {
+    auth.mockResolvedValueOnce({
+      user: { id: teacherId, email: "t@example.com" },
+    });
+    mockGetTeacherClass.mockResolvedValueOnce({
+      id: classId,
+      teacherId,
+      schoolYearLabel: "2025-2026",
+    });
+    mockCountActiveStudents.mockResolvedValueOnce(1);
+    mockListWordCountMatrixRows.mockResolvedValueOnce([
+      {
+        dictationLabelKey: "10 - accord du verbe (2) - Imprimerie Gutenberg",
+        wordsYellow: 20,
+        wordsGreen: 22,
+        wordsViolet: 24,
+        wordsGold: 26,
+      },
+      {
+        dictationLabelKey: "2 -  oi, ion, oin - aviation",
+        wordsYellow: 8,
+        wordsGreen: 9,
+        wordsViolet: 10,
+        wordsGold: 11,
+      },
+      {
+        dictationLabelKey: "1 - ponctuation - chasseurs cueilleurs",
+        wordsYellow: 10,
+        wordsGreen: 12,
+        wordsViolet: 14,
+        wordsGold: 16,
+      },
+    ]);
+
+    renderToStaticMarkup(await ConfigPage());
+
+    expect(capturedInitialRows.value).toEqual([
+      {
+        label: "1 - ponctuation - chasseurs cueilleurs",
+        wordsYellow: "10",
+        wordsGreen: "12",
+        wordsViolet: "14",
+        wordsGold: "16",
+      },
+      {
+        label: "2 -  oi, ion, oin - aviation",
+        wordsYellow: "8",
+        wordsGreen: "9",
+        wordsViolet: "10",
+        wordsGold: "11",
+      },
+      {
+        label: "10 - accord du verbe (2) - Imprimerie Gutenberg",
+        wordsYellow: "20",
+        wordsGreen: "22",
+        wordsViolet: "24",
+        wordsGold: "26",
+      },
+    ]);
+  });
+
   it("renders the existing-roster message when students are present", async () => {
     auth.mockResolvedValueOnce({
       user: { id: teacherId, email: "t@example.com" },

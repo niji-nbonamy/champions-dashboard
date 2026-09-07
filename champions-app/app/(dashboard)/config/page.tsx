@@ -1,6 +1,7 @@
 import {
   ROSTER_CSV_ROSTER_EXISTS_ERROR,
 } from "@/lib/domain/roster-import";
+import { compareDictationLabelsForConfig } from "@/lib/domain/word-count-matrix";
 import { countActiveStudents } from "@/lib/services/count-active-students";
 import { getTeacherClass } from "@/lib/services/get-teacher-class";
 import { listWordCountMatrixRows } from "@/lib/services/list-word-count-matrix-rows";
@@ -22,13 +23,20 @@ export default async function ConfigPage() {
   const matrixRows = teacherClass
     ? await listWordCountMatrixRows(teacherClass.id)
     : [];
-  const matrixInitialRows = matrixRows.map((row) => ({
-    label: row.dictationLabelKey,
-    wordsYellow: String(row.wordsYellow),
-    wordsGreen: String(row.wordsGreen),
-    wordsViolet: String(row.wordsViolet),
-    wordsGold: String(row.wordsGold),
-  }));
+  const matrixInitialRows = [...matrixRows]
+    .sort((left, right) =>
+      compareDictationLabelsForConfig(
+        left.dictationLabelKey,
+        right.dictationLabelKey
+      )
+    )
+    .map((row) => ({
+      label: row.dictationLabelKey,
+      wordsYellow: String(row.wordsYellow),
+      wordsGreen: String(row.wordsGreen),
+      wordsViolet: String(row.wordsViolet),
+      wordsGold: String(row.wordsGold),
+    }));
   const isEmptyRoster = activeStudentCount === 0;
 
   return (

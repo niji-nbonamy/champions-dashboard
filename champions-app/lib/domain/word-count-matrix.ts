@@ -119,6 +119,64 @@ export function normalizeDictationLabelKey(label: string): string {
   return normalizeDictationLabel(label).toLowerCase();
 }
 
+const DICTATION_LABEL_CONFIG_SORT_PREFIX = /^(\d+)(?:\s+(bis|ter))?\s*[-–]/i;
+
+const DICTATION_LABEL_CONFIG_SUFFIX_ORDER: Record<string, number> = {
+  bis: 1,
+  ter: 2,
+};
+
+type DictationLabelConfigSortKey = {
+  number: number;
+  suffixOrder: number;
+};
+
+function parseDictationLabelConfigSortKey(
+  label: string
+): DictationLabelConfigSortKey | null {
+  const match = DICTATION_LABEL_CONFIG_SORT_PREFIX.exec(label.trim());
+  if (!match) {
+    return null;
+  }
+
+  const suffix = match[2]?.toLowerCase();
+
+  return {
+    number: Number(match[1]),
+    suffixOrder: suffix ? DICTATION_LABEL_CONFIG_SUFFIX_ORDER[suffix] : 0,
+  };
+}
+
+export function compareDictationLabelsForConfig(
+  left: string,
+  right: string
+): number {
+  const leftKey = parseDictationLabelConfigSortKey(left);
+  const rightKey = parseDictationLabelConfigSortKey(right);
+
+  if (leftKey === null && rightKey === null) {
+    return left.localeCompare(right, "fr");
+  }
+
+  if (leftKey === null) {
+    return 1;
+  }
+
+  if (rightKey === null) {
+    return -1;
+  }
+
+  if (leftKey.number !== rightKey.number) {
+    return leftKey.number - rightKey.number;
+  }
+
+  if (leftKey.suffixOrder !== rightKey.suffixOrder) {
+    return leftKey.suffixOrder - rightKey.suffixOrder;
+  }
+
+  return left.localeCompare(right, "fr");
+}
+
 export function formatWordCountMatrixRowError(
   rowNumber: number,
   label: string,

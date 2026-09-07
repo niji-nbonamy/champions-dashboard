@@ -11,6 +11,7 @@ import {
   validateWordCountMatrixRow,
   getWordCountForLevel,
   buildWordTotalsByStudentId,
+  compareDictationLabelsForConfig,
   WORD_COUNT_CELL_INVALID_ERROR,
   WORD_COUNT_MATRIX_MAX_WORD_COUNT,
 } from "./word-count-matrix";
@@ -218,6 +219,68 @@ describe("parseWordCountMatrixRowsFromFormData", () => {
         wordsViolet: "10",
         wordsGold: "11",
       },
+    ]);
+  });
+});
+
+describe("compareDictationLabelsForConfig", () => {
+  it("sorts numbered dictation labels numerically by prefix before the dash", () => {
+    const labels = [
+      "10 - accord du verbe (2) - Imprimerie Gutenberg",
+      "2 -  oi, ion, oin - aviation",
+      "0- dictée diagnostique",
+      "1 - ponctuation - chasseurs cueilleurs",
+    ];
+
+    expect(
+      [...labels].sort(compareDictationLabelsForConfig)
+    ).toEqual([
+      "0- dictée diagnostique",
+      "1 - ponctuation - chasseurs cueilleurs",
+      "2 -  oi, ion, oin - aviation",
+      "10 - accord du verbe (2) - Imprimerie Gutenberg",
+    ]);
+  });
+
+  it("places labels without a numeric prefix after numbered labels", () => {
+    const labels = ["Sans numéro", "2 - dictée", "1 - dictée"];
+
+    expect(
+      [...labels].sort(compareDictationLabelsForConfig)
+    ).toEqual(["1 - dictée", "2 - dictée", "Sans numéro"]);
+  });
+
+  it("sorts bis and ter variants after the base numbered label", () => {
+    const labels = [
+      "2 - aviation",
+      "1 ter - révision",
+      "1 bis - complément",
+      "1 - ponctuation",
+      "10 bis - accord",
+      "10 - accord du verbe",
+    ];
+
+    expect(
+      [...labels].sort(compareDictationLabelsForConfig)
+    ).toEqual([
+      "1 - ponctuation",
+      "1 bis - complément",
+      "1 ter - révision",
+      "2 - aviation",
+      "10 - accord du verbe",
+      "10 bis - accord",
+    ]);
+  });
+
+  it("matches bis and ter case-insensitively", () => {
+    const labels = ["1 BIS - complément", "1 - ponctuation", "1 Ter - révision"];
+
+    expect(
+      [...labels].sort(compareDictationLabelsForConfig)
+    ).toEqual([
+      "1 - ponctuation",
+      "1 BIS - complément",
+      "1 Ter - révision",
     ]);
   });
 });
