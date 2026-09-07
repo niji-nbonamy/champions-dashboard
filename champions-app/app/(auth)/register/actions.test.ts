@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { REGISTRATION_NOT_ALLOWED_MESSAGE } from "@/lib/domain/beta-access";
 import { REGISTRATION_ERROR_MESSAGE } from "@/lib/domain/registration";
 
 const VALID_REGISTRATION_PASSWORD = "Password1!";
 
-const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken, isRecaptchaRequired, isAuthRateLimitAllowed } =
+const { redirect, registerTeacher, RegistrationFailedError, RegistrationNotAllowedError, verifyRecaptchaToken, isRecaptchaRequired, isAuthRateLimitAllowed } =
   vi.hoisted(() => {
     class MockRegistrationFailedError extends Error {
       constructor() {
@@ -15,6 +16,15 @@ const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken
       }
     }
 
+    class MockRegistrationNotAllowedError extends Error {
+      constructor() {
+        super(
+          "Cette adresse email n'est pas autorisée à créer un compte. L'accès est limité aux comptes invités pour le moment."
+        );
+        this.name = "RegistrationNotAllowedError";
+      }
+    }
+
     return {
       redirect: vi.fn((url: string): never => {
         const error = new Error(`NEXT_REDIRECT:${url}`);
@@ -22,6 +32,7 @@ const { redirect, registerTeacher, RegistrationFailedError, verifyRecaptchaToken
       }),
       registerTeacher: vi.fn(),
       RegistrationFailedError: MockRegistrationFailedError,
+      RegistrationNotAllowedError: MockRegistrationNotAllowedError,
       verifyRecaptchaToken: vi.fn(async () => true),
       isRecaptchaRequired: vi.fn(() => true),
       isAuthRateLimitAllowed: vi.fn(async () => true),
@@ -40,6 +51,7 @@ vi.mock("next/dist/client/components/redirect-error", () => ({
 vi.mock("@/lib/services/register-teacher", () => ({
   registerTeacher,
   RegistrationFailedError,
+  RegistrationNotAllowedError,
 }));
 
 vi.mock("@/lib/services/recaptcha-verify", () => ({
@@ -139,6 +151,16 @@ describe("registerAction", () => {
     ).resolves.toEqual({ error: REGISTRATION_ERROR_MESSAGE });
 
     expect(registerTeacher).not.toHaveBeenCalled();
+  });
+
+  it("returns the explicit not-allowed message when registration is blocked by the allowlist", async () => {
+    registerTeacher.mockRejectedValueOnce(new RegistrationNotAllowedError());
+
+    const { registerAction } = await import("./actions");
+
+    await expect(
+      registerAction({ error: null }, buildFormData())
+    ).resolves.toEqual({ error: REGISTRATION_NOT_ALLOWED_MESSAGE });
   });
 
   it("returns the generic registration error when registration fails", async () => {

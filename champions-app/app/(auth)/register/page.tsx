@@ -1,12 +1,15 @@
 import Link from "next/link";
 
+import { BetaAllowlistNotice } from "@/components/auth/beta-allowlist-notice";
 import { isRecaptchaRequired } from "@/lib/services/recaptcha-verify";
+import { isEmailAllowlistEnforced } from "@/lib/services/email-allowlist";
 
 import { RegisterForm } from "./register-form";
 
 export default function RegisterPage() {
   const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY?.trim() || null;
   const recaptchaRequired = isRecaptchaRequired();
+  const showBetaNotice = isEmailAllowlistEnforced();
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
@@ -16,6 +19,8 @@ export default function RegisterPage() {
           Inscrivez-vous pour accéder à vos tableaux de bord.
         </p>
       </div>
+
+      {showBetaNotice ? <BetaAllowlistNotice /> : null}
 
       {recaptchaRequired && !recaptchaSiteKey ? (
         <p

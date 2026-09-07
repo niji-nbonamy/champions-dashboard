@@ -1,11 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-const { auth, redirect } = vi.hoisted(() => ({
+const { auth, redirect, isEmailAllowlistEnforced } = vi.hoisted(() => ({
   auth: vi.fn(async () => null),
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   }),
+  isEmailAllowlistEnforced: vi.fn(() => false),
 }));
 
 vi.mock("@/auth", () => ({
@@ -19,6 +20,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("next/script", () => ({
   default: () => null,
+}));
+
+vi.mock("@/lib/services/email-allowlist", () => ({
+  isEmailAllowlistEnforced,
 }));
 
 vi.mock("./login/actions", () => ({
@@ -55,6 +60,26 @@ describe("auth pages", () => {
     expect(html).toContain('name="password"');
     expect(html).toContain('name="confirmPassword"');
     expect(html).toContain("Saisissez un mot de passe comportant au moins :");
+  });
+
+  it("shows the beta pilot notice on register when the allowlist is enforced", () => {
+    isEmailAllowlistEnforced.mockReturnValueOnce(true);
+
+    const html = renderToStaticMarkup(<RegisterPage />);
+
+    expect(html).toContain("Phase pilote");
+    expect(html).toContain("comptes invités");
+  });
+
+  it("shows the beta pilot notice on login when the allowlist is enforced", async () => {
+    isEmailAllowlistEnforced.mockReturnValueOnce(true);
+
+    const html = renderToStaticMarkup(
+      await LoginPage({ searchParams: Promise.resolve({}) })
+    );
+
+    expect(html).toContain("Phase pilote");
+    expect(html).toContain("comptes invités");
   });
 
   it("shows registration success message on login when registered=1", async () => {

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { BetaAllowlistNotice } from "@/components/auth/beta-allowlist-notice";
 import { auth } from "@/auth";
 import { PASSWORD_UPDATED_LOGIN_MESSAGE } from "@/lib/domain/password-reset";
 import { sanitizeCallbackUrl } from "@/lib/domain/auth-redirect";
+import { isEmailAllowlistEnforced } from "@/lib/services/email-allowlist";
 
 import { LoginForm } from "./login-form";
 
@@ -30,6 +32,7 @@ export default async function LoginPage({
     ? passwordUpdated[0]
     : passwordUpdated;
   const showPasswordUpdatedSuccess = passwordUpdatedValue === "1";
+  const showBetaNotice = isEmailAllowlistEnforced();
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
@@ -57,6 +60,8 @@ export default async function LoginPage({
           {PASSWORD_UPDATED_LOGIN_MESSAGE}
         </p>
       ) : null}
+
+      {showBetaNotice ? <BetaAllowlistNotice /> : null}
 
       <LoginForm callbackUrl={callbackUrl} />
 

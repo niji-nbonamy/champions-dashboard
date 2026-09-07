@@ -126,13 +126,13 @@ describe("registerTeacher", () => {
     delete process.env.E2E_BYPASS_ALLOWLIST;
     process.env.ALLOWED_EMAILS = "beta@test.fr";
 
-    const { registerTeacher, RegistrationFailedError } = await import(
+    const { registerTeacher, RegistrationNotAllowedError } = await import(
       "./register-teacher"
     );
 
     await expect(
       registerTeacher("teacher@example.com", VALID_REGISTRATION_PASSWORD)
-    ).rejects.toThrow(RegistrationFailedError);
+    ).rejects.toThrow(RegistrationNotAllowedError);
 
     expect(getDb).not.toHaveBeenCalled();
 

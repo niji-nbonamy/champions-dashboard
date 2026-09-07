@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 
+import { REGISTRATION_NOT_ALLOWED_MESSAGE } from "@/lib/domain/beta-access";
 import {
   REGISTRATION_ERROR_MESSAGE,
   validateRegistrationInput,
@@ -9,6 +10,13 @@ import { teachers } from "@/lib/db/schema";
 
 import { isEmailAllowed } from "./email-allowlist";
 import { hashPassword } from "./password-hash";
+
+export class RegistrationNotAllowedError extends Error {
+  constructor() {
+    super(REGISTRATION_NOT_ALLOWED_MESSAGE);
+    this.name = "RegistrationNotAllowedError";
+  }
+}
 
 export class RegistrationFailedError extends Error {
   constructor() {
@@ -32,7 +40,7 @@ export async function registerTeacher(
   }
 
   if (!isEmailAllowed(input.email)) {
-    throw new RegistrationFailedError();
+    throw new RegistrationNotAllowedError();
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -64,6 +72,10 @@ export async function registerTeacher(
     return teacher;
   } catch (error) {
     if (error instanceof RegistrationFailedError) {
+      throw error;
+    }
+
+    if (error instanceof RegistrationNotAllowedError) {
       throw error;
     }
 

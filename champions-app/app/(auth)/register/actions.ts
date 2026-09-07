@@ -8,7 +8,10 @@ import {
   REGISTRATION_ERROR_MESSAGE,
 } from "@/lib/domain/registration";
 import { isAuthRateLimitAllowed } from "@/lib/services/auth-rate-limit";
-import { registerTeacher } from "@/lib/services/register-teacher";
+import {
+  registerTeacher,
+  RegistrationNotAllowedError,
+} from "@/lib/services/register-teacher";
 import {
   isRecaptchaRequired,
   verifyRecaptchaToken,
@@ -51,6 +54,10 @@ export async function registerAction(
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
+    }
+
+    if (error instanceof RegistrationNotAllowedError) {
+      return { error: error.message };
     }
 
     return { error: REGISTRATION_ERROR_MESSAGE };

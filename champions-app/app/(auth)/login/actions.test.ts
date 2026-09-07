@@ -1,14 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LOGIN_ERROR_MESSAGE } from "@/lib/domain/authentication";
+import { LOGIN_NOT_ALLOWED_MESSAGE } from "@/lib/domain/beta-access";
 
-const { redirect, signIn, isAuthRateLimitAllowed } = vi.hoisted(() => ({
+const { redirect, signIn, isAuthRateLimitAllowed, isEmailAllowlistEnforced, isEmailAllowed } = vi.hoisted(() => ({
   redirect: vi.fn((url: string): never => {
     const error = new Error(`NEXT_REDIRECT:${url}`);
     throw error;
   }),
   signIn: vi.fn(),
   isAuthRateLimitAllowed: vi.fn(async () => true),
+  isEmailAllowlistEnforced: vi.fn(() => false),
+  isEmailAllowed: vi.fn(() => true),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -26,6 +29,11 @@ vi.mock("@/auth", () => ({
 
 vi.mock("@/lib/services/auth-rate-limit", () => ({
   isAuthRateLimitAllowed,
+}));
+
+vi.mock("@/lib/services/email-allowlist", () => ({
+  isEmailAllowlistEnforced,
+  isEmailAllowed,
 }));
 
 vi.mock("next-auth", () => ({
@@ -62,6 +70,22 @@ describe("loginAction", () => {
       password: "password12",
       redirectTo: "/students/abc",
     });
+  });
+
+  it("returns the explicit not-allowed message when the email is outside the allowlist", async () => {
+    isEmailAllowlistEnforced.mockReturnValueOnce(true);
+    isEmailAllowed.mockReturnValueOnce(false);
+
+    const { loginAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("email", "teacher@example.com");
+    formData.set("password", "password12");
+
+    await expect(loginAction({ error: null }, formData)).resolves.toEqual({
+      error: LOGIN_NOT_ALLOWED_MESSAGE,
+    });
+
+    expect(signIn).not.toHaveBeenCalled();
   });
 
   it("returns the generic login error when rate limited", async () => {
