@@ -38,6 +38,8 @@ describe("email allowlist", () => {
   });
 
   it("enforces comma-separated emails with normalization", () => {
+    delete process.env.CI;
+    delete process.env.E2E_BYPASS_ALLOWLIST;
     process.env.ALLOWED_EMAILS = " Teacher@Example.com , beta@test.fr ";
 
     expect(isEmailAllowlistEnforced()).toBe(true);

@@ -122,6 +122,8 @@ describe("registerTeacher", () => {
   });
 
   it("throws a generic error when email is not on the allowlist", async () => {
+    delete process.env.CI;
+    delete process.env.E2E_BYPASS_ALLOWLIST;
     process.env.ALLOWED_EMAILS = "beta@test.fr";
 
     const { registerTeacher, RegistrationFailedError } = await import(

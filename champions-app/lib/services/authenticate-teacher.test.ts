@@ -110,6 +110,8 @@ describe("authenticateTeacher", () => {
   });
 
   it("returns null when credentials are valid but email is not on the allowlist", async () => {
+    delete process.env.CI;
+    delete process.env.E2E_BYPASS_ALLOWLIST;
     process.env.ALLOWED_EMAILS = "beta@test.fr";
 
     mockLimit.mockResolvedValueOnce([
