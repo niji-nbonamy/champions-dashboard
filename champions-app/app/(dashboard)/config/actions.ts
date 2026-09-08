@@ -35,6 +35,14 @@ import {
   ROSTER_CSV_MISSING_FILE_ERROR,
   ROSTER_CSV_FILE_TOO_LARGE_ERROR,
 } from "@/lib/domain/roster-import";
+import {
+  parseWordCountMatrixCsv,
+  WORD_COUNT_MATRIX_CSV_FILE_TOO_LARGE_ERROR,
+  WORD_COUNT_MATRIX_CSV_GENERIC_ERROR,
+  WORD_COUNT_MATRIX_CSV_IMPORT_SUCCESS_MESSAGE,
+  WORD_COUNT_MATRIX_CSV_MAX_FILE_BYTES,
+  WORD_COUNT_MATRIX_CSV_MISSING_FILE_ERROR,
+} from "@/lib/domain/word-count-matrix-csv";
 
 export type ImportRosterCsvActionState = {
   error: string | null;
@@ -50,6 +58,11 @@ export type SaveWordCountMatrixActionState = {
 
 export type ResetClassYearActionState = {
   error: string | null;
+};
+
+export type ImportWordCountMatrixCsvActionState = {
+  error: string | null;
+  success: string | null;
 };
 
 export async function saveWordCountMatrixAction(
@@ -99,6 +112,66 @@ export async function saveWordCountMatrixAction(
       success: null,
       errorRowIndex: null,
       errorField: null,
+    };
+  }
+}
+
+export async function importWordCountMatrixCsvAction(
+  _prevState: ImportWordCountMatrixCsvActionState,
+  formData: FormData
+): Promise<ImportWordCountMatrixCsvActionState> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  const fileField = formData.get("csv_file");
+  if (!(fileField instanceof File) || fileField.size === 0) {
+    return { error: WORD_COUNT_MATRIX_CSV_MISSING_FILE_ERROR, success: null };
+  }
+
+  if (fileField.size > WORD_COUNT_MATRIX_CSV_MAX_FILE_BYTES) {
+    return {
+      error: WORD_COUNT_MATRIX_CSV_FILE_TOO_LARGE_ERROR,
+      success: null,
+    };
+  }
+
+  try {
+    const buffer = await fileField.arrayBuffer();
+    const parseResult = parseWordCountMatrixCsv(new Uint8Array(buffer));
+
+    if (!parseResult.ok) {
+      return { error: parseResult.error, success: null };
+    }
+
+    await replaceWordCountMatrix(teacherClass.id, parseResult.rows);
+    revalidatePath("/config");
+    revalidatePath("/onboarding/year-start");
+    revalidatePath("/dictations");
+    return {
+      error: null,
+      success: WORD_COUNT_MATRIX_CSV_IMPORT_SUCCESS_MESSAGE,
+    };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (error instanceof WordCountMatrixValidationError) {
+      return { error: error.message, success: null };
+    }
+
+    return {
+      error: WORD_COUNT_MATRIX_CSV_GENERIC_ERROR,
+      success: null,
     };
   }
 }

@@ -10,6 +10,7 @@ import { auth } from "@/auth";
 import { EmptyRosterPreSetup } from "@/components/dashboard/empty-roster-pre-setup";
 
 import { CsvImportForm } from "./csv-import-form";
+import { WordCountMatrixCsvTools } from "./word-count-matrix-csv-tools";
 import { WordCountMatrixForm } from "./word-count-matrix-form";
 import { YearResetSection } from "./year-reset-section";
 
@@ -74,8 +75,10 @@ export default async function ConfigPage() {
         <h2 className="text-lg font-medium">Matrice mots</h2>
         <p className="text-sm text-muted-foreground">
           Définissez le nombre de mots par dictée et par niveau couleur pour
-          calculer les pourcentages globaux.
+          calculer les pourcentages globaux. Exportez ou importez un CSV pour
+          partager la matrice avec vos collègues.
         </p>
+        <WordCountMatrixCsvTools savedRows={matrixInitialRows} />
         <WordCountMatrixForm initialRows={matrixInitialRows} />
       </section>
 

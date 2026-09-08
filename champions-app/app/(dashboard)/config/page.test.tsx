@@ -42,6 +42,19 @@ vi.mock("./word-count-matrix-form", () => ({
   },
 }));
 
+vi.mock("./word-count-matrix-csv-tools", () => ({
+  WordCountMatrixCsvTools: ({
+    savedRows,
+  }: {
+    savedRows: Array<Record<string, string>>;
+  }) => (
+    <div
+      data-testid="word-count-matrix-csv-tools"
+      data-row-count={savedRows.length}
+    />
+  ),
+}));
+
 vi.mock("./year-reset-section", () => ({
   YearResetSection: ({
     currentSchoolYearLabel,
@@ -92,7 +105,9 @@ describe("config page", () => {
     expect(html).not.toContain('href="/config#liste-eleves"');
     expect(html).toContain("data-testid=\"csv-import-form\"");
     expect(html).toContain("data-testid=\"word-count-matrix-form\"");
+    expect(html).toContain("data-testid=\"word-count-matrix-csv-tools\"");
     expect(html).toContain("Matrice mots");
+    expect(html).toContain("partager la matrice");
     expect(html).toContain("data-testid=\"year-reset-section\"");
     expect(html).toContain("Remettre à zéro pour la nouvelle année");
     expect(html).toContain("2025-2026");
@@ -219,7 +234,9 @@ describe("config page", () => {
     expect(html).not.toContain("Importez votre liste d&#x27;élèves pour commencer.");
     expect(html).not.toContain("data-testid=\"csv-import-form\"");
     expect(html).toContain("data-testid=\"word-count-matrix-form\"");
+    expect(html).toContain("data-testid=\"word-count-matrix-csv-tools\"");
     expect(html).toContain("Matrice mots");
+    expect(html).toContain("partager la matrice");
     expect(html).toContain("Remettre à zéro pour la nouvelle année");
   });
 

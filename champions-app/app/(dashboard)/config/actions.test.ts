@@ -22,6 +22,13 @@ import {
   WORD_COUNT_MATRIX_GENERIC_ERROR,
   WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE,
 } from "@/lib/domain/word-count-matrix";
+import {
+  WORD_COUNT_MATRIX_CSV_FILE_TOO_LARGE_ERROR,
+  WORD_COUNT_MATRIX_CSV_GENERIC_ERROR,
+  WORD_COUNT_MATRIX_CSV_IMPORT_SUCCESS_MESSAGE,
+  WORD_COUNT_MATRIX_CSV_MAX_FILE_BYTES,
+  WORD_COUNT_MATRIX_CSV_MISSING_FILE_ERROR,
+} from "@/lib/domain/word-count-matrix-csv";
 
 const {
   redirect,
@@ -528,6 +535,137 @@ describe("saveWordCountMatrixAction", () => {
       },
     ]);
     expect(result.success).toBe(WORD_COUNT_MATRIX_SAVE_SUCCESS_MESSAGE);
+  });
+});
+
+describe("importWordCountMatrixCsvAction", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { importWordCountMatrixCsvAction } = await import("./actions");
+
+    await expect(
+      importWordCountMatrixCsvAction({ error: null, success: null }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
+  it("returns a missing-file error when no CSV is provided", async () => {
+    mockAuthenticatedSession();
+
+    const { importWordCountMatrixCsvAction } = await import("./actions");
+    const result = await importWordCountMatrixCsvAction(
+      { error: null, success: null },
+      new FormData()
+    );
+
+    expect(result.error).toBe(WORD_COUNT_MATRIX_CSV_MISSING_FILE_ERROR);
+    expect(mockReplaceWordCountMatrix).not.toHaveBeenCalled();
+  });
+
+  it("returns a file-size error for oversized uploads", async () => {
+    mockAuthenticatedSession();
+
+    const { importWordCountMatrixCsvAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set(
+      "csv_file",
+      new File(
+        [new Uint8Array(WORD_COUNT_MATRIX_CSV_MAX_FILE_BYTES + 1)],
+        "matrix.csv",
+        { type: "text/csv" }
+      )
+    );
+
+    const result = await importWordCountMatrixCsvAction(
+      { error: null, success: null },
+      formData
+    );
+
+    expect(result.error).toBe(WORD_COUNT_MATRIX_CSV_FILE_TOO_LARGE_ERROR);
+    expect(mockReplaceWordCountMatrix).not.toHaveBeenCalled();
+  });
+
+  it("imports a valid CSV and replaces the class matrix", async () => {
+    mockAuthenticatedSession();
+    mockReplaceWordCountMatrix.mockResolvedValueOnce(undefined);
+
+    const { importWordCountMatrixCsvAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set(
+      "csv_file",
+      new File(["1 - ponctuation;12;15;18;20\n"], "matrix.csv", {
+        type: "text/csv",
+      })
+    );
+
+    const result = await importWordCountMatrixCsvAction(
+      { error: null, success: null },
+      formData
+    );
+
+    expect(mockReplaceWordCountMatrix).toHaveBeenCalledWith(classId, [
+      {
+        label: "1 - ponctuation",
+        wordsYellow: "12",
+        wordsGreen: "15",
+        wordsViolet: "18",
+        wordsGold: "20",
+      },
+    ]);
+    expect(revalidatePath).toHaveBeenCalledWith("/config");
+    expect(revalidatePath).toHaveBeenCalledWith("/onboarding/year-start");
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    expect(result).toEqual({
+      error: null,
+      success: WORD_COUNT_MATRIX_CSV_IMPORT_SUCCESS_MESSAGE,
+    });
+  });
+
+  it("returns parse errors without replacing the matrix", async () => {
+    mockAuthenticatedSession();
+
+    const { importWordCountMatrixCsvAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set(
+      "csv_file",
+      new File(["1 - ponctuation;12;15;18\n"], "matrix.csv", {
+        type: "text/csv",
+      })
+    );
+
+    const result = await importWordCountMatrixCsvAction(
+      { error: null, success: null },
+      formData
+    );
+
+    expect(mockReplaceWordCountMatrix).not.toHaveBeenCalled();
+    expect(result.success).toBeNull();
+    expect(result.error).toBeTruthy();
+  });
+
+  it("returns a generic French error for unexpected failures", async () => {
+    mockAuthenticatedSession();
+    mockReplaceWordCountMatrix.mockRejectedValueOnce(new Error("database down"));
+
+    const { importWordCountMatrixCsvAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set(
+      "csv_file",
+      new File(["1 - ponctuation;12;15;18;20\n"], "matrix.csv", {
+        type: "text/csv",
+      })
+    );
+
+    const result = await importWordCountMatrixCsvAction(
+      { error: null, success: null },
+      formData
+    );
+
+    expect(result.error).toBe(WORD_COUNT_MATRIX_CSV_GENERIC_ERROR);
   });
 });
 
