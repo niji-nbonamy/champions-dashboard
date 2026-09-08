@@ -11,6 +11,7 @@ import {
   STUDENT_ADD_SUCCESS_MESSAGE,
   STUDENT_ARCHIVE_GENERIC_ERROR,
   STUDENT_ARCHIVE_NOT_FOUND_ERROR,
+  STUDENT_DISPLAY_NAME_UPDATE_GENERIC_ERROR,
 } from "@/lib/domain/student-display-name";
 import {
   parseSpeechTherapyFormValue,
@@ -40,6 +41,10 @@ import {
   setStudentSpeechTherapy,
   SetStudentSpeechTherapyError,
 } from "@/lib/services/set-student-speech-therapy";
+import {
+  updateStudentDisplayName,
+  UpdateStudentDisplayNameError,
+} from "@/lib/services/update-student-display-name";
 import {
   refuseStudentPromotion,
   PROMOTION_REFUSE_GENERIC_ERROR,
@@ -72,6 +77,11 @@ export type SetStudentSpeechTherapyActionState = {
 
 export type ArchiveStudentActionState = {
   error: string | null;
+};
+
+export type UpdateStudentDisplayNameActionState = {
+  error: string | null;
+  changed: boolean;
 };
 
 export type StudentPromotionActionResult = {
@@ -305,6 +315,67 @@ export async function setStudentSpeechTherapyAction(
 
     return {
       error: SET_STUDENT_SPEECH_THERAPY_GENERIC_ERROR,
+      changed: false,
+    };
+  }
+}
+
+export async function updateStudentDisplayNameAction(
+  _prevState: UpdateStudentDisplayNameActionState,
+  formData: FormData
+): Promise<UpdateStudentDisplayNameActionState> {
+  const session = await auth();
+  const teacherId = session?.user?.id;
+
+  if (!teacherId) {
+    redirect("/login");
+  }
+
+  const teacherClass = await getTeacherClass(teacherId);
+  if (!teacherClass) {
+    redirect("/onboarding/class");
+  }
+
+  const studentIdField = formData.get("student_id");
+  const studentId =
+    typeof studentIdField === "string" ? studentIdField.trim() : "";
+  const displayNameField = formData.get("display_name");
+  const rawDisplayName =
+    typeof displayNameField === "string" ? displayNameField : "";
+
+  if (!studentId) {
+    return { error: STUDENT_ARCHIVE_NOT_FOUND_ERROR, changed: false };
+  }
+
+  try {
+    const result = await updateStudentDisplayName(
+      teacherClass.id,
+      studentId,
+      rawDisplayName
+    );
+
+    if (result.changed) {
+      revalidatePath("/students", "layout");
+      revalidatePath("/students");
+      revalidatePath(`/students/${studentId}`);
+      revalidatePath("/dictations");
+      revalidatePath("/alerts");
+      revalidatePath("/config");
+      revalidatePath("/onboarding/year-start");
+    }
+
+    return { error: null, changed: result.changed };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (error instanceof UpdateStudentDisplayNameError) {
+      return { error: error.message, changed: false };
+    }
+
+    return {
+      error: STUDENT_DISPLAY_NAME_UPDATE_GENERIC_ERROR,
       changed: false,
     };
   }

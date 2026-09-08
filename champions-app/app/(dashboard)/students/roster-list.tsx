@@ -12,6 +12,7 @@ import type { PendingPromotionByStudent } from "@/lib/services/list-pending-prom
 import { cn } from "@/lib/utils";
 
 import { ArchiveStudentButton } from "./archive-student-button";
+import { EditStudentNameButton } from "./edit-student-name-button";
 import { LevelDotPicker } from "./level-dot-picker";
 
 type RosterListStudent = {
@@ -169,6 +170,12 @@ export function RosterList({
                       ) : null}
                     </div>
                   </div>
+                ) : null}
+                {!isArchived ? (
+                  <EditStudentNameButton
+                    studentId={student.id}
+                    displayName={student.displayName}
+                  />
                 ) : null}
                 {!isArchived && showArchiveAction ? (
                   <ArchiveStudentButton

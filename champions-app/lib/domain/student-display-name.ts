@@ -22,6 +22,13 @@ export const STUDENT_ARCHIVE_NOT_FOUND_ERROR = "Élève introuvable.";
 export const STUDENT_ARCHIVE_GENERIC_ERROR =
   "Archivage impossible. Réessayez.";
 
+export const STUDENT_DISPLAY_NAME_UPDATE_SUCCESS_MESSAGE = "Nom mis à jour.";
+
+export const STUDENT_DISPLAY_NAME_UPDATE_GENERIC_ERROR =
+  "Modification impossible. Réessayez.";
+
+export const STUDENT_DISPLAY_NAME_UPDATE_DIALOG_TITLE = "Modifier le nom";
+
 export type ValidateDisplayNameSuccess = {
   ok: true;
   displayName: string;

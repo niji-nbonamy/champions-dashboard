@@ -9,6 +9,7 @@ import {
   STUDENT_ARCHIVE_NOT_FOUND_ERROR,
   STUDENT_DISPLAY_NAME_EMPTY_ERROR,
   STUDENT_DISPLAY_NAME_TOO_LONG_ERROR,
+  STUDENT_DISPLAY_NAME_UPDATE_GENERIC_ERROR,
 } from "@/lib/domain/student-display-name";
 
 const {
@@ -24,6 +25,7 @@ const {
   mockGetYearStartWizardStatus,
   mockValidateStudentPromotion,
   mockRefuseStudentPromotion,
+  mockUpdateStudentDisplayName,
 } = vi.hoisted(() => ({
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
@@ -39,6 +41,7 @@ const {
   mockGetYearStartWizardStatus: vi.fn(),
   mockValidateStudentPromotion: vi.fn(),
   mockRefuseStudentPromotion: vi.fn(),
+  mockUpdateStudentDisplayName: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -173,6 +176,36 @@ vi.mock("@/lib/services/archive-student", () => {
     archiveStudent: mockArchiveStudent,
     ArchiveStudentError,
     StudentNotFoundError,
+  };
+});
+
+vi.mock("@/lib/services/update-student-display-name", () => {
+  class UpdateStudentDisplayNameError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "UpdateStudentDisplayNameError";
+    }
+  }
+
+  class StudentNotFoundError extends UpdateStudentDisplayNameError {
+    constructor() {
+      super("Élève introuvable.");
+      this.name = "StudentNotFoundError";
+    }
+  }
+
+  class StudentDuplicateError extends UpdateStudentDisplayNameError {
+    constructor(existingName: string) {
+      super(`Un élève avec ce nom existe déjà : ${existingName}.`);
+      this.name = "StudentDuplicateError";
+    }
+  }
+
+  return {
+    updateStudentDisplayName: mockUpdateStudentDisplayName,
+    UpdateStudentDisplayNameError,
+    StudentNotFoundError,
+    StudentDuplicateError,
   };
 });
 
@@ -687,6 +720,116 @@ describe("overrideStudentLevelAction", () => {
     );
 
     expect(result.error).toBe("Modification impossible. Réessayez.");
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateStudentDisplayNameAction", () => {
+  const studentId = "770e8400-e29b-41d4-a716-446655440002";
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects unauthenticated users to login", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+
+    const { updateStudentDisplayNameAction } = await import("./actions");
+
+    await expect(
+      updateStudentDisplayNameAction({ error: null, changed: false }, new FormData())
+    ).rejects.toThrow("NEXT_REDIRECT:/login");
+  });
+
+  it("updates the display name and revalidates affected paths", async () => {
+    mockAuthenticatedSession();
+    mockUpdateStudentDisplayName.mockResolvedValueOnce({
+      studentId,
+      displayName: "DUPONT Marie-Claire",
+      changed: true,
+    });
+
+    const { updateStudentDisplayNameAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("display_name", "DUPONT Marie-Claire");
+
+    const result = await updateStudentDisplayNameAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result).toEqual({ error: null, changed: true });
+    expect(mockUpdateStudentDisplayName).toHaveBeenCalledWith(
+      classId,
+      studentId,
+      "DUPONT Marie-Claire"
+    );
+    expect(revalidatePath).toHaveBeenCalledWith("/students", "layout");
+    expect(revalidatePath).toHaveBeenCalledWith("/students");
+    expect(revalidatePath).toHaveBeenCalledWith(`/students/${studentId}`);
+    expect(revalidatePath).toHaveBeenCalledWith("/dictations");
+    expect(revalidatePath).toHaveBeenCalledWith("/alerts");
+  });
+
+  it("returns not-found when student_id is missing", async () => {
+    mockAuthenticatedSession();
+
+    const { updateStudentDisplayNameAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("display_name", "DUPONT Marie-Claire");
+
+    const result = await updateStudentDisplayNameAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result.error).toBe(STUDENT_ARCHIVE_NOT_FOUND_ERROR);
+    expect(mockUpdateStudentDisplayName).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns validation errors from the update service", async () => {
+    mockAuthenticatedSession();
+    const { UpdateStudentDisplayNameError } = await import(
+      "@/lib/services/update-student-display-name"
+    );
+    mockUpdateStudentDisplayName.mockRejectedValueOnce(
+      new UpdateStudentDisplayNameError(STUDENT_DISPLAY_NAME_EMPTY_ERROR)
+    );
+
+    const { updateStudentDisplayNameAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("display_name", "   ");
+
+    const result = await updateStudentDisplayNameAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result).toEqual({
+      error: STUDENT_DISPLAY_NAME_EMPTY_ERROR,
+      changed: false,
+    });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("returns a generic French error for unexpected failures", async () => {
+    mockAuthenticatedSession();
+    mockUpdateStudentDisplayName.mockRejectedValueOnce(new Error("database down"));
+
+    const { updateStudentDisplayNameAction } = await import("./actions");
+    const formData = new FormData();
+    formData.set("student_id", studentId);
+    formData.set("display_name", "DUPONT Marie-Claire");
+
+    const result = await updateStudentDisplayNameAction(
+      { error: null, changed: false },
+      formData
+    );
+
+    expect(result.error).toBe(STUDENT_DISPLAY_NAME_UPDATE_GENERIC_ERROR);
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

@@ -33,6 +33,20 @@ vi.mock("./archive-student-button", () => ({
   ),
 }));
 
+vi.mock("./edit-student-name-button", () => ({
+  EditStudentNameButton: ({
+    studentId,
+    displayName,
+  }: {
+    studentId: string;
+    displayName: string;
+  }) => (
+    <button type="button" data-testid={`edit-name-button-${studentId}`}>
+      Modifier {displayName}
+    </button>
+  ),
+}));
+
 vi.mock("@/components/promotion/roster-promotion-action", () => ({
   RosterPromotionAction: ({
     studentId,
@@ -457,5 +471,45 @@ describe("RosterList", () => {
 
     expect(html).toContain('data-testid="archive-button-770e8400-e29b-41d4-a716-446655440002"');
     expect(html).toContain("Archiver DUPONT Marie");
+    expect(html).toContain('data-testid="edit-name-button-770e8400-e29b-41d4-a716-446655440002"');
+    expect(html).toContain("Modifier DUPONT Marie");
+  });
+
+  it("renders edit name buttons for active rows even when archive actions are disabled", () => {
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: "770e8400-e29b-41d4-a716-446655440002",
+            displayName: "DUPONT Marie",
+            level: "yellow",
+            archived: false,
+          },
+        ]}
+        filter="active"
+        showArchiveAction={false}
+      />
+    );
+
+    expect(html).toContain('data-testid="edit-name-button-770e8400-e29b-41d4-a716-446655440002"');
+    expect(html).not.toContain("archive-button");
+  });
+
+  it("hides edit name buttons for archived rows", () => {
+    const html = renderToStaticMarkup(
+      <RosterList
+        students={[
+          {
+            id: "770e8400-e29b-41d4-a716-446655440002",
+            displayName: "DUPONT Marie",
+            level: "yellow",
+            archived: true,
+          },
+        ]}
+        filter="archived"
+      />
+    );
+
+    expect(html).not.toContain("edit-name-button");
   });
 });
