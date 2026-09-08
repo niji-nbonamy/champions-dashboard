@@ -84,6 +84,20 @@ vi.mock("@/components/students/speech-therapy-toggle", () => ({
   ),
 }));
 
+vi.mock("./edit-student-name-button", () => ({
+  EditStudentNameButton: ({
+    studentId,
+    displayName,
+  }: {
+    studentId: string;
+    displayName: string;
+  }) => (
+    <button type="button" data-testid={`edit-name-button-${studentId}`}>
+      Modifier {displayName}
+    </button>
+  ),
+}));
+
 import StudentsPage from "./page";
 
 const teacherId = "550e8400-e29b-41d4-a716-446655440000";
